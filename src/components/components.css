@@ -1,0 +1,30 @@
+.section-two-carsContainer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 450px;
+}
+.cars-card{
+    width: 350px;
+    height: 150px;
+    margin-top: 5%;
+    margin-left: 20%;
+    background-color: #e1ff00;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: space-evenly;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.cars-card img{
+    width: 250px;
+    height: 150px;
+    image-rendering: auto;
+    cursor: pointer;
+}
+.cars-card:hover{
+    transform: scale(1.2);
+    background-color: #0b5c17;
+    transition: ease-in-out 0.5s;
+    border-radius: 30px;
+}
