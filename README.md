@@ -14,6 +14,7 @@
 
 ###
 
+
 <h2 align="left">🛠️ Tecnologías</h2>
 
 ###
@@ -31,5 +32,12 @@
   <img width="12" />
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/microsoftsqlserver/microsoftsqlserver-plain.svg" height="40" alt="microsoftsqlserver logo"  />
 </div>
+
+###
+
+<h2 align="left"> 🛠️ Integrantes </h2>
+<p align="left">Cristian Esteban Guzman Cogollo <br>C.C:1045499540<br>Kaleb Parra Marin<br>T.I:1022147253<br>Cristian Perez Mora<br>C.C:1022145750
+0
+</p>
 
 ###
