@@ -5,10 +5,7 @@ function SectionOne(){
 	return(
 	<section className="section-one">
 		<div className='section-one-div-one'> 
-			<img src={carImage} alt="Coche" />
 		</div>
-
-
 		<div className='section-one-div-two'>
 			<h2 className='section-one-div-two-h2'>BIENVENIDO A C2K AUTOS</h2>
 			<p className='section-one-div-two-p'>Tu aliado en movilidad con sabor paisa.

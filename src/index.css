@@ -166,7 +166,10 @@ margin-top: 199px;
   position: relative; /* Asegura que el contenido se posicione correctamente */
   bottom: 5px;
   right: 30px;
+  background:url('./assets/carImage.jpg');
+  background-size:cover ;
 }
+
 
 .dropdown-container {
   position: relative;
