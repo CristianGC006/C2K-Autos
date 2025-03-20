@@ -66,7 +66,7 @@
     border: none;
     outline: none;
     font-size: 1rem;
-    color: #b0b0b0; /* Color gris */
+    color: #000000; 
   }
   .autocomplete {
     position: relative;
@@ -102,5 +102,121 @@
     border: 5px solid #ffde59;
     border-radius: 20px;
     height: 60px;
+    cursor: pointer;
     width: 300px;
+  }
+
+  .section-three {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding:50px ;
+    width: 100%;
+    background-color: #014421; /* Fondo verde oscuro */
+    margin-top: 2%;
+  }
+  
+  .card {
+    background-color: #ffde59; /* Fondo amarillo */
+    border-radius: 20px;
+    padding: 20px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+  
+  .card-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .card-image {
+    width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+  }
+  
+  .card-description {
+    font-size: 1rem;
+    color: #ffffff;
+    font-weight: bold;
+  }
+  .footer-main{
+    width: 100%;
+  }
+
+  .footer {
+    border-top: 10px solid #ffffff;
+    background-color:rgb(0, 0, 0); /* Fondo verde oscuro */
+    color: #014421;
+    width: 100%;
+    padding: 20px 0;
+    text-align: center;
+  }
+  
+  .footer-content {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 20px;
+  }
+  
+  .footer-section {
+    flex: 1;
+    margin: 10px;
+  }
+  
+  .footer-section h3 {
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+  }
+  
+  .footer-section p, .footer-section ul {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  
+  .footer-section ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .footer-section ul li {
+    margin-bottom: 10px;
+  }
+  
+  .footer-section ul li a {
+    color: #ffffff;
+    text-decoration: none;
+  }
+  
+  .footer-section ul li a:hover {
+    text-decoration: underline;
+  }
+  
+  .social-icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .social-icons a {
+    color: #ffffff;
+    font-size: 1.5rem;
+    margin: 0 10px;
+    text-decoration: none;
+  }
+  
+  .footer-bottom {
+    background-color:#014421; /* Fondo verde más oscuro */
+    padding: 10px 0;
+    color: white;
+    font-size: 1rem;
   }
