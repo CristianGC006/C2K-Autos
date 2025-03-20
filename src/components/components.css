@@ -1,3 +1,8 @@
+.cars-main{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
 .section-two-carsContainer{
     display: flex;
     justify-content: center;
@@ -28,3 +33,74 @@
     transition: ease-in-out 0.5s;
     border-radius: 30px;
 }
+.search-bar{
+    display: flex;
+    justify-content: center;
+    align-items:space-around;
+    margin-top: 5%;
+    border: solid 5px #ffde59;
+    padding: 10px 15px;
+    width: 90%;
+}
+.multi-functional-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 5px solid #ffde59; /* Color amarillo */
+    border-radius: 10px;
+    padding: 10px;
+    margin: 5px;
+    background-color: white;
+  }
+  
+  .multi-functional-button .icon {
+    margin-right: 10px;
+    color: #ffde59; /* Color amarillo */
+  }
+  
+  .multi-functional-button .label {
+    display: none;
+  }
+  
+  .multi-functional-button input {
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    color: #b0b0b0; /* Color gris */
+  }
+  .autocomplete {
+    position: relative;
+  }
+  
+  .autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 1000;
+  }
+  
+  .autocomplete-list li {
+    padding: 10px;
+    cursor: pointer;
+  }
+  
+  .autocomplete-list li:hover {
+    background-color: #f0f0f0;
+  }
+  .search-button{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #0b5c17;
+    color: white;
+    border: 5px solid #ffde59;
+    border-radius: 20px;
+    height: 60px;
+    width: 300px;
+  }
