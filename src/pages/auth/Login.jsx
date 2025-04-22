@@ -1,6 +1,8 @@
-import React from 'react';
-import './Login.css';
+import React, { useState } from 'react';
+import './Login.css'; 
 const Login = () => {
+  const[email, setEmail,] = useState("");
+  const[password, setPassword] = useState("");
   return (   
       <div className="wrapper">
         <div className="card-switch">
@@ -12,8 +14,8 @@ const Login = () => {
               <div className="flip-card__front">
                 <div className="title">Log in</div>
                 <form className="flip-card__form" action>
-                  <input className="flip-card__input" name="email" placeholder="Email" type="email" />
-                  <input className="flip-card__input" name="password" placeholder="Password" type="password" />
+                  <input onChange={(e) => setEmail(e.target.value)} className="flip-card__input" name="email" placeholder="Email" type="email" />
+                  <input onChange={(e) => setPassword(e.target.value)} className="flip-card__input" name="password" placeholder="Password" type="password" />
                   <button className="flip-card__btn">Let`s go!</button>
                 </form>
               </div>
@@ -32,6 +34,4 @@ const Login = () => {
       </div>
   );
 }
-
-/* burritas barbaras */ 
 export default Login;

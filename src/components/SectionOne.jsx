@@ -18,7 +18,7 @@ function SectionOne() {
             flexibilidad y estilo
           </p>
           <div className="vehicle-button-section">
-            <ButtonMain ContentButton={"Registrate"} />
+            <ButtonMain  ContentButton={"Registrate"} />
           </div>
         </div>
       </section>
