@@ -1,4 +1,5 @@
 import React from 'react';
+import './Login.css';
 const Login = () => {
   return (   
       <div className="wrapper">
@@ -31,4 +32,6 @@ const Login = () => {
       </div>
   );
 }
+
+/* burritas barbaras */ 
 export default Login;
