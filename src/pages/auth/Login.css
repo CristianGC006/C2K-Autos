@@ -6,9 +6,11 @@
     --bg-color: #fff;
     --bg-color-alt: #666;
     --main-color: #323232;
-      /* display: flex; */
-      /* flex-direction: column; */
-      /* align-items: center; */
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      height: 100vh;
+      justify-content: center;
   }
   /* switch card */
   .switch {
