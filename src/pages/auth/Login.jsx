@@ -1,13 +1,28 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Login.css'; 
 const Login = () => {
 
-  const[getEmail, setEmail,] = useState("");
-  const[getPassword, setPassword] = useState("");
+
+  const[getEmail, setEmail,] = useState("")
+  const[getPassword, setPassword] = useState("")
+  // const[customers, setCustomers] = useState([])
+
+  let redirectLogin = useNavigate()
+
+  // function getCustomers() {
+  //   fetch("http://localhost:3050/customer")
+  //   .then(response => response.json())
+  //   .then(data => setCustomers(data))
+  //   }
+  // }
+  // getCustomers()
+  // console.log(customers)
+
 
 function iniciarSesion(email, password){
   if (email == "test@correo.com" && password == "1234") {
-    alert ("venido")
+    redirectLogin("")
   } else {
     alert ("error de credenciales")
   }
