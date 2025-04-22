@@ -22,7 +22,7 @@ export default function Header() {
                     <a href="#">¿Dónde estamos?</a>
                 </li>
                 <li className="user-container">
-                    <Link to="../">Iniciar sesión</Link>
+                    <Link to="/Login">Iniciar sesión</Link>
                     <img className="img-user" src={UserNavImg} alt="User" />
                 </li>
             </ul>  
