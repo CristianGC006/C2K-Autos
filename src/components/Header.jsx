@@ -4,6 +4,7 @@ import ButtonCatalog from "./ButtonCatalog";
 import ButtonMain from "./ButtonMain";
 import SectionOne from "./SectionOne";
 import '../index.css';
+import { Link } from "react-router-dom";
 export default function Header() {
     return(
         <header className="header">
@@ -21,7 +22,7 @@ export default function Header() {
                     <a href="#">¿Dónde estamos?</a>
                 </li>
                 <li className="user-container">
-                    <a href="#">Iniciar sesión</a>
+                    <Link to="../">Iniciar sesión</Link>
                     <img className="img-user" src={UserNavImg} alt="User" />
                 </li>
             </ul>  
