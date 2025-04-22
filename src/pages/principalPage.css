@@ -111,7 +111,7 @@
   z-index: 1;
 }
 .section-one-containerImg {
-  background: url('./assets/carImage.jpg');
+  background: url('../assets/carImage.jpg');
   background-size: cover; /* Ajusta el tamaño de la imagen de fondo */
   background-position: center; /* Centra la imagen de fondo */
   width: 41%; /* Ajusta el ancho del div */
