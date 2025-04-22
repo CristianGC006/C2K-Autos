@@ -1,8 +1,19 @@
 import React, { useState } from 'react';
 import './Login.css'; 
 const Login = () => {
-  const[email, setEmail,] = useState("");
-  const[password, setPassword] = useState("");
+
+  const[getEmail, setEmail,] = useState("");
+  const[getPassword, setPassword] = useState("");
+
+function iniciarSesion(email, password){
+  if (email == "test@correo.com" && password == "1234") {
+    alert ("venido")
+  } else {
+    alert ("error de credenciales")
+  }
+
+}
+
   return (   
       <div className="wrapper">
         <div className="card-switch">
@@ -16,7 +27,7 @@ const Login = () => {
                 <form className="flip-card__form" action>
                   <input onChange={(e) => setEmail(e.target.value)} className="flip-card__input" name="email" placeholder="Email" type="email" />
                   <input onChange={(e) => setPassword(e.target.value)} className="flip-card__input" name="password" placeholder="Password" type="password" />
-                  <button className="flip-card__btn">Let`s go!</button>
+                  <button  onClick={() => iniciarSesion(getEmail, getPassword)} type='button' className="flip-card__btn">Let`s go!</button>
                 </form>
               </div>
               <div className="flip-card__back">
