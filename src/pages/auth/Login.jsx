@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
+import { genericAlert,
+  generateToken,
+  redirectionAlert
+ } from "../../helpers/functions"
 import { useNavigate } from 'react-router-dom';
+
 import './Login.css'; 
 const Login = () => {
 
@@ -20,11 +25,18 @@ const Login = () => {
   // console.log(customers)
 
 
-function iniciarSesion(email, password){
+function logIn(email, password){
   if (email == "test@correo.com" && password == "1234") {
-    redirectLogin("")
+
+    let accessToken = generateToken();
+    localStorage.setItem("Token", accessToken);
+    redirectionAlert( redirectLogin, 
+      "Bienvenido", 
+      "Redirigiendo...", 
+      "success", 
+      "")
   } else {
-    alert ("error de credenciales")
+    genericAlert("Error", "Usuario o contraseña incorrectos", "error")
   }
 
 }
@@ -42,7 +54,7 @@ function iniciarSesion(email, password){
                 <form className="flip-card__form" action>
                   <input onChange={(e) => setEmail(e.target.value)} className="flip-card__input" name="email" placeholder="Email" type="email" />
                   <input onChange={(e) => setPassword(e.target.value)} className="flip-card__input" name="password" placeholder="Password" type="password" />
-                  <button  onClick={() => iniciarSesion(getEmail, getPassword)} type='button' className="flip-card__btn">Let`s go!</button>
+                  <button  onClick={() => logIn(getEmail, getPassword)} type='button' className="flip-card__btn">Let`s go!</button>
                 </form>
               </div>
               <div className="flip-card__back">
