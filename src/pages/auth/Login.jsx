@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { genericAlert,
   generateToken,
   redirectionAlert
  } from "../../helpers/functions"
 import { useNavigate } from 'react-router-dom';
+
+let urlCustomers = "https://fakeapic2k.onrender.com/Customers"
 
 import './Login.css'; 
 const Login = () => {
@@ -11,18 +13,20 @@ const Login = () => {
 
   const[getEmail, setEmail,] = useState("")
   const[getPassword, setPassword] = useState("")
-  // const[customers, setCustomers] = useState([])
+  const[customers, setCustomers] = useState([])
 
   let redirectLogin = useNavigate()
 
-  // function getCustomers() {
-  //   fetch("http://localhost:3050/customer")
-  //   .then(response => response.json())
-  //   .then(data => setCustomers(data))
-  //   }
-  // }
-  // getCustomers()
-  // console.log(customers)
+   function getCustomers() {
+     fetch("https://fakeapic2k.onrender.com/Customers")
+     .then(response => response.json())
+     .then(data => setCustomers(data))
+     }
+   useEffect(() => {
+     getCustomers()
+   }, [])
+
+   console.log(customers)
 
 
 function logIn(email, password){
