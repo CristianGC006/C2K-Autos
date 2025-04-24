@@ -7,7 +7,7 @@ function SectionOne() {
     <>
       <div className="container-buttons">
         <ButtonCatalog />
-        <ButtonVehicle ContentButton={"Alquila ahora"}/>  
+        <ButtonVehicle type={"Registro"} ContentButton={"Alquila ahora"}/>  
       </div>
       <section className="section-one">
         <div className="section-one-containerImg"></div>
