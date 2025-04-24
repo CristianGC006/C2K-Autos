@@ -7,7 +7,7 @@ function SectionOne() {
     <>
       <div className="container-buttons">
         <ButtonCatalog />
-        <ButtonVehicle type={"Registro"} ContentButton={"Alquila ahora"}/>  
+        <ButtonVehicle Type={"Alquila ahora"} ContentButton={"Alquila ahora"}/>  
       </div>
       <section className="section-one">
         <div className="section-one-containerImg"></div>
@@ -18,7 +18,7 @@ function SectionOne() {
             flexibilidad y estilo
           </p>
           <div className="vehicle-button-section">
-            <ButtonMain  ContentButton={"Registrate"} />
+            <ButtonMain  ContentButton={"Registrate"} Type={"Registrate"} />
           </div>
         </div>
       </section>

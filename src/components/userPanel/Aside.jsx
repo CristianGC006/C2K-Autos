@@ -7,8 +7,8 @@ const Aside = () => {
   let customer = JSON.parse(localStorage.getItem("customer"))
   
   function logOut() {
-    localStorage.removeItem("token")
-    localStorage.removeItem("customer")
+    localStorage.removeItem("Token")
+    localStorage.removeItem("User")
     redirectionAlert(redirection,"C2K", "Hasta luego, vuelva pronto", "info", "/")
   }
   return (

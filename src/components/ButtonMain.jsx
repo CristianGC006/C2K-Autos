@@ -1,22 +1,20 @@
 //Estilo de boton
-import { BrowserRouter, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+
+
 export default function ButtonVehicle({ContentButton,Type}) {
-//Con el operador ternario se determina si el boton es de registro o de alquiler
+ let navigate = useNavigate()
+ console.log(Type);
     if (Type === "Registrate") {
       return (
-        <div className="button-vehicle">
-          <Link to="/login">
+        <div onClick={() => navigate("/Login")} className="button-vehicle">
             <h3 className="content">{ContentButton}</h3>
-          </Link>
         </div>
-        //usenavigate
       );
     } else {
       return (
-        <div className="button-vehicle">
-          <Link to="/Alquiler">
+        <div onClick={() => navigate("/Rental")} className="button-vehicle">
             <h3 className="content">{ContentButton}</h3>
-          </Link>
         </div>
       );
     }

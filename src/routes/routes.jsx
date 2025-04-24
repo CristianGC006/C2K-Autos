@@ -1,11 +1,13 @@
+import ProtectedRoute from "../components/ProtectedRoute";
 import PrincipalPage from "../pages/PrincipalPage";
 import UserHome from "../pages/UserHome";
 import Login from "../pages/auth/Login";
+import Rental from "../pages/Rental";
 /*Creacion de rutas*/
 export let routes = [
     {
         path: "/",
-        element:<PrincipalPage security={<UserHome/>}/>,
+        element:<PrincipalPage />,
     },
     {
         path: "/login",
@@ -13,6 +15,10 @@ export let routes = [
     },
     {
         path:"/userHome",
-        element:<UserHome security={<PrincipalPage/>}/>
+        element:<ProtectedRoute security={<UserHome />} />
+    },
+    {
+        path:"/Rental",
+        element:<Rental/>
     }
 ]
