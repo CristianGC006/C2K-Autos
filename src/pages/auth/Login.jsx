@@ -18,7 +18,7 @@ const Login = () => {
   let redirectLogin = useNavigate()
 
    function getCustomers() {
-     fetch("https://fakeapic2k.onrender.com/Customers")
+     fetch(urlCustomers)
      .then(response => response.json())
      .then(data => setCustomers(data))
      }
