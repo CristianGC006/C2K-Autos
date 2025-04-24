@@ -26,14 +26,19 @@ const Login = () => {
      getCustomers()
    }, [])
 
-   console.log(customers)
+   function getCustomer(){
+      let customer=customers.find((item) => item.email == getEmail && item.password == getPassword)
+      return customer
+   }
 
 
-function logIn(email, password){
-  if (email == "test@correo.com" && password == "1234") {
-
+function logIn(){
+  if (getCustomer()) {
     let accessToken = generateToken();
-    localStorage.setItem("Token", accessToken);
+    localStorage.setItem("Token", JSON.stringify(accessToken));
+    localStorage.setItem("User", JSON.stringify(getCustomer()));
+
+    console.log("User logged in:", getCustomer());
     redirectionAlert( redirectLogin, 
       "Bienvenido", 
       "Redirigiendo...", 
