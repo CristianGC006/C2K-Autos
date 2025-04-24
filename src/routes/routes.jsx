@@ -9,5 +9,6 @@ export let routes = [
     {
         path: "/login",
         element:<Login/>
-    }
+    },
+    //ruta de la pagina panel de usuario don de se pueda visualizar las rentas
 ]

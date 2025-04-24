@@ -5,7 +5,7 @@ import { genericAlert,
  } from "../../helpers/functions"
 import { useNavigate } from 'react-router-dom';
 
-let urlCustomers = "https://fakeapic2k.onrender.com/Customers"
+let urlCustomers = "https://fakeapic2k.onrender.com/Customers";
 
 import './Login.css'; 
 const Login = () => {
