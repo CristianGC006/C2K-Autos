@@ -1,14 +1,18 @@
 import PrincipalPage from "../pages/PrincipalPage";
+import UserHome from "../pages/UserHome";
 import Login from "../pages/auth/Login";
 /*Creacion de rutas*/
 export let routes = [
     {
         path: "/",
-        element:<PrincipalPage/>,
+        element:<PrincipalPage security={<UserHome/>}/>,
     },
     {
         path: "/login",
         element:<Login/>
     },
-    //ruta de la pagina panel de usuario don de se pueda visualizar las rentas
+    {
+        path:"/userHome",
+        element:<UserHome security={<PrincipalPage/>}/>
+    }
 ]

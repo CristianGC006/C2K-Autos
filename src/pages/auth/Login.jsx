@@ -37,13 +37,11 @@ function logIn(){
     let accessToken = generateToken();
     localStorage.setItem("Token", JSON.stringify(accessToken));
     localStorage.setItem("User", JSON.stringify(getCustomer()));
-
-    console.log("User logged in:", getCustomer());
     redirectionAlert( redirectLogin, 
       "Bienvenido", 
       "Redirigiendo...", 
       "success", 
-      "")
+      "/userHome")
   } else {
     genericAlert("Error", "Usuario o contraseña incorrectos", "error")
   }
@@ -63,7 +61,7 @@ function logIn(){
                 <form className="flip-card__form" action>
                   <input onChange={(e) => setEmail(e.target.value)} className="flip-card__input" name="email" placeholder="Email" type="email" />
                   <input onChange={(e) => setPassword(e.target.value)} className="flip-card__input" name="password" placeholder="Password" type="password" />
-                  <button  onClick={() => logIn(getEmail, getPassword)} type='button' className="flip-card__btn">Let`s go!</button>
+                  <button onClick={logIn} type='button' className="flip-card__btn">Let`s go!</button>
                 </form>
               </div>
               <div className="flip-card__back">
