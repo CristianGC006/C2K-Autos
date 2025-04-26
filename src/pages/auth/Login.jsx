@@ -7,6 +7,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import Logo from "../../assets/C2K-LogoNoBackground.png";
 import ButtonForm from "../../components/ButtonForm";
+import { moveToLogin } from "../../helpers/functions";
 
 let urlCustomers = "https://fakeapic2k.onrender.com/Customers";
 import Header from "../../components/Header";
@@ -53,10 +54,16 @@ const Login = () => {
     }
   }
 
+  const [showLoginForm, setShowLoginForm] = useState(false);
+
+  const toggleForms = () => {
+    setShowLoginForm(!showLoginForm);
+  };
+
   return (
     <div className="container">
     <section className="container_form">
-      <form className="login_form" action>
+      <form className="login_form" action style={{ display: showLoginForm ? "none" : "flex" }}>
 
         <div className="logo_login">
           <img src={Logo} alt="LogoC2K" />
@@ -79,7 +86,7 @@ const Login = () => {
         <ButtonForm content="Iniciar Sesión" onClick={logIn} />
       </form>
       
-      <form className="register_form" action>
+      <form className="register_form" action style={{ display: showLoginForm ? "grid" : "none" }}>
         <section className="form_register_left">
           <div className="div_register">
             <input
@@ -176,8 +183,21 @@ const Login = () => {
           </div>
         </section>
       </form>
+
+
+
+      <ButtonForm content="Registrarse" onClick={"."} />
+
+
+
+    
         
     </section>
+
+    <section className="container_link">
+<p> Atención recuerda los datos ingresados van a ser importantes para completar tu registro</p>
+<p onClick={toggleForms} className= "form_link" >  ¿YA TIENES CUENTA? </p>
+</section>
     </div>
   );
 };

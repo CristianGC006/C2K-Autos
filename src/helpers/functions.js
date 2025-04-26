@@ -36,3 +36,8 @@ export function genericAlert(tittle, messaje, icon){
         icon: icon,
     })
 }
+
+export function moveToLogin(){
+    document.getElementById(".form_link").style.display = "none";
+    document.getElementById(".form_login").style.display = "grid";
+}

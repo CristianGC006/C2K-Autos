@@ -1,10 +1,19 @@
-.container_form {
+.container {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   width: 100%;
   height: 100vh;
+}
+
+.container_form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  height: 80%;
 }
 
 .login_form {
@@ -60,9 +69,9 @@
 .register_form {
   width: 100%;
   max-width: 1000px;
-  height: 60%; /* Limitar el ancho máximo */
+  height: 80%; /* Limitar el ancho máximo */
   margin: 0 auto; /* Centrar el formulario */
-  display:none;
+  display:grid;
   grid-template-columns: repeat(2, 1fr); /* Dos columnas iguales */
   gap: 40px; /* Espaciado entre los campos */
   justify-content: space-between;
@@ -91,3 +100,33 @@
   border-bottom: 1px solid #000; /* Línea inferior como los inputs */
   padding: 5px 10px;
 }
+
+.container_link {
+  max-width: 1000px;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 40%;
+  
+}
+
+.container_link p {
+font-weight: bolder  ;  
+font-size: 15px;
+
+}
+
+.form_link {
+  width: 23%;
+  text-decoration: underline;
+
+
+}
+
+.form_link:hover {
+  color: #ffb800;
+  cursor: pointer;
+  transition: all 0.6s ease-in-out;
+}
+
