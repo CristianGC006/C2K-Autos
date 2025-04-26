@@ -54,17 +54,22 @@ const Login = () => {
 
   const [showLoginForm, setShowLoginForm] = useState(false);
 const [showContainerLink, setShowContainerLink] = useState(true);
+const [isTransitioning, setIsTransitioning] = useState(false); // Nuevo estado para manejar la transición
 
 const toggleForms = () => {
-  setShowLoginForm(!showLoginForm);
-  setShowContainerLink(!showContainerLink);
+  setIsTransitioning(true); // Activar la transición
+  setTimeout(() => {
+    setShowLoginForm(!showLoginForm); // Cambiar el formulario después de la animación
+    setShowContainerLink(!showContainerLink);
+    setIsTransitioning(false); // Desactivar la transición
+  }, 500); // Duración de la animación en milisegundos
 };
 
   return (
     <div className="container">
       <section className="container_form">
         <form
-          className="login_form"
+          className={`login_form ${isTransitioning ? "fade-out" : "fade-in"}`}
           action
           style={{ display: showLoginForm ? "none" : "flex" }}
         >
@@ -86,7 +91,7 @@ const toggleForms = () => {
             placeholder="Contraseña"
             type="password"
           />
-          <ButtonForm content="Iniciar Sesión" onClick={logIn} />
+          <ButtonForm content="Iniciar Sesión" onClick={logIn} disabled={isTransitioning} />
           <section className="container_link_login">
           <p className="form_link_login" onClick={toggleForms}>
             ¿No tienes cuenta?{" "}
@@ -95,7 +100,7 @@ const toggleForms = () => {
           </section>
         </form>
         <form
-          className="register_form"
+          className={`register_form ${isTransitioning ? "fade-out" : "fade-in"}`}
           action
           style={{ display: showLoginForm ? "grid" : "none" }}
         >
@@ -198,7 +203,7 @@ const toggleForms = () => {
           </section>
         </form>
       {showLoginForm && (
-          <ButtonForm content="Registrarse" onClick={"."} />
+          <ButtonForm content="Registrarse" onClick={"."} disabled={isTransitioning} />
         )}
       </section>
       {showLoginForm && (

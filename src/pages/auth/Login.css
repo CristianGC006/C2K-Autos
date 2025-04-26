@@ -40,11 +40,12 @@
 
 .logo_login img {
   position: absolute;
-  top: 2%;
+  top:0%;
   left: 50%;
-  transform: translateX(-50%);
-  width: 20%;
-  height: 30%;
+  transform: translateX(-50%)
+  translateY(-50%);
+  width: 30%;
+  height: 40%;
   border-radius: 50%;
   image-resolution: from-image;
 }
@@ -170,4 +171,29 @@ font-size: 15px;
   cursor: pointer;
   transition: all 0.6s ease-in-out;
 }
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeIn 0.5s forwards;
+}
 
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación de salida */
+.fade-out {
+  opacity: 1;
+  transform: translateY(0);
+  animation: fadeOut 0.5s forwards;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
