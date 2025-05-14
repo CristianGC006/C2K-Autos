@@ -15,8 +15,8 @@ export default function Header() {
                 <li>
                     <a href="#">Solicitar Vehículo</a>
                 </li>
-                <li>
-                    <a href="#">¿Quiénes somos?</a>
+                <li className="user-container">
+                <Link to="/Info">¿Quienes Somos?</Link>
                 </li>
                 <li>
                     <a href="#">¿Dónde estamos?</a>

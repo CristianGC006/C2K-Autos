@@ -3,6 +3,7 @@ import PrincipalPage from "../pages/PrincipalPage";
 import UserHome from "../pages/UserHome";
 import Login from "../pages/auth/Login";
 import Rental from "../pages/Rental";
+import Info from "../pages/Info";
 /*Creacion de rutas*/
 export let routes = [
     {
@@ -20,5 +21,9 @@ export let routes = [
     {
         path:"/Rental",
         element:<Rental/>
+    },
+    {
+        path: "/Info",
+        element: <Info/>
     }
 ]
