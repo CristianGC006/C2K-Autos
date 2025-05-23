@@ -25,7 +25,7 @@ function Info() {
 
   return (
     <div className="info-container">
-      <h1 className="info-title">Quienes Somos</h1>
+      <h1 className="info-title" >Quienes Somos</h1>
       
       <div className="accordion">
         {accordionData.map((item, index) => (

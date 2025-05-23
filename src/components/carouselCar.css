@@ -1,0 +1,35 @@
+/* Estilos para el carrusel */
+.bg-yellow-500 {
+  background-color: #f59e0b;
+}
+
+.bg-green-700 {
+  background-color: #15803d;
+}
+
+.bg-gray-300 {
+  background-color: #f59e0b;
+}
+
+.rounded-3xl {
+  border-radius: 1.5rem;
+}
+
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Estilos para los botones */
+.rounded-full {
+  border-radius: 9999px;
+}
+
+.bg-black\/50 {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+div img{
+    max-width: 350px;
+    max-height: 350px;
+    margin: auto
+}

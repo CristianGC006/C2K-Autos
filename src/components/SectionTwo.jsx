@@ -1,18 +1,47 @@
 import './components.css';
 import carsCamaro from '../assets/carsCamaro.png'
 import carsCharger from '../assets/carsCharger.png'
-import CarsCard from './CarsCard';
+import carsAudi from '../assets/carsAudi.jpg'
+import CarouselCars from './CarouselCars';
 import MultiFunctionalButton from './MultiFunctionalButton';
 import MultiFunctionalButtonV2 from './MultiFunctionalButtonV2';
+
 function SectionTwo(){
+    // Datos de ejemplo para el carrusel
+    const carsData = [
+        {
+            id: 1,
+            name: 'Chevrolet Camaro',
+            image: carsAudi,
+            type: 'Deportivo',
+            year: '2023',
+            Color: 'Amarillo',
+            Plate: 'ABC123'
+        },
+        {
+            id: 2,
+            name: 'Chevrolet Camaro',
+            image: carsCamaro,
+            type: 'Deportivo',
+            year: '2023',
+            Color: 'Amarillo',
+            Plate: 'DEF456'
+        },
+        {
+            id: 3,
+            name: 'Dodge Charger',
+            image: carsCharger,
+            type: 'Deportivo',
+            year: '2023',
+            Color: 'Negro',
+            Plate: 'GHI789'
+        }
+    ];
+
     return(
         <>
         <section className='cars-main'>
-        <div className='section-two-carsContainer'>
-            <CarsCard carImg={carsCamaro} />
-            <CarsCard carImg={carsCamaro} />
-            <CarsCard carImg={carsCharger} />
-        </div>
+            <CarouselCars cars={carsData} />
         </section>
         <section className='search-bar'>
             <MultiFunctionalButton type='input' label={"Escribe tu lugar de recogida"}/>
@@ -22,6 +51,6 @@ function SectionTwo(){
         </section>
         </>
     )
-
 }
+
 export default SectionTwo;
