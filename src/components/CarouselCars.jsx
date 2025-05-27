@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 const CarouselCars = ({ cars }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const totalCars = cars.length;
@@ -51,24 +51,24 @@ const CarouselCars = ({ cars }) => {
       };
     }
     return {
-      backgroundColor: '#f59e0b', // Gris
+      backgroundColor: '#f59e0b', 
       borderRadius: '1.5rem',
       padding: '0.5rem',
       boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
     };
   };
-
+  let navigate=useNavigate();
   return (
-    <div style={{ position: 'relative', width: '100%', overflow: 'hidden', paddingTop: '2.5rem', paddingBottom: '2.5rem' }}>
+    <div style={{ position: 'relative', width: '100%', overflow: 'hidden', paddingTop: '2.5rem', paddingBottom: '2.5rem',  }}>
       {/* Botón izquierdo */}
       <button 
         onClick={prevSlide}
         style={{
           position: 'absolute',
-          left: '0.5rem',
+          left: '0.3rem',
           top: '50%',
           transform: 'translateY(-50%)',
-          zIndex: 10,
+          zIndex: 15,
           backgroundColor: 'rgba(0, 0, 0, 0.5)',
           color: 'white',
           padding: '0.5rem',
@@ -79,14 +79,14 @@ const CarouselCars = ({ cars }) => {
       </button>
       
       {/* Contenedor del carrusel */}
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2rem', padding: '0 1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '3rem', padding: '0 1rem' }}>
         {visibleIndices.map((index, i) => (
           <div 
             key={index}
             style={{
               width: i === 1 ? '20rem' : '14rem',
               zIndex: i === 1 ? 20 : 10,
-              opacity: i === 1 ? 1 : 0.9,
+              opacity: i === 1 ? 1 : 0.7,
               transition: 'all 0.3s ease-in-out'
             }}
           >
@@ -98,6 +98,9 @@ const CarouselCars = ({ cars }) => {
               }}
             >
               <img 
+                onClick={() => {
+                  navigate("/rental");
+                } }
                 src={cars[index].image} 
                 alt={cars[index].name}
                 style={{ width: '100%', objectFit: 'contain', height: '12rem' }}
@@ -110,18 +113,20 @@ const CarouselCars = ({ cars }) => {
         ))}
       </div>
       
-      {/* Botón derecho */}
+      {
+
+      }
       <button 
         onClick={nextSlide}
         style={{
           position: 'absolute',
-          right: '0.5rem',
+          right: '0.3rem',
           top: '50%',
           transform: 'translateY(-50%)',
           zIndex: 10,
           backgroundColor: 'rgba(0, 0, 0, 0.5)',
           color: 'white',
-          padding: '0.5rem',
+          padding: '0.6rem',
           borderRadius: '9999px'
         }}
       >
