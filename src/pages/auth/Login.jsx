@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import Logo from "../../assets/C2K-LogoNoBackground.png";
 import ButtonForm from "../../components/ButtonForm";
 
-let urlCustomers = "https://fakeapic2k.onrender.com/Customers";
+let urlCustomers = "http://localhost:8080/customer";
 import Header from "../../components/Header";
 import "./Login.css";
 
@@ -27,6 +27,7 @@ const Login = () => {
   useEffect(() => {
     getCustomers();
   }, []);
+
 
   function getCustomer() {
     let customer = customers.find(
@@ -49,6 +50,7 @@ const Login = () => {
       );
     } else {
       genericAlert("Error", "Usuario o contraseña incorrectos", "error");
+      
     }
   }
 
