@@ -105,20 +105,20 @@
 .section-one {
   display: inline-flex;
   background-color: #014421; /* Verde oscuro */
-  height: 300px;
+  height: 400px;
   width: 100%;
   color: white;
   z-index: 1;
 }
 .section-one-containerImg {
   background: url('../assets/carImage.jpg');
-  background-size: cover; /* Ajusta el tamaño de la imagen de fondo */
-  background-position: center; /* Centra la imagen de fondo */
-  width: 41%; /* Ajusta el ancho del div */
-  height: 100%; /* Ajusta la altura del div */
+  background-size: cover; 
+  background-position: center; 
+  width: 41%; 
+  height: 100%;
   border-bottom-right-radius: 100%; /* Crea la forma de cuarto de círculo */
-  overflow: hidden; /* Oculta el contenido que se sale del borde */
-  position: relative; /* Asegura que el contenido se posicione correctamente */
+  overflow: hidden; 
+  position: relative; 
   top: 0;
   left: 0;
   background-repeat: no-repeat;
@@ -129,7 +129,7 @@
 
 /* Contenedor del texto */
 .section-one-containerText {
-  width: 50%;
+  width: 60%;
   height: 50%;
   margin-top: 2%;
   display: flex;
@@ -140,7 +140,7 @@
 
 /* Estilos para el título */
 .section-one-containerText h2 {
-  font-size: 40px;
+  font-size: 50px;
   font-family: "Big Shoulders", sans-serif;
   text-shadow: 2px 2px 15px rgb(246, 246, 246);
 }
@@ -148,7 +148,7 @@
 .section-one-containerText p {
   margin-top: 10px;
   font-weight: bold;
-  width: 70%;
+  width: 50%;
   font-size: 1.1rem;
   
 }
@@ -174,8 +174,8 @@
 }
 
 .gradient-button:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.992);
+  transform: translateY(-1px);
+  
 }
 
 .dropdown-menu {
