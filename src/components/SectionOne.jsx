@@ -1,8 +1,9 @@
 import ButtonMain from "./ButtonMain";
 import ButtonCatalog from "./ButtonCatalog";
-import "../index.css";
+import "../pages/principalPage.css";
 import ButtonVehicle from "./ButtonMain";
 function SectionOne() {
+
   return (
     <>
       <div className="container-buttons">
@@ -11,6 +12,7 @@ function SectionOne() {
       </div>
       <section className="section-one">
         <div className="section-one-containerImg"></div>
+          
         <div className="section-one-containerText">
         <h2 className="section-one-div-two-h2">BIENVENIDO A C2K AUTOS</h2>
           <p className="section-one-div-two-p">

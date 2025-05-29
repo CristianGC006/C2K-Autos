@@ -1,0 +1,81 @@
+.header{
+  height: 90px;
+  width: 100%;
+}
+.logo{
+  width: 200px;
+  height: 180px;
+}
+.img-user{
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+.img-user:hover{
+  transform: scale(1.2);
+  transition: ease-in-out 0.5s;
+
+}
+.nav-bar{
+  height: 130px;
+  width: 100%;
+  background-color: #044b35;
+  border-bottom-left-radius: 60px;
+  border-bottom-right-radius: 60px;
+  display: flex;
+  
+  align-items: center;
+}
+.nav-list{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  color: white;
+}
+.nav-list li{
+  text-decoration: none;
+  color: white;
+  width: 90%;
+  height: 20%;
+  display: flex;
+  justify-content:space-between;
+  align-self:center;
+}
+.nav-list li a{
+  text-decoration: none;
+  color: white;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 16px;
+  position: relative;
+  font-weight: bold;
+}
+
+.user-container-login{
+   margin-right: 5%;
+}
+
+.nav-list a::after, .nav-list a::before{
+    content: "";
+    position: absolute;
+    bottom: -5px; 
+    left: 1;
+    width: 45%;
+    height: 3px; /* Grosor de la línea */
+    background-color: #ffffff; /* Color de la línea */
+    transform: scaleX(0);
+    transition: transform 0.3s ease-in-out;
+}
+.nav-list a:hover::after{
+    transform: scaleX(1.2);
+    color: #ffde59;
+}
+
+
+
+

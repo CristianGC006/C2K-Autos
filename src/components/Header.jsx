@@ -1,11 +1,9 @@
 import C2KLogoNoBackground from "../assets/C2K-LogoNoBackground.png";
 import UserNavImg from "../assets/UserNavImg.png";
-import ButtonCatalog from "./ButtonCatalog";
-import ButtonMain from "./ButtonMain";
-import SectionOne from "./SectionOne";
-import '../index.css';
-import { Link } from "react-router-dom";
+import './header.css';
+import { Link, useNavigate } from "react-router-dom";
 export default function Header() {
+    const navigate = useNavigate();
     return(
         <header className="header">
         <nav className="nav-bar">
@@ -21,9 +19,9 @@ export default function Header() {
                 <li>
                     <a href="#">¿Dónde estamos?</a>
                 </li>
-                <li className="user-container">
+                <li className="user-container-login">
                     <Link to="/Login">Iniciar sesión</Link>
-                    <img className="img-user" src={UserNavImg} alt="User" />
+                    <img className="img-user" src={UserNavImg} alt="User" onClick={() => navigate("/Login")}/>
                 </li>
             </ul>  
         </nav>
