@@ -1,4 +1,4 @@
-
+import './panel.css';
 function Panel(){
     return (
       <section className="aplicacion__informacion">

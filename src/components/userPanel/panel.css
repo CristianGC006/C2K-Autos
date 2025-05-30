@@ -1,0 +1,73 @@
+
+  
+  .aplicacion__contenido {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 80%;
+    height: auto;
+    min-height: 100vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: column;
+    z-index: 2;
+  }
+  
+  .aplicacion__contenido-fondo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.6);
+    transition: background-color 0.3s ease-in-out;
+    z-index: -1;
+  }
+  
+  .aplicacion__principal {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: column;
+  }
+  
+  .aplicacion__eslogan {
+    height: 20vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .aplicacion__eslogan-texto {
+    font-size: 50px;
+    font-weight: 700;
+    color: #731702;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 1px white;
+    transition: ease-in-out 0.3s;
+    text-align: center;
+  }
+  
+  .aplicacion__eslogan-texto span {
+    transition: ease-in-out all 0.5s;
+    cursor: pointer;
+  }
+  
+  .aplicacion__eslogan-texto span:hover {
+    text-shadow: 2px 2px 1px white, 4px 4px 1px black, 6px 6px 1px #731702;
+  }
+  
+  .aplicacion__informacion {
+    width: 100%;
+    height: 80vh;
+    min-height: 80vh;
+    padding: 20px;
+  }
+  
+  .aplicacion__informacion:hover~.aplicacion__contenido-fondo {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  

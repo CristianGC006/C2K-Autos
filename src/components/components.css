@@ -116,15 +116,21 @@
     margin-top: 2%;
   }
   
+   
   .card {
-    background-color: #fffdfd;
+    background-color: #ffde59; /* Fondo amarillo */
     border-radius: 20px;
     padding: 20px;
     width: 300px;
     text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
   }
-  
+  .card:hover {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+    background-color: #f0f0f0;
+    color: #000000;
+  }
   .card-icon {
     font-size: 2rem;
     margin-bottom: 10px;
@@ -140,12 +146,6 @@
     width: 100%;
     height: auto;
     margin-bottom: 10px;
-  }
-  
-  .card-description {
-    font-size: 1rem;
-    color: #ffffff;
-    font-weight: bold;
   }
   .footer-main{
     width: 100%;

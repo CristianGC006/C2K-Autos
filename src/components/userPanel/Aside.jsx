@@ -1,10 +1,10 @@
 import { Link, useNavigate } from "react-router-dom"
 import { redirectionAlert } from "../../helpers/functions"
-import '../../pages/UserHome.css'
+import './aside.css'
 
 const Aside = () => {
   let redirection = useNavigate()
-  let customer = JSON.parse(localStorage.getItem("customer"))
+  let customer = JSON.parse(localStorage.getItem("User"))
   
   function logOut() {
     localStorage.removeItem("Token")
@@ -13,13 +13,13 @@ const Aside = () => {
   }
   return (
     <aside className="aplicacion__menu-lateral">
-      <h1 className="aplicacion__menu-lateral-logo">Track <span className="aplicacion__menu-lateral-logo--resaltado">X</span></h1>
-      <h2>Usuario:{customer ? customer.name : 'Invitado'}</h2>
+      <h1 className="aplicacion__menu-lateral-logo">C<span className="aplicacion__menu-lateral-logo--resaltado">2</span>K AUTOS</h1>
+      <h2>Bienvenido a tu panel de Usuario {customer.name} </h2>
       <img className="aplicacion__menu-lateral-logo-imagen" src="/logo.jpg" alt="Logo" />
       <nav className="aplicacion__menu-lateral-navegacion">
         <Link className="aplicacion__menu-lateral-navegacion-item" to="">Inicio</Link>
         <Link className="aplicacion__menu-lateral-navegacion-item" to="">Coches Alquilados</Link>
-        <Link className="aplicacion__menu-lateral-navegacion-item" to="">Catálogo</Link>
+        <Link className="aplicacion__menu-lateral-navegacion-item" to="">Actualizar datos</Link>
         <button onClick={logOut} type='button' className="aplicacion__menu-lateral-navegacion-item" to="/">Cerrar sesión</button>
       </nav>
     </aside>
