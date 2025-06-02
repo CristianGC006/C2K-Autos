@@ -58,6 +58,7 @@
 
 .user-container-login{
    margin-right: 5%;
+   position: relative; 
 }
 
 .nav-list a::after, .nav-list a::before{
@@ -72,10 +73,61 @@
     transition: transform 0.3s ease-in-out;
 }
 .nav-list a:hover::after{
-    transform: scaleX(1.2);
+    transform: scaleX(1.2); /* Efecto de hover */
     color: #ffde59;
 }
 
+.login-dropdown-button {
+    background: none;
+    display: flex;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+}
+.login-dropdown-button::after, .login-dropdown-button::before {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 1;
+    width: 45%;
+    height: 3px;
+    background-color: #ffffff;
+    transform: scaleX(0);
+    transition: transform 0.3s ease-in-out;
+}
 
+.login-dropdown-button:hover::after {
+   transform: scaleX(1.2);
+}
+.login-dropdown-menu {
+    position: absolute; 
+    top: 100%; 
+    left: 0; 
+    min-width: 120px; 
+    background: #044b35;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    margin-top: 5px;
+}
 
+.login-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    color: white; 
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+}
 
+.login-dropdown-item:hover {
+    background-color: white;
+    color:#044b35;
+    transition: ease 0.5s;
+    border-radius: 5px;
+}

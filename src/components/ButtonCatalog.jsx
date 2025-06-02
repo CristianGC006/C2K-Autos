@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const GradientDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState('Selecciona una opción ▼');
   const dropdownRef = useRef(null);
-
+  let navigate = useNavigate();
   // Manejar clic fuera del dropdown
   useEffect(() => {
     function handleClickOutside(event) {
@@ -21,6 +22,7 @@ const GradientDropdown = () => {
   const handleSelect = (option) => {
     setSelectedOption(`${option} ▼`);
     setIsOpen(false);
+    navigate('/Rental', { state: { selectedOption: option } });
   };
 
   return (
