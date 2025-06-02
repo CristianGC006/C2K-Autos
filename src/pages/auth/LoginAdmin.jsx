@@ -62,7 +62,7 @@ const LoginAdmin = () => {
       documentType: documentType,
     };
 
-    // ✅ USAR LA FUNCIÓN validateForm QUE VALIDA TODO DE UNA VEZ
+    
     const validation = validations.validateForm(formData);
 
     if (!validation.isValid) {
@@ -135,7 +135,6 @@ const LoginAdmin = () => {
         password: password,
       };
 
-      console.log("Enviando admin:", newAdmin);
 
       fetch(urlAdmins, {
         method: "POST",
