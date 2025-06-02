@@ -9,12 +9,12 @@ import Logo from "../../assets/C2K-LogoNoBackground.png";
 import ButtonForm from "../../components/ButtonForm";
 
 let urlCustomers = "http://localhost:8080/customer";
-import Header from "../../components/Header";
 import "./Login.css";
 
 const Login = () => {
   const [getEmail, setEmail] = useState("");
   const [getPassword, setPassword] = useState("");
+  
   const [customers, setCustomers] = useState([]);
 
   //estados para manipular el formulario de registro
@@ -30,7 +30,7 @@ const Login = () => {
   const [license, setLicense] = useState("");
   const [password, setPasswordRegister] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [recordDate, setRecordDate] = useState(Date.now());
+  const [recordDate] = useState(Date.now());
 
   let redirectLogin = useNavigate();
 

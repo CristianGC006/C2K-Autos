@@ -26,7 +26,7 @@ export default function Header() {
         if (userType === 'cliente') {
             navigate('/Login');
         } else if (userType === 'admin') {
-            navigate('/LoginAdmin');
+            navigate('/adminLogin');
         }
     };
 

@@ -7,6 +7,12 @@ export function generateToken(){
     return "token" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
+export function generateAdminCode(){
+    return "ADMIN " + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+}
+
+
+
 export function redirectionAlert(fn, tittle, messaje, icon, url){
     let timerInterval;
     Swal.fire({

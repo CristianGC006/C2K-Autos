@@ -4,6 +4,8 @@ import UserHome from "../pages/UserHome";
 import Login from "../pages/auth/Login";
 import Rental from "../pages/Rental";
 import Info from "../pages/Info";
+import LoginAdmin from "../pages/auth/LoginAdmin";
+import AdminHome from "../pages/Admin/AdminHome";
 /*Creacion de rutas*/
 export let routes = [
     {
@@ -13,6 +15,13 @@ export let routes = [
     {
         path: "/login",
         element:<Login/>
+    },{
+        path:"/adminLogin",
+        element:<LoginAdmin/>
+    },
+    {
+        path:"/admin",
+        element:<ProtectedRoute security={<AdminHome />} />
     },
     {
         path:"/userHome",
