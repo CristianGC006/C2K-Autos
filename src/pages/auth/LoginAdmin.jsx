@@ -96,7 +96,8 @@ const LoginAdmin = () => {
       }));
       return;
     }
-
+    //enviar correo de administrador
+    
     // ✅ VALIDACIONES INDIVIDUALES PARA MOSTRAR MENSAJES ESPECÍFICOS
     if (!validations.email.validate(email)) {
       genericAlert("Error", validations.email.message, "error");
@@ -134,6 +135,7 @@ const LoginAdmin = () => {
         phone: phone,
         password: password,
       };
+
 
 
       fetch(urlAdmins, {
