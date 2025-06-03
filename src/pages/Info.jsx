@@ -24,8 +24,10 @@ function Info() {
   ];
 
   return (
+    <>
+    <h1 className="info-title" >Quienes Somos</h1>
     <div className="info-container">
-      <h1 className="info-title" >Quienes Somos</h1>
+      <h2 className="slog-title">“Confianza sobre ruedas, compromiso en cada Kilómetro”</h2>
       
       <div className="accordion">
         {accordionData.map((item, index) => (
@@ -48,6 +50,7 @@ function Info() {
         ))}
       </div>
     </div>
+    </>
   );
 }
 
