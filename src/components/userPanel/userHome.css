@@ -1,0 +1,11 @@
+.aplicacion {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-panel-container {
+  display: flex;
+  min-height: calc(100vh - 80px);
+}
