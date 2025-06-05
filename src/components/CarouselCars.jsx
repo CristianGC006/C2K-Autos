@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 const CarouselCars = ({ cars }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const totalCars = cars.length;
@@ -23,7 +24,7 @@ const CarouselCars = ({ cars }) => {
   // Calcular índices para mostrar 3 coches
   const getVisibleIndices = () => {
     const indices = [];
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < Math.min(3, totalCars); i++) {
       indices.push((currentIndex + i) % totalCars);
     }
     return indices;
@@ -57,7 +58,9 @@ const CarouselCars = ({ cars }) => {
       boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
     };
   };
-  let navigate=useNavigate();
+  
+  let navigate = useNavigate();
+  
   return (
     <div style={{ position: 'relative', width: '100%', overflow: 'hidden', paddingTop: '2.5rem', paddingBottom: '2.5rem',  }}>
       {/* Botón izquierdo */}
@@ -99,23 +102,42 @@ const CarouselCars = ({ cars }) => {
             >
               <img 
                 onClick={() => {
-                  navigate("/rental");
-                } }
+                  // Si estamos en el panel de usuario y hay una función onRent, la usamos
+                  if (cars[index].onRent && i === 1) {
+                    cars[index].onRent();
+                  } else {
+                    navigate("/rental");
+                  }
+                }}
                 src={cars[index].image} 
                 alt={cars[index].name}
-                style={{ width: '100%', objectFit: 'contain', height: '12rem' }}
+                style={{ width: '100%', objectFit: 'contain', height: '12rem', cursor: 'pointer' }}
               />
               <div style={{ padding: '0.75rem', textAlign: 'center' }}>
                 <h3 style={{ fontWeight: 'bold', color: 'white', fontSize: '1.125rem' }}>{cars[index].name}</h3>
+                {i === 1 && (
+                  <button 
+                    onClick={() => cars[index].onRent && cars[index].onRent()}
+                    style={{
+                      backgroundColor: '#ffffff',
+                      color: '#15803d',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      padding: '0.5rem 1rem',
+                      marginTop: '0.5rem',
+                      fontWeight: 'bold',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Alquilar
+                  </button>
+                )}
               </div>
             </div>
           </div>
         ))}
       </div>
       
-      {
-
-      }
       <button 
         onClick={nextSlide}
         style={{

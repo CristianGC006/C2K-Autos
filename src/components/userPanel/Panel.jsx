@@ -8,80 +8,89 @@ function Panel({ activeSection, setActiveSection, user }) {
   const [availableCars, setAvailableCars] = useState([]);
   const [nextReservation, setNextReservation] = useState(null);
   const [userInfo, setUserInfo] = useState(user || {});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Simulación de carga de datos
+  // Función para obtener los vehículos disponibles
+  const fetchVehicles = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:8080/vehicle');
+      if (!response.ok) {
+        throw new Error('Error al obtener los vehículos');
+      }
+      const data = await response.json();
+      
+      // Filtrar vehículos alquilados y disponibles
+      const available = data.filter(vehicle => !vehicle.id_user || vehicle.id_user === 'NULL');
+      setAvailableCars(available);
+      
+      // Obtener vehículos alquilados por el usuario actual
+      const rented = data.filter(vehicle => vehicle.id_user === userInfo.id);
+      setRentedCars(rented);
+      
+      // Simular próxima reserva con el primer vehículo disponible
+      if (available.length > 0) {
+        setNextReservation({
+          id: available[0].vehicle_id,
+          car: `${available[0].brand} ${available[0].model}`,
+          image: available[0].image_url || "https://es.valleychevy.com/wp-content/uploads/2021/11/2023-Chevrolet-Camaro-ZL1-Coupe-001.jpg",
+          date: "10 mayo, 2024"
+        });
+      }
+      
+      setLoading(false);
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error.message);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Aquí normalmente harías una petición a tu API
-    // Simulamos datos de coches rentados
-    const mockRentedCars = [
-      {
-        id: 1,
-        name: "Chevrolet Camaro",
-        image: "https://www.chevrolet.com.mx/content/dam/chevrolet/na/mx/es/index/performance/2023-camaro/colorizer/01-images/2023-camaro-1ss-g7c-colorizer.jpg?imwidth=960",
-        type: "Deportivo",
-        year: "2023",
-        Color: "Amarillo",
-        Plate: "ABC123",
-        rentDate: "2023-05-15",
-        returnDate: "2023-06-15"
-      },
-      {
-        id: 2,
-        name: "Dodge Charger",
-        image: "https://www.dodge.com/content/dam/fca-brands/na/dodge/en_us/2023/charger/gallery/exterior/MY23_Charger_Gallery_Exterior_3.jpg.image.1440.jpg",
-        type: "Deportivo",
-        year: "2023",
-        Color: "Negro",
-        Plate: "XYZ789",
-        rentDate: "2023-04-10",
-        returnDate: "2023-05-10"
+    fetchVehicles();
+  }, [userInfo.id]);
+
+  // Función para alquilar un vehículo
+  const rentVehicle = async (vehicleId) => {
+    try {
+      const rentalData = {
+        description: `Alquiler del ${availableCars.find(car => car.vehicle_id === vehicleId)?.brand} ${availableCars.find(car => car.vehicle_id === vehicleId)?.model} (Placa: ${availableCars.find(car => car.vehicle_id === vehicleId)?.plate})`,
+        name: `${availableCars.find(car => car.vehicle_id === vehicleId)?.brand} ${availableCars.find(car => car.vehicle_id === vehicleId)?.model}`,
+        price: 750, // Precio fijo o calculado según el vehículo
+        id_branch: 3, // Valores de ejemplo basados en la imagen
+        id_vehicle: vehicleId,
+        id_assessor: 1,
+        id_customer: userInfo.id
+      };
+
+      const response = await fetch('http://localhost:8080/rental', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(rentalData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al realizar el alquiler');
       }
-    ];
 
-    // Simulamos datos de coches disponibles
-    const mockAvailableCars = [
-      {
-        id: 3,
-        name: "Audi A4",
-        image: "https://www.audi.com/content/dam/gbp2/experience-audi/models-and-technology/production-models/a4/my-2023/overview/a4_2023_1920x1080_stage_desktop.jpg?imwidth=1920&imdensity=1",
-        type: "Sedan",
-        year: "2023",
-        Color: "Blanco",
-        Plate: "DEF456"
-      },
-      {
-        id: 4,
-        name: "BMW Serie 3",
-        image: "https://www.bmw.com.mx/content/dam/bmw/common/all-models/3-series/sedan/2022/navigation/bmw-3-series-sedan-lci-modelfinder.png",
-        type: "Sedan",
-        year: "2023",
-        Color: "Azul",
-        Plate: "GHI789"
-      },
-      {
-        id: 5,
-        name: "Mercedes-Benz Clase C",
-        image: "https://www.mercedes-benz.com.mx/es/passengercars/mercedes-benz-cars/models/c-class/saloon-w206/_jcr_content/image.MQ6.2.2x.20210305121323.png",
-        type: "Sedan",
-        year: "2023",
-        Color: "Plata",
-        Plate: "JKL012"
+      // Actualizar la lista de vehículos después de alquilar
+      fetchVehicles();
+      
+      // Cambiar a la sección de vehículos rentados
+      if (setActiveSection) {
+        setActiveSection("rentados");
       }
-    ];
-
-    // Simulamos próxima reserva
-    const mockNextReservation = {
-      id: 1,
-      car: "Audi A4",
-      image: "https://www.audi.com/content/dam/gbp2/experience-audi/models-and-technology/production-models/a4/my-2023/overview/a4_2023_1920x1080_stage_desktop.jpg?imwidth=1920&imdensity=1",
-      date: "10 mayo, 2024"
-    };
-
-    setRentedCars(mockRentedCars);
-    setAvailableCars(mockAvailableCars);
-    setNextReservation(mockNextReservation);
-  }, []);
+      
+      alert('¡Vehículo alquilado con éxito!');
+    } catch (error) {
+      console.error('Error:', error);
+      alert(`Error al alquilar el vehículo: ${error.message}`);
+    }
+  };
 
   // Función para manejar cambios en el formulario de información de usuario
   const handleUserInfoChange = (e) => {
@@ -93,14 +102,40 @@ function Panel({ activeSection, setActiveSection, user }) {
   };
 
   // Función para guardar la información actualizada del usuario
-  const saveUserInfo = () => {
-    // Aquí normalmente harías una petición a tu API para actualizar los datos
-    localStorage.setItem("User", JSON.stringify(userInfo));
-    alert("Información actualizada correctamente");
+  const saveUserInfo = async () => {
+    try {
+      // Llamada a la API para actualizar los datos del usuario
+      const response = await fetch(`http://localhost:8080/customer/${userInfo.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userInfo),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al actualizar la información del usuario');
+      }
+      
+      // Actualizar en localStorage para mantener la sesión actualizada
+      localStorage.setItem("User", JSON.stringify(userInfo));
+      alert("Información actualizada correctamente");
+    } catch (error) {
+      console.error('Error:', error);
+      alert(`Error al actualizar la información: ${error.message}`);
+    }
   };
 
   // Renderizado condicional según la sección activa
   const renderContent = () => {
+    if (loading) {
+      return <div className="loading">Cargando...</div>;
+    }
+
+    if (error) {
+      return <div className="error">Error: {error}</div>;
+    }
+
     switch (activeSection) {
       case "inicio":
         return (
@@ -131,7 +166,7 @@ function Panel({ activeSection, setActiveSection, user }) {
             <div className="stats-container">
               <div className="stat-card">
                 <h3>Reservas</h3>
-                <p className="stat-number">3</p>
+                <p className="stat-number">{rentedCars.length}</p>
               </div>
               <div className="stat-card">
                 <h3>Nivel</h3>
@@ -149,10 +184,14 @@ function Panel({ activeSection, setActiveSection, user }) {
             {rentedCars.length > 0 ? (
               <div className="rented-cars-grid">
                 {rentedCars.map(car => (
-                  <div className="rented-car-card" key={car.id}>
-                    <img src={car.image} alt={car.name} className="car-image" />
+                  <div className="rented-car-card" key={car.vehicle_id}>
+                    <img 
+                      src={car.image_url || "https://es.valleychevy.com/wp-content/uploads/2021/11/2023-Chevrolet-Camaro-ZL1-Coupe-001.jpg"} 
+                      alt={`${car.brand} ${car.model}`} 
+                      className="car-image" 
+                    />
                     <div className="car-details">
-                      <h3>{car.name}</h3>
+                      <h3>{car.brand} {car.model}</h3>
                       <div className="car-info-grid">
                         <div className="info-item">
                           <span className="info-label">Tipo:</span>
@@ -164,16 +203,16 @@ function Panel({ activeSection, setActiveSection, user }) {
                         </div>
                         <div className="info-item">
                           <span className="info-label">Color:</span>
-                          <span className="info-value">{car.Color}</span>
+                          <span className="info-value">{car.color}</span>
                         </div>
                         <div className="info-item">
                           <span className="info-label">Placa:</span>
-                          <span className="info-value">{car.Plate}</span>
+                          <span className="info-value">{car.plate}</span>
                         </div>
                       </div>
                       <div className="rental-period">
-                        <p><strong>Fecha de alquiler:</strong> {car.rentDate}</p>
-                        <p><strong>Fecha de devolución:</strong> {car.returnDate}</p>
+                        <p><strong>Fecha de alquiler:</strong> {new Date().toLocaleDateString()}</p>
+                        <p><strong>Fecha de devolución:</strong> {new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString()}</p>
                       </div>
                       <button className="extend-button">Extender alquiler</button>
                     </div>
@@ -201,7 +240,18 @@ function Panel({ activeSection, setActiveSection, user }) {
             <p className="section-description">Explora nuestra selección de vehículos disponibles para alquilar</p>
             
             <div className="carousel-container">
-              <CarouselCars cars={availableCars} />
+              <CarouselCars 
+                cars={availableCars.map(car => ({
+                  id: car.vehicle_id,
+                  name: `${car.brand} ${car.model}`,
+                  image: car.image_url || "https://es.valleychevy.com/wp-content/uploads/2021/11/2023-Chevrolet-Camaro-ZL1-Coupe-001.jpg",
+                  type: car.type,
+                  year: car.year,
+                  Color: car.color,
+                  Plate: car.plate,
+                  onRent: () => rentVehicle(car.vehicle_id)
+                }))} 
+              />
             </div>
             
             <button 
