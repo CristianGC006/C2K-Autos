@@ -1,31 +1,15 @@
 /* Sidebar del Panel de Usuario - Diseño Moderno */
 .user-panel-sidebar {
-  width: 280px;
+  width: 300px;
   min-height: 100vh;
   background: linear-gradient(180deg, #014421 0%, #1a5f3f 50%, #2d8659 100%);
-  position: relative;
-  flex-shrink: 0;
+  position: fixed;
+  left: 0;
+  top: 0;
   padding: 2rem 1.5rem;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
   overflow-y: auto;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .user-panel-sidebar {
-    width: 100%;
-    min-height: 100vh;
-    position: fixed;
-    left: -100%;
-    top: 0;
-    z-index: 1000;
-    transition: left 0.3s ease;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-  }
-  
-  .user-panel-sidebar.mobile-open {
-    left: 0;
-  }
 }
 
 /* Perfil de Usuario */
