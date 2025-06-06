@@ -1,0 +1,130 @@
+.location-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.location-container {
+    flex: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.location-title {
+    text-align: center;
+    font-size: 2.5rem;
+    color: white;
+    margin-bottom: 10px;
+    margin-right: 50px;
+    background-color: #044b35;
+    width: 1350px;
+}
+
+.location-subtitle {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    margin-bottom: 40px;
+}
+
+.location-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.location-tab {
+    background: none;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #7f8c8d;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.location-tab:hover {
+    color: #2c3e50;
+}
+
+.location-tab.active {
+    color: #F28B30;
+}
+
+.location-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #F28B30;
+}
+
+.location-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.location-info {
+    flex: 1;
+    min-width: 300px;
+    background-color: #044b35;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.location-info h2 {
+    color: white;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+}
+
+.info-item {
+    display: flex;
+    margin-bottom: 15px;
+    align-items: flex-start;
+}
+
+.info-item i {
+    color: #3498db;
+    margin-right: 15px;
+    font-size: 1.2rem;
+    margin-top: 3px;
+}
+
+.info-item p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.location-map {
+    flex: 2;
+    min-width: 300px;
+    height: 450px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .location-content {
+        flex-direction: column;
+    }
+    
+    .location-map {
+        height: 350px;
+    }
+    
+    .location-tab {
+        padding: 10px 15px;
+        font-size: 1rem;
+    }
+}
