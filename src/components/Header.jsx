@@ -43,7 +43,7 @@ export default function Header() {
                 <Link to="/Info">¿Quienes Somos?</Link>
                 </li>
                 <li>
-                    <a href="#">¿Dónde estamos?</a>
+                <Link to="/Location">¿Dónde estamos?</Link>
                 </li>
                 <li className="user-container-login" ref={dropdownRef}>
                         <button 

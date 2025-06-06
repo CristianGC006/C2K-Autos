@@ -7,6 +7,7 @@ import Info from "../pages/Info";
 import LoginAdmin from "../pages/auth/LoginAdmin";
 import AdminHome from "../pages/Admin/AdminHome";
 import AssessorHome from "../pages/Assessor/AssessorHome";
+import Location from "../pages/Location";
 /*Creacion de rutas*/
 export let routes = [
     {
@@ -39,5 +40,9 @@ export let routes = [
     {
         path: "/Info",
         element: <Info/>
+    },
+    {
+        path: "/Location",
+        element: <Location/>
     }
 ]
