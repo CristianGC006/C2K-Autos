@@ -3,9 +3,86 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+/* Botón hamburguesa para móvil */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1001;
+  background: #014421;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(1, 68, 33, 0.3);
+}
+
+.mobile-menu-toggle:hover {
+  background: #2d8659;
+  transform: scale(1.05);
+}
+
+.mobile-menu-toggle span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: white;
+  margin: 4px 0;
+  transition: all 0.3s ease;
+  border-radius: 1px;
+}
+
+.mobile-menu-toggle:hover span {
+  background: #e8f5f0;
+}
+
+/* Animación del botón hamburguesa cuando está activo */
+.mobile-menu-toggle.active span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-toggle.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -6px);
+}
+
+/* Overlay para móvil */
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
 }
 
 .user-panel-container {
   display: flex;
-  min-height: calc(100vh - 80px);
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fffe 0%, #e8f5f0 100%);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: block;
+  }
+  
+  .mobile-overlay {
+    display: block;
+  }
+  
+  .user-panel-container {
+    flex-direction: column;
+  }
 }
