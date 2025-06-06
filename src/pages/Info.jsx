@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import "./Info.css"
+import { Link } from 'react-router-dom';
 
 function Info() {
   const [activeIndex, setActiveIndex] = useState(null);
@@ -26,6 +27,7 @@ function Info() {
   return (
     <>
     <h1 className="info-title" >Quienes Somos</h1>
+    <Link to="/#" className="back-link">Volver</Link>
     <div className="info-container">
       <h2 className="slog-title">“Confianza sobre ruedas, compromiso en cada Kilómetro”</h2>
       

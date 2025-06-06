@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './Location.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { Link } from 'react-router-dom';
 
 export default function Location() {
     const [activeLocation, setActiveLocation] = useState('medellin');
@@ -37,6 +38,7 @@ export default function Location() {
         <div className="location-page">
             <div className="location-container">
                 <h1 className="location-title">Nuestras Sucursales</h1>
+                <Link to="/#" className="back-link">Volver</Link>
                 <p className="location-subtitle">Encuentra la sucursal más cercana y visítanos</p>
                 
                 <div className="location-tabs">

@@ -3,6 +3,16 @@
     margin: 0 auto;
     padding: 20px;
   }
+
+  .back-link{
+    text-decoration: none;
+  color: black;
+  width: 95%;
+  height: 15%;
+  display: flex;
+  justify-content: flex-end;
+  align-self:center;
+}
   
   .info-title {
     text-align: center;
