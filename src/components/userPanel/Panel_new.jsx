@@ -48,27 +48,17 @@ function Panel({ activeSection, setActiveSection, user }) {
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
-      const data = await response.json();      console.log("Vehicles fetched successfully:", data);
-      console.log("Sample vehicle structure:", data[0]); // Debug para ver estructura
-      
-      // ✅ CORREGIR NOMBRES DE CAMPOS - LA API DEVUELVE vehicleId NO vehicle_id
-      const dataWithCorrectFields = data.map(vehicle => ({
-        ...vehicle,
-        vehicle_id: vehicle.vehicleId || vehicle.vehicle_id,
-        image_url: vehicle.imageUrl || vehicle.image_url
-      }));
-      
-      console.log("Processed vehicle structure:", dataWithCorrectFields[0]); // Debug
+      const data = await response.json();
+      console.log("Vehicles fetched successfully:", data);
       
       // Filtrar vehículos disponibles
-      const available = dataWithCorrectFields.filter(vehicle => !vehicle.id_user || vehicle.id_user === 'NULL');
+      const available = data.filter(vehicle => !vehicle.id_user || vehicle.id_user === 'NULL');
       setAvailableCars(available);
-      console.log("Available cars:", available);
       
       // Obtener vehículos alquilados por el usuario actual
       const currentUserId = getUserId();
       if (currentUserId) {
-        const rented = dataWithCorrectFields.filter(vehicle => 
+        const rented = data.filter(vehicle => 
           vehicle.id_user && 
           parseInt(vehicle.id_user, 10) === currentUserId
         );
@@ -95,6 +85,7 @@ function Panel({ activeSection, setActiveSection, user }) {
       [name]: value
     }));
   };
+
   // ✅ EFECTO PARA INICIALIZAR EL USUARIO
   useEffect(() => {
     console.log("Initializing user...");
@@ -108,14 +99,13 @@ function Panel({ activeSection, setActiveSection, user }) {
           setUserInfo(parsedUser);
         } catch (e) {
           console.error("Error parsing stored user:", e);
-          // En lugar de mostrar error, cargar dashboard sin datos de usuario
-          setUserInfo({ name: 'Usuario', id: 'demo' });
-          console.warn("Cargando dashboard en modo demo");
+          setError("Error al cargar la información del usuario");
+          setLoading(false);
         }
       } else {
-        console.warn("No user found in localStorage, loading demo mode");
-        // Cargar dashboard en modo demo
-        setUserInfo({ name: 'Usuario', id: 'demo' });
+        console.error("No user found in localStorage");
+        setError("No se encontró información del usuario");
+        setLoading(false);
       }
       setIsInitialized(true);
     } else if (userInfo?.id && isInitialized) {
@@ -364,104 +354,34 @@ function Panel({ activeSection, setActiveSection, user }) {
             )}
           </div>
         );
-          case "rentar":
+        
+      case "rentar":
         return (
           <div className="rent-cars-section">
             <h2>Alquila un coche</h2>
-            <p className="section-description">Explora nuestra selección de {availableCars.length} vehículos disponibles para alquilar</p>
+            <p className="section-description">Explora nuestra selección de vehículos disponibles para alquilar</p>
             
-            {availableCars.length > 0 ? (
-              <>
-                {/* Carrusel de vehículos */}
-                <div className="carousel-container">
-                  <h3 style={{ color: '#014421', marginBottom: '1rem', fontSize: '1.3rem' }}>
-                    🌟 Vehículos Destacados
-                  </h3>
-                  <CarouselCars 
-                    cars={availableCars.slice(0, 5).map(car => ({
-                      id: car.vehicle_id,
-                      name: `${car.brand} ${car.model}`,
-                      image: car.image_url || "https://es.valleychevy.com/wp-content/uploads/2021/11/2023-Chevrolet-Camaro-ZL1-Coupe-001.jpg",
-                      type: car.type,
-                      year: car.year,
-                      Color: car.color,
-                      Plate: car.plate,
-                      price: car.price,
-                      onRent: () => rentVehicle(car.vehicle_id)
-                    }))} 
-                  />
-                </div>
-
-                {/* Grilla de todos los vehículos disponibles */}
-                <div className="available-cars-grid-section">
-                  <h3 style={{ color: '#014421', marginBottom: '1.5rem', fontSize: '1.3rem' }}>
-                    🚗 Todos los Vehículos Disponibles
-                  </h3>
-                  <div className="rented-cars-grid">
-                    {availableCars.map(car => (
-                      <div className="rented-car-card" key={car.vehicle_id}>
-                        <img 
-                          src={car.image_url || "https://es.valleychevy.com/wp-content/uploads/2021/11/2023-Chevrolet-Camaro-ZL1-Coupe-001.jpg"} 
-                          alt={`${car.brand} ${car.model}`} 
-                          className="car-image" 
-                        />
-                        <div className="car-details">
-                          <h3>{car.brand} {car.model}</h3>
-                          <div className="car-info-grid">
-                            <div className="info-item">
-                              <span className="info-label">Tipo:</span>
-                              <span className="info-value">{car.type}</span>
-                            </div>
-                            <div className="info-item">
-                              <span className="info-label">Año:</span>
-                              <span className="info-value">{car.year}</span>
-                            </div>
-                            <div className="info-item">
-                              <span className="info-label">Color:</span>
-                              <span className="info-value">{car.color}</span>
-                            </div>
-                            <div className="info-item">
-                              <span className="info-label">Placa:</span>
-                              <span className="info-value">{car.plate}</span>
-                            </div>
-                          </div>
-                          <div className="rental-info">
-                            <p style={{ color: '#2d8659', fontWeight: 'bold', fontSize: '1.2rem', margin: '1rem 0' }}>
-                              💰 ${car.price || 750}/día
-                            </p>
-                            <p style={{ color: '#014421', fontWeight: '500', margin: '0.5rem 0' }}>
-                              ✅ Disponible ahora
-                            </p>
-                          </div>
-                          <button 
-                            className="extend-button"
-                            onClick={() => rentVehicle(car.vehicle_id)}
-                            style={{ background: 'linear-gradient(135deg, #4caf50 0%, #2d8659 100%)' }}
-                          >
-                            🚗 Alquilar Ahora
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="no-cars-message">
-                <h3 style={{ color: '#666', marginBottom: '1rem' }}>😔 No hay vehículos disponibles</h3>
-                <p>En este momento no tenemos vehículos disponibles para alquilar.</p>
-                <p style={{ marginTop: '1rem', color: '#2d8659' }}>
-                  Por favor, revisa más tarde o contacta con nuestro equipo.
-                </p>
-              </div>
-            )}
+            <div className="carousel-container">
+              <CarouselCars 
+                cars={availableCars.map(car => ({
+                  id: car.vehicle_id,
+                  name: `${car.brand} ${car.model}`,
+                  image: car.image_url || "https://es.valleychevy.com/wp-content/uploads/2021/11/2023-Chevrolet-Camaro-ZL1-Coupe-001.jpg",
+                  type: car.type,
+                  year: car.year,
+                  Color: car.color,
+                  Plate: car.plate,
+                  price: car.price,
+                  onRent: () => rentVehicle(car.vehicle_id)
+                }))} 
+              />
+            </div>
             
             <button 
               className="view-all-button"
               onClick={() => navigate("/Rental")}
-              style={{ marginTop: '2rem' }}
             >
-              🌐 Ver catálogo completo
+              Ver todos los vehículos
             </button>
           </div>
         );

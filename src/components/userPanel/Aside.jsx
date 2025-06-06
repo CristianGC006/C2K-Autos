@@ -3,7 +3,7 @@ import { redirectionAlert } from "../../helpers/functions";
 import "./aside.css";
 import userAvatar from "../../assets/C2K-LogoNoBackground.png";
 
-const Aside = ({ activeSection, setActiveSection, isMobileMenuOpen, setIsMobileMenuOpen }) => {
+const Aside = ({ activeSection, setActiveSection }) => {
   let redirection = useNavigate();
   let customer = JSON.parse(localStorage.getItem("User")) || {};
 
@@ -24,8 +24,9 @@ const Aside = ({ activeSection, setActiveSection, isMobileMenuOpen, setIsMobileM
   };
 
   const userLevel = getUserLevel();
+
   return (
-    <aside className={`user-panel-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+    <aside className="user-panel-sidebar">
       <div className="user-profile">
         <div className="user-avatar">
           <img src={userAvatar} alt="Avatar de usuario" />
@@ -35,10 +36,7 @@ const Aside = ({ activeSection, setActiveSection, isMobileMenuOpen, setIsMobileM
           ¡Hola, <br />
           <span className="user-name">{customer.name || "Usuario"}!</span>
         </h2>
-        <button className="edit-profile-btn" onClick={() => {
-          setActiveSection("editar");
-          setIsMobileMenuOpen && setIsMobileMenuOpen(false);
-        }}>
+        <button className="edit-profile-btn" onClick={() => setActiveSection("editar")}>
           <span>✏️</span> Editar perfil
         </button>
       </div>
@@ -60,39 +58,31 @@ const Aside = ({ activeSection, setActiveSection, isMobileMenuOpen, setIsMobileM
         <p className="level-text">{userLevel.progress}% completado</p>
       </div>
 
-      <nav className="sidebar-nav">        <button 
+      <nav className="sidebar-nav">
+        <button 
           className={`nav-item ${activeSection === "inicio" ? "active" : ""}`}
-          onClick={() => {
-            setActiveSection("inicio");
-            setIsMobileMenuOpen && setIsMobileMenuOpen(false);
-          }}
+          onClick={() => setActiveSection("inicio")}
         >
           <span className="nav-icon">🏠</span>
           <span className="nav-text">Dashboard</span>
-        </button>        <button 
+        </button>
+        <button 
           className={`nav-item ${activeSection === "rentados" ? "active" : ""}`}
-          onClick={() => {
-            setActiveSection("rentados");
-            setIsMobileMenuOpen && setIsMobileMenuOpen(false);
-          }}
+          onClick={() => setActiveSection("rentados")}
         >
           <span className="nav-icon">🚗</span>
           <span className="nav-text">Mis Vehículos</span>
-        </button>        <button 
+        </button>
+        <button 
           className={`nav-item ${activeSection === "rentar" ? "active" : ""}`}
-          onClick={() => {
-            setActiveSection("rentar");
-            setIsMobileMenuOpen && setIsMobileMenuOpen(false);
-          }}
+          onClick={() => setActiveSection("rentar")}
         >
           <span className="nav-icon">🛒</span>
           <span className="nav-text">Alquilar</span>
-        </button>        <button 
+        </button>
+        <button 
           className={`nav-item ${activeSection === "editar" ? "active" : ""}`}
-          onClick={() => {
-            setActiveSection("editar");
-            setIsMobileMenuOpen && setIsMobileMenuOpen(false);
-          }}
+          onClick={() => setActiveSection("editar")}
         >
           <span className="nav-icon">⚙️</span>
           <span className="nav-text">Configuración</span>
