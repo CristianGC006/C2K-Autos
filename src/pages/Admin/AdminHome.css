@@ -1,0 +1,114 @@
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    width: 300px;
+    background-color: #004d2e;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+}
+
+.logo-container {
+    margin-bottom: 20px;
+}
+
+.admin-logo {
+    width: 150px;
+    height: auto;
+}
+
+.welcome-text {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 1.2rem;
+    padding: 0 10px;
+}
+
+.admin-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    margin-bottom: auto;
+}
+
+.nav-button {
+    background-color: #ffd700;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.nav-button:hover, .nav-button.active {
+    background-color: #ffed4a;
+    transform: scale(1.05);
+}
+
+.logout-button {
+    background-color: transparent;
+    border: 2px solid #ffd700;
+    color: #ffd700;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    margin-top: 20px;
+    font-weight: bold;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #ffd700;
+    color: #004d2e;
+}
+
+.admin-main {
+    flex: 1;
+    padding: 20px;
+    background-color: #004d2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.info-card {
+    background-color: #ffd700;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    position: relative;
+    max-width: 500px;
+    width: 100%;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #004d2e;
+}
+
+.info-card h2 {
+    color: #004d2e;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.info-card p {
+    color: #004d2e;
+    margin: 5px 0;
+}

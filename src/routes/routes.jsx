@@ -22,7 +22,7 @@ export let routes = [
         element:<LoginAdmin/>
     },
     {
-        path:"/admin",
+        path:"/adminHome",
         element:<ProtectedRoute security={<AdminHome />} />
     },
     {
