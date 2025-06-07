@@ -9,6 +9,7 @@ import AdminHome from "../pages/Admin/AdminHome";
 import AssessorHome from "../pages/Assessor/AssessorHome";
 import Location from "../pages/Location";
 import LoginAssessor from "../pages/auth/LoginAssessor";
+import LoginLogisticOp from "../pages/auth/LoginLogisticOp";
 /*Creacion de rutas*/
 export let routes = [
     {
@@ -26,6 +27,10 @@ export let routes = [
     {
         path:"/assessorLogin",
         element:<LoginAssessor/>
+    },
+    {
+        path:"/logisticOp",
+        element: <LoginLogisticOp/>
     },
     {
         path:"/adminHome",

@@ -29,6 +29,8 @@ export default function Header() {
             navigate('/adminLogin');
         }else if (userType === 'assessor') {
             navigate('/assessorLogin');
+        }else if (userType === 'logisticOp') {
+            navigate('/logisticOp');
         }
     };
 
@@ -74,6 +76,12 @@ export default function Header() {
                                     onClick={() => handleLoginRedirect('assessor')}
                                 >
                                     Asesor
+                                </button>
+                                <button 
+                                    className="login-dropdown-item"
+                                    onClick={() => handleLoginRedirect('logisticOp')}
+                                >
+                                    Operador Logístico
                                 </button>
                             </div>
                         )}

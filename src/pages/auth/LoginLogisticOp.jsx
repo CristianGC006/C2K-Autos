@@ -9,14 +9,14 @@ import { useNavigate } from "react-router-dom";
 import Logo from "../../assets/C2K-LogoNoBackground.png";
 import ButtonForm from "../../components/ButtonForm";
 import { generateAdminCode } from "../../helpers/functions";
-let urlAssessor = "http://localhost:8080/assessor";
+let urlLogisticOp = "http://localhost:8080/logisticOperator";
 import "./Login.css";
 
- const LoginAssessor = () => {
+ const LoginLogisticOp = () => {
         const [getEmail, setEmail] = useState("");
         const [getPassword, setPassword] = useState("");
         const [getAdminCode, setAdminCode] = useState("");
-        const [assessor, setAssessor] = useState([]);
+        const [logisticOp, setLogisticOp] = useState([]);
       
         //estados para manipular el formulario de registro
         const [name, setName] = useState("");
@@ -32,23 +32,23 @@ import "./Login.css";
       
         let redirectLogin = useNavigate();
       
-        function getAssessor() {
-          fetch(urlAssessor)
+        function getLogisticOp() {
+          fetch(urlLogisticOp)
             .then((response) => response.json())
-            .then((data) => setAssessor(data));
+            .then((data) => setLogisticOp(data));
         }
         useEffect(() => {
-          getAssessor();
+          getLogisticOp();
         }, []);
       
         //Register functions
       
-        function findAssessor() {
-          let assessorFound = assessor.find((item) => email === item.email);
-          return assessorFound;
+        function findLogisticOp() {
+          let logisticOpFound = logisticOp.find((item) => email === item.email);
+          return logisticOpFound;
         }
       
-        function registerAssessor() {
+        function registerLogisticOp() {
           // ✅ LIMPIAR ERRORES PREVIOS
           setErrors({});
       
@@ -125,8 +125,8 @@ import "./Login.css";
           }
       
           // ✅ SI TODAS LAS VALIDACIONES PASAN, PROCEDER CON EL REGISTRO
-          if (!findAssessor()) {
-            let newAssessor = {
+          if (!findLogisticOp()) {
+            let newLogisticOp = {
               name: name,
               identificationType: documentType,
               identificationNumber: documentNumber,
@@ -138,12 +138,12 @@ import "./Login.css";
       
       
       
-            fetch(urlAssessor, {
+            fetch(urlLogisticOp, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(newAssessor),
+              body: JSON.stringify(newLogisticOp),
             })
               .then((response) => {
                 console.log("Response status:", response.status);
@@ -154,7 +154,7 @@ import "./Login.css";
               })
               .then((data) => {
                 console.log("Registro exitoso:", data);
-                getAssessors();
+                getLogisticOps();
       
                 setTimeout(() => {
                   genericAlert(
@@ -188,14 +188,14 @@ import "./Login.css";
           } else {
             genericAlert(
               "Error",
-              "Este asesor ya existe, por favor intenta con otro correo",
+              "Este operador logistico ya existe, por favor intenta con otro correo",
               "error"
             );
           }
         }
       
-        function getAssessor() {
-          let customer = assessor.find(
+        function getLogisticOp() {
+          let customer = logisticOp.find(
             (item) =>
               item.email == getEmail &&
               item.password == getPassword &&
@@ -205,16 +205,16 @@ import "./Login.css";
         }
       
         function logIn() {
-          if (getAssessor()) {
+          if (getLogisticOp()) {
             let accessToken = generateToken();
             localStorage.setItem("Token", JSON.stringify(accessToken));
-            localStorage.setItem("User", JSON.stringify(getAssessor()));
+            localStorage.setItem("User", JSON.stringify(getLogisticOp()));
             redirectionAlert(
               redirectLogin,
               "Bienvenido",
               "Se ha iniciado sesión correctamente",
               "success",
-              "/assessor"
+              "/logisticOp"
             );
           } else {
             genericAlert("Error", "Usuario o contraseña incorrectos", "error");
@@ -326,7 +326,7 @@ import "./Login.css";
             onChange={(e) => setAdminCode(e.target.value)}
             className="login_input"
             name="adminCode"
-            placeholder="Código de Asesor"
+            placeholder="Código de Operador Logistico"
             type="text"
           />
           <ButtonForm
@@ -471,7 +471,7 @@ import "./Login.css";
         {showLoginForm && (
           <ButtonForm
             content="Registrarse"
-            onClick={registerAssessor}
+            onClick={registerLogisticOp}
             disabled={isTransitioning}
           />
         )}
@@ -494,4 +494,4 @@ import "./Login.css";
   );
 
 }
-export default LoginAssessor;
+export default LoginLogisticOp;
