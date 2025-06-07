@@ -9,7 +9,7 @@
 /* ========== SIDEBAR ADMIN ========== */
 .admin-sidebar {
     width: 300px;
-    min-height: 100vh;
+    height: 100vh;
     background: linear-gradient(180deg, #014421 0%, #1a5f3f 50%, #2d8659 100%);
     position: fixed;
     left: 0;
@@ -18,6 +18,8 @@
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
     z-index: 1000;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Perfil del Admin */
@@ -214,6 +216,21 @@
     transform: translateX(5px);
 }
 
+/* Estilos para secciones de navegación */
+.nav-section {
+    margin: 16px 0;
+}
+
+.nav-section-title {
+    color: #666;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 8px 16px;
+    padding: 0;
+}
+
 /* ========== CONTENIDO PRINCIPAL ========== */
 .admin-main {
     flex: 1;
@@ -225,26 +242,23 @@
 
 /* Header de Contenido */
 .content-header {
-    margin-bottom: 2.5rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 2px solid rgba(1, 68, 33, 0.1);
+    margin-bottom: 32px;
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .content-header h1 {
-    color: #014421;
-    font-size: 2.2rem;
-    font-weight: 700;
-    margin: 0 0 0.5rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 28px;
 }
 
 .content-header p {
-    color: #64748b;
-    font-size: 1.1rem;
     margin: 0;
-    font-weight: 400;
+    color: #666;
+    font-size: 16px;
 }
 
 /* ========== DASHBOARD ========== */
@@ -252,66 +266,199 @@
     animation: fadeInUp 0.6s ease-out;
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+/* ========== VEHICLES SECTION ========== */
+.vehicles-content {
+    animation: fadeInUp 0.6s ease-out;
 }
 
-.stat-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 16px;
-    border: 1px solid rgba(1, 68, 33, 0.1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+.vehicles-content .content-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.vehicles-content .header-info h1 {
+    color: #014421;
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
+    gap: 0.75rem;
 }
 
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #014421, #2d8659);
+.vehicles-content .header-info p {
+    color: #64748b;
+    font-size: 1.1rem;
+    margin: 0;
 }
 
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-}
-
-.stat-icon {
-    font-size: 2.5rem;
-    padding: 1rem;
-    background: linear-gradient(135deg, #014421, #2d8659);
+.add-vehicle-btn {
+    background: linear-gradient(135deg, #014421 0%, #2d8659 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
     border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(1, 68, 33, 0.2);
+}
+
+.add-vehicle-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(1, 68, 33, 0.3);
+}
+
+.add-vehicle-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Estilos para la tabla de vehículos */
+.vehicle-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.vehicle-table th {
+    background: linear-gradient(135deg, #014421, #2d8659);
+    color: white;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.vehicle-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s ease;
+}
+
+.vehicle-table th.sortable:hover {
+    background: linear-gradient(135deg, #1a5f3f, #4caf50);
+}
+
+.vehicle-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+.vehicle-table tr:hover {
+    background: #f8fafc;
+}
+
+.vehicle-id {
+    font-weight: 600;
+    color: #014421;
+    font-family: 'Courier New', monospace;
+}
+
+.vehicle-brand,
+.vehicle-model {
+    font-weight: 600;
+    color: #374151;
+}
+
+.vehicle-color {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.color-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #e2e8f0;
+    display: inline-block;
+}
+
+.vehicle-plate {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    background: #f1f5f9;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    color: #374151;
+}
+
+.vehicle-year,
+.vehicle-type {
+    color: #64748b;
+}
+
+.vehicle-image-cell {
+    text-align: center;
+}
+
+.vehicle-thumbnail {
+    width: 60px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+}
+
+.image-placeholder {
+    width: 60px;
+    height: 40px;
+    background: #f1f5f9;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 70px;
-    height: 70px;
-}
-
-.stat-info h3 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #014421;
-    margin: 0 0 0.25rem 0;
-}
-
-.stat-info p {
+    font-size: 1.5rem;
     color: #64748b;
-    font-size: 0.95rem;
-    margin: 0;
-    font-weight: 500;
+    border: 1px solid #e2e8f0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.edit-btn,
+.delete-btn {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.edit-btn {
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.1);
+}
+
+.edit-btn:hover {
+    background: rgba(37, 99, 235, 0.2);
+    transform: scale(1.1);
+}
+
+.delete-btn {
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.1);
+}
+
+.delete-btn:hover {
+    background: rgba(220, 38, 38, 0.2);
+    transform: scale(1.1);
 }
 
 /* ========== CRUD ========== */
@@ -385,24 +532,39 @@
     gap: 0.5rem;
 }
 
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: #e9ecef;
+    color: #333;
+}
+
 .add-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, #014421, #2d8659);
+    background: #28a745;
     color: white;
     border: none;
-    border-radius: 8px;
+    padding: 12px 20px;
+    border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(1, 68, 33, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s ease;
+    font-size: 14px;
 }
 
 .add-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(1, 68, 33, 0.3);
+    background: #218838;
 }
 
 .crud-table-container {
@@ -618,4 +780,1112 @@
 .info-card p {
     color: #004d2e;
     margin: 5px 0;
+}
+
+/* Estilos para componentes de gestión */
+.customer-management,
+.admin-management,
+.assessor-management,
+.logistic-management,
+.admin-settings,
+.admin-reports {
+    padding: 24px;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.content-header {
+    margin-bottom: 32px;
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.content-header h1 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 28px;
+}
+
+.content-header p {
+    margin: 0;
+    color: #666;
+    font-size: 16px;
+}
+
+/* Estilos para formularios y tablas */
+.form-container,
+.table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.form-header,
+.table-header {
+    background: #f8f9fa;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.form-header h2,
+.table-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 20px;
+}
+
+.add-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s ease;
+    font-size: 14px;
+}
+
+.add-btn:hover {
+    background: #218838;
+}
+
+/* Estilos para placeholders de implementación */
+.management-placeholder,
+.settings-placeholder,
+.charts-placeholder {
+    background: white;
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 24px;
+}
+
+.placeholder-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.management-placeholder h3,
+.settings-placeholder h3,
+.charts-placeholder h3 {
+    color: #333;
+    margin-bottom: 16px;
+    font-size: 24px;
+}
+
+.management-placeholder p,
+.settings-placeholder p,
+.charts-placeholder p {
+    color: #666;
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+.implementation-guide {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 20px;
+    margin-top: 24px;
+    text-align: left;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.implementation-guide h4 {
+    margin: 0 0 12px 0;
+    color: #007bff;
+    font-size: 16px;
+}
+
+.implementation-guide ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.implementation-guide li {
+    color: #666;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+/* Estilos para la actividad reciente */
+.recent-activity {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 24px;
+}
+
+.recent-activity h2 {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 20px;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #007bff;
+}
+
+.activity-icon {
+    font-size: 24px;
+}
+
+.activity-info p {
+    margin: 0 0 4px 0;
+    color: #333;
+    font-size: 14px;
+}
+
+.activity-info small {
+    color: #666;
+    font-size: 12px;
+}
+
+/* Estilos para configuraciones */
+.settings-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.settings-section {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.settings-section h3 {
+    margin: 0 0 16px 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.settings-content p {
+    margin: 0 0 16px 0;
+    color: #666;
+    line-height: 1.6;
+}
+
+.settings-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.settings-btn:hover {
+    background: #0056b3;
+}
+
+/* Estilos para reportes */
+.reports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.report-card {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.report-card:hover {
+    transform: translateY(-2px);
+}
+
+.report-card h3 {
+    margin: 0 0 12px 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.report-card p {
+    margin: 0 0 20px 0;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.report-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.report-btn:hover {
+    background: #218838;
+}
+
+/* Mejoras para estadísticas del dashboard */
+.stats-grid .stat-card small {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+}
+
+/* ========== ANIMACIONES ========== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1200px) {
+    .admin-main {
+        padding: 1.5rem 2rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: 280px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .admin-sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .admin-main {
+        margin-left: 0;
+        padding: 1rem;
+    }
+    
+    .content-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .crud-selector {
+        flex-direction: column;
+    }
+    
+    .crud-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-main {
+        padding: 0.5rem;
+    }
+    
+    .content-header {
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .content-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .stat-card {
+        padding: 1.5rem;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .crud-table-container {
+        padding: 1rem;
+    }
+}
+
+/* ========== GESTIÓN DE VEHÍCULOS ========== */
+.vehicle-management {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(1, 68, 33, 0.1);
+}
+
+.header-content h1 {
+    margin: 0 0 0.5rem 0;
+    color: #014421;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.header-content p {
+    margin: 0;
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+.add-vehicle-btn {
+    background: linear-gradient(135deg, #014421, #2d8659);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(1, 68, 33, 0.3);
+}
+
+.add-vehicle-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(1, 68, 33, 0.4);
+    background: linear-gradient(135deg, #1a5f3f, #4caf50);
+}
+
+.add-vehicle-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Formulario de Vehículo */
+.vehicle-form-container {
+    padding: 2rem;
+}
+
+.vehicle-form .form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(1, 68, 33, 0.1);
+}
+
+.vehicle-form .form-header h3 {
+    margin: 0;
+    color: #014421;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.vehicle-form .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #64748b;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.vehicle-form .close-btn:hover {
+    background: #f1f5f9;
+    color: #dc2626;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #014421;
+    box-shadow: 0 0 0 3px rgba(1, 68, 33, 0.1);
+}
+
+.form-group input.error,
+.form-group select.error {
+    border-color: #dc2626;
+}
+
+.error-message {
+    color: #dc2626;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+.help-text {
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.image-preview {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border: 2px dashed #e2e8f0;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.image-preview label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.image-preview img {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(1, 68, 33, 0.1);
+}
+
+.cancel-btn {
+    background: #f8fafc;
+    color: #64748b;
+    border: 2px solid #e2e8f0;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+    background: #e2e8f0;
+    color: #374151;
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, #014421, #2d8659);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(1, 68, 33, 0.3);
+}
+
+.submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(1, 68, 33, 0.4);
+}
+
+.submit-btn:disabled,
+.cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Tabla de Vehículos */
+.vehicle-table-container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(1, 68, 33, 0.1);
+    overflow: hidden;
+}
+
+.table-filters {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(1, 68, 33, 0.1);
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+}
+
+.search-group {
+    margin-bottom: 1rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #014421;
+    box-shadow: 0 0 0 3px rgba(1, 68, 33, 0.1);
+}
+
+.filter-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-select {
+    padding: 0.5rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #014421;
+}
+
+.clear-filters-btn {
+    background: #64748b;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.clear-filters-btn:hover {
+    background: #475569;
+}
+
+.table-stats {
+    padding: 0.75rem 1.5rem;
+    background: #f8fafc;
+    border-bottom: 1px solid rgba(1, 68, 33, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.filter-active {
+    color: #014421;
+    font-weight: 600;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+/* Alertas */
+.alert {
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+}
+
+.alert-error {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.alert-success {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+.alert-icon {
+    font-size: 1.2rem;
+}
+
+.alert-close {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin-left: auto;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.alert-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* ========== ASSESSOR MANAGEMENT ========== */
+.assessor-content {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.assessor-content .content-header {
+    margin-bottom: 2rem;
+}
+
+.assessor-content .content-header h1 {
+    color: #014421;
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.assessor-content .content-header p {
+    color: #64748b;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Assessor Form Styles */
+.assessor-form-container {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.assessor-form .form-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border-left: 4px solid #014421;
+}
+
+.assessor-form .form-section h3 {
+    color: #014421;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.assessor-form .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.assessor-form .input-with-button {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.assessor-form .input-with-button input {
+    flex: 1;
+}
+
+.assessor-form .generate-btn {
+    padding: 0.75rem;
+    background: #014421;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.assessor-form .generate-btn:hover:not(:disabled) {
+    background: #2d8659;
+    transform: translateY(-1px);
+}
+
+.assessor-form .generate-btn:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+}
+
+.assessor-form .preview-btn {
+    background: #6366f1;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.assessor-form .preview-btn:hover {
+    background: #4f46e5;
+}
+
+.form-preview {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 2rem;
+    border: 2px dashed #014421;
+}
+
+.form-preview h3 {
+    color: #014421;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.preview-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.preview-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.preview-section h4 {
+    color: #014421;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.5rem;
+}
+
+.preview-section p {
+    margin-bottom: 0.5rem;
+    color: #4a5568;
+}
+
+.preview-section .status.active {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.preview-section .status.inactive {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+/* Assessor Table Styles */
+.assessor-table-container {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-top: 2rem;
+}
+
+.assessor-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.assessor-table th,
+.assessor-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.assessor-table th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #374151;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.assessor-table .sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.assessor-table .sortable:hover {
+    background: #e2e8f0;
+}
+
+.assessor-table .inactive-row {
+    opacity: 0.6;
+    background-color: #fef2f2;
+}
+
+.assessor-table .assessor-id {
+    font-weight: 600;
+    color: #6366f1;
+}
+
+.assessor-table .employee-id {
+    font-family: 'Courier New', monospace;
+    background: #f1f5f9;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.assessor-table .full-name {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.assessor-table .assessor-email {
+    color: #6366f1;
+    font-size: 0.9rem;
+}
+
+.assessor-table .assessor-phone {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.assessor-table .department-badge {
+    background: linear-gradient(45deg, #014421, #2d8659);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.assessor-table .assessor-salary {
+    font-weight: 600;
+    color: #16a34a;
+}
+
+.assessor-table .hire-date {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.status-badge.inactive {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+/* Management Header for Assessors */
+.assessor-management .management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.assessor-management .header-content h2 {
+    color: #014421;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.assessor-management .add-assessor-btn {
+    background: linear-gradient(45deg, #014421, #2d8659);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(1, 68, 33, 0.3);
+}
+
+.assessor-management .add-assessor-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(1, 68, 33, 0.4);
+}
+
+.assessor-management .add-assessor-btn:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Assessors Section */
+.assessors-section {
+    margin-top: 2rem;
+}
+
+.assessors-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.assessors-section .section-header h2 {
+    color: #014421;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Responsive Design for Assessors */
+@media (max-width: 768px) {
+    .assessor-form .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .preview-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .assessor-management .management-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .assessor-table-container {
+        overflow-x: auto;
+    }
+    
+    .assessor-table {
+        min-width: 1000px;
+    }
 }

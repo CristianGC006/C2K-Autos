@@ -203,18 +203,17 @@ const LoginAdmin = () => {
     );
     return customer;
   }
-
   function logIn() {
     if (getAdmin()) {
       let accessToken = generateToken();
       localStorage.setItem("Token", JSON.stringify(accessToken));
-      localStorage.setItem("User", JSON.stringify(getAdmin()));
+      localStorage.setItem("Admin", JSON.stringify(getAdmin()));
       redirectionAlert(
         redirectLogin,
         "Bienvenido",
         "Se ha iniciado sesión correctamente",
         "success",
-        "/adminHome"
+        "/admin/dashboard"
       );
     } else {
       genericAlert("Error", "Usuario o contraseña incorrectos", "error");

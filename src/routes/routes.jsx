@@ -5,7 +5,15 @@ import Login from "../pages/auth/Login";
 import Rental from "../pages/Rental";
 import Info from "../pages/Info";
 import LoginAdmin from "../pages/auth/LoginAdmin";
-import AdminHome from "../pages/Admin/AdminHome";
+import AdminLayout from "../pages/Admin/AdminLayout";
+import AdminDashboard from "../pages/Admin/AdminDashboard";
+import CustomerManagement from "../pages/Admin/CustomerManagement";
+import VehicleManagement from "../pages/Admin/VehicleManagement";
+import AdminManagement from "../pages/Admin/AdminManagement";
+import AssessorManagement from "../pages/Admin/AssessorManagement";
+import LogisticManagement from "../pages/Admin/LogisticManagement";
+import AdminReports from "../pages/Admin/AdminReports";
+import AdminSettings from "../pages/Admin/AdminSettings";
 import AssessorHome from "../pages/Assessor/AssessorHome";
 import Location from "../pages/Location";
 import LoginAssessor from "../pages/auth/LoginAssessor";
@@ -31,10 +39,52 @@ export let routes = [
     {
         path:"/logisticOp",
         element: <LoginLogisticOp/>
+    },    {
+        path:"/admin",
+        element:<ProtectedRoute security={<AdminLayout />} />,
+        children: [
+            {
+                path: "dashboard",
+                element: <AdminDashboard />
+            },            {
+                path: "customers",
+                element: <CustomerManagement />
+            },
+            {
+                path: "vehicles",
+                element: <VehicleManagement />
+            },
+            {
+                path: "admins",
+                element: <AdminManagement />
+            },
+            {
+                path: "assessors",
+                element: <AssessorManagement />
+            },
+            {
+                path: "logistics",
+                element: <LogisticManagement />
+            },
+            {
+                path: "reports",
+                element: <AdminReports />
+            },
+            {
+                path: "settings",
+                element: <AdminSettings />
+            },
+            {
+                // Redirección por defecto al dashboard
+                index: true,
+                element: <AdminDashboard />
+            }
+        ]
     },
     {
+        // Mantener compatibilidad con la ruta antigua
         path:"/adminHome",
-        element:<ProtectedRoute security={<AdminHome />} />
+        element:<ProtectedRoute security={<AdminLayout />} />
     },
     {
         path:"/userHome",

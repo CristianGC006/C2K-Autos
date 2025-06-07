@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import VehicleManagement from './VehicleManagement';
 import './AdminHome.css';
 
 const AdminHome = () => {
@@ -69,6 +70,12 @@ const AdminHome = () => {
                     >
                         <span className="nav-icon">📊</span>
                         <span className="nav-text">Dashboard</span>
+                    </button>                    <button 
+                        className={`nav-item ${selectedSection === 'vehicles' ? 'active' : ''}`}
+                        onClick={() => setSelectedSection('vehicles')}
+                    >
+                        <span className="nav-icon">🚗</span>
+                        <span className="nav-text">Vehículos</span>
                     </button>
                     <button 
                         className={`nav-item ${selectedSection === 'crud' ? 'active' : ''}`}
@@ -145,9 +152,7 @@ const AdminHome = () => {
                         <header className="content-header">
                             <h1>⚙️ Gestión CRUD</h1>
                             <p>Administrar entidades del sistema</p>
-                        </header>
-
-                        {/* Selector de tipo de CRUD */}
+                        </header>                        {/* Selector de tipo de CRUD */}
                         <div className="crud-selector">
                             <button 
                                 className={`crud-type-btn ${selectedCrudType === 'customers' ? 'active' : ''}`}
@@ -155,6 +160,13 @@ const AdminHome = () => {
                             >
                                 <span className="crud-icon">👥</span>
                                 <span>Clientes</span>
+                            </button>
+                            <button 
+                                className={`crud-type-btn ${selectedCrudType === 'vehicles' ? 'active' : ''}`}
+                                onClick={() => setSelectedCrudType('vehicles')}
+                            >
+                                <span className="crud-icon">🚗</span>
+                                <span>Vehículos</span>
                             </button>
                             <button 
                                 className={`crud-type-btn ${selectedCrudType === 'admin' ? 'active' : ''}`}
@@ -180,36 +192,50 @@ const AdminHome = () => {
                         </div>
 
                         {/* Área de contenido CRUD */}
-                        <div className="crud-area">
-                            <div className="crud-header">
+                        <div className="crud-area">                            <div className="crud-header">
                                 <h2>
                                     {selectedCrudType === 'customers' && '👥 Gestión de Clientes'}
+                                    {selectedCrudType === 'vehicles' && '🚗 Gestión de Vehículos'}
                                     {selectedCrudType === 'admin' && '👑 Gestión de Administradores'}
                                     {selectedCrudType === 'assessor' && '💼 Gestión de Asesores'}
                                     {selectedCrudType === 'logistic' && '📦 Gestión de Operadores Logísticos'}
                                 </h2>
-                                <button className="add-btn">
-                                    <span>➕</span> Agregar Nuevo
-                                </button>
-                            </div>
-
-                            <div className="crud-table-container">
-                                <div className="crud-placeholder">
-                                    <div className="placeholder-icon">
-                                        {selectedCrudType === 'customers' && '👥'}
-                                        {selectedCrudType === 'admin' && '👑'}
-                                        {selectedCrudType === 'assessor' && '💼'}
-                                        {selectedCrudType === 'logistic' && '📦'}
+                                {selectedCrudType !== 'vehicles' && (
+                                    <button className="add-btn">
+                                        <span>➕</span> Agregar Nuevo
+                                    </button>
+                                )}
+                            </div>                            <div className="crud-table-container">
+                                {selectedCrudType === 'vehicles' ? (
+                                    <VehicleManagement />
+                                ) : (
+                                    <div className="crud-placeholder">
+                                        <div className="placeholder-icon">
+                                            {selectedCrudType === 'customers' && '👥'}
+                                            {selectedCrudType === 'admin' && '👑'}
+                                            {selectedCrudType === 'assessor' && '💼'}
+                                            {selectedCrudType === 'logistic' && '📦'}
+                                        </div>
+                                        <h3>Área de {selectedCrudType === 'customers' ? 'Clientes' : 
+                                                   selectedCrudType === 'admin' ? 'Administradores' : 
+                                                   selectedCrudType === 'assessor' ? 'Asesores' : 
+                                                   'Operadores Logísticos'}</h3>
+                                        <p>La lógica de CRUD será implementada por tu compañero.</p>
+                                        <p>Esta área contendrá la tabla con datos y controles de edición.</p>
                                     </div>
-                                    <h3>Área de {selectedCrudType === 'customers' ? 'Clientes' : 
-                                               selectedCrudType === 'admin' ? 'Administradores' : 
-                                               selectedCrudType === 'assessor' ? 'Asesores' : 
-                                               'Operadores Logísticos'}</h3>
-                                    <p>La lógica de CRUD será implementada por tu compañero.</p>
-                                    <p>Esta área contendrá la tabla con datos y controles de edición.</p>
-                                </div>
+                                )}
                             </div>
                         </div>
+                    </div>                )}
+
+                {selectedSection === 'vehicles' && (
+                    <div className="vehicles-content">
+                        <header className="content-header">
+                            <h1>🚗 Gestión de Vehículos</h1>
+                            <p>Administrar el inventario de vehículos del sistema</p>
+                        </header>
+                        
+                        <VehicleManagement />
                     </div>
                 )}
 
