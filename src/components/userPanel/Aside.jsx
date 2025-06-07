@@ -13,17 +13,6 @@ const Aside = ({ activeSection, setActiveSection }) => {
     redirectionAlert(redirection, "C2K", "Hasta luego, vuelva pronto", "info", "/");
   }
 
-  // Función para obtener el nivel del usuario basado en algún criterio
-  const getUserLevel = () => {
-    // Aquí podrías usar datos reales del usuario
-    return {
-      name: "Oro",
-      progress: 75,
-      color: "#ffd700"
-    };
-  };
-
-  const userLevel = getUserLevel();
 
   return (
     <aside className="user-panel-sidebar">
@@ -38,25 +27,7 @@ const Aside = ({ activeSection, setActiveSection }) => {
         </h2>
         <button className="edit-profile-btn" onClick={() => setActiveSection("editar")}>
           <span>✏️</span> Editar perfil
-        </button>
-      </div>
-
-      <div className="user-level">
-        <div className="level-header">
-          <span className="level-icon">👑</span>
-          <h3>Nivel {userLevel.name}</h3>
-        </div>
-        <div className="level-indicator">
-          <div 
-            className="level-progress" 
-            style={{ 
-              width: `${userLevel.progress}%`,
-              backgroundColor: userLevel.color 
-            }}
-          ></div>
-        </div>
-        <p className="level-text">{userLevel.progress}% completado</p>
-      </div>
+        </button>      </div>
 
       <nav className="sidebar-nav">
         <button 

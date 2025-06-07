@@ -53,36 +53,56 @@ export const imageService = {
 
   // Imagen por defecto
   defaultImage: 'https://images.unsplash.com/photo-1494976688930-2a42c9e4b5e5?w=800&q=80',
-
   // Función para obtener imagen por marca y modelo
   getVehicleImage(brand, model) {
-    if (!brand || !model) return this.defaultImage;
+    // Verificar si brand y model son válidos (no nulos, undefined o vacíos)
+    if (!brand || !model || brand === null || model === null || 
+        typeof brand !== 'string' || typeof model !== 'string') {
+      console.warn('Brand o model inválido:', { brand, model });
+      return this.defaultImage;
+    }
     
-    // Normalizar los nombres para el mapeo
-    const normalizedBrand = brand.toLowerCase().trim();
-    const normalizedModel = model.toLowerCase().trim().replace(/\s+/g, '-');
-    const key = `${normalizedBrand}-${normalizedModel}`;
-    
-    console.log(`Buscando imagen para: ${key}`);
-    
-    return this.vehicleImages[key] || this.getImageByBrand(normalizedBrand) || this.defaultImage;
+    try {
+      // Normalizar los nombres para el mapeo con validación extra
+      const normalizedBrand = String(brand).toLowerCase().trim();
+      const normalizedModel = String(model).toLowerCase().trim().replace(/\s+/g, '-');
+      const key = `${normalizedBrand}-${normalizedModel}`;
+      
+      console.log(`Buscando imagen para: ${key}`);
+      
+      return this.vehicleImages[key] || this.getImageByBrand(normalizedBrand) || this.defaultImage;
+    } catch (error) {
+      console.error('Error en getVehicleImage:', error, { brand, model });
+      return this.defaultImage;
+    }
   },
-
   // Función de fallback por marca
   getImageByBrand(brand) {
-    const brandDefaults = {
-      'chevrolet': 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80',
-      'ford': 'https://images.unsplash.com/photo-1584345604476-6cc67b5cb6f3?w=800&q=80',
-      'bmw': 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80',
-      'audi': 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&q=80',
-      'mercedes': 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80',
-      'toyota': 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&q=80',
-      'honda': 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&q=80',
-      'nissan': 'https://images.unsplash.com/photo-1574782228741-1e0a4c9d4c12?w=800&q=80',
-      'dodge': 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80'
-    };
+    // Verificar si brand es válido
+    if (!brand || brand === null || typeof brand !== 'string') {
+      console.warn('Brand inválido en getImageByBrand:', brand);
+      return this.defaultImage;
+    }
     
-    return brandDefaults[brand.toLowerCase()];
+    try {
+      const brandDefaults = {
+        'chevrolet': 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80',
+        'ford': 'https://images.unsplash.com/photo-1584345604476-6cc67b5cb6f3?w=800&q=80',
+        'bmw': 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80',
+        'audi': 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&q=80',
+        'mercedes': 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80',
+        'toyota': 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&q=80',
+        'honda': 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&q=80',
+        'nissan': 'https://images.unsplash.com/photo-1574782228741-1e0a4c9d4c12?w=800&q=80',
+        'dodge': 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80'
+      };
+      
+      const normalizedBrand = String(brand).toLowerCase().trim();
+      return brandDefaults[normalizedBrand] || this.defaultImage;
+    } catch (error) {
+      console.error('Error en getImageByBrand:', error, { brand });
+      return this.defaultImage;
+    }
   },
 
   // Función para verificar si una imagen se carga correctamente
@@ -97,26 +117,37 @@ export const imageService = {
       setTimeout(() => resolve(false), 5000);
     });
   },
-
   // Función para obtener imagen con verificación de carga
   async getValidatedImage(brand, model, fallbackUrl = null) {
-    const primaryUrl = fallbackUrl || this.getVehicleImage(brand, model);
-    
-    const isValid = await this.checkImageLoad(primaryUrl);
-    if (isValid) {
-      return primaryUrl;
-    }
-    
-    // Si la imagen primaria falla, probar con la imagen por marca
-    const brandUrl = this.getImageByBrand(brand);
-    if (brandUrl) {
-      const isBrandValid = await this.checkImageLoad(brandUrl);
-      if (isBrandValid) {
-        return brandUrl;
+    try {
+      // Verificar primero que brand y model sean válidos
+      if (!brand || !model || brand === null || model === null || 
+          typeof brand !== 'string' || typeof model !== 'string') {
+        console.warn('Parámetros inválidos en getValidatedImage:', { brand, model, fallbackUrl });
+        return this.defaultImage;
       }
+      
+      const primaryUrl = fallbackUrl || this.getVehicleImage(brand, model);
+      
+      const isValid = await this.checkImageLoad(primaryUrl);
+      if (isValid) {
+        return primaryUrl;
+      }
+      
+      // Si la imagen primaria falla, probar con la imagen por marca
+      const brandUrl = this.getImageByBrand(brand);
+      if (brandUrl && brandUrl !== this.defaultImage) {
+        const isBrandValid = await this.checkImageLoad(brandUrl);
+        if (isBrandValid) {
+          return brandUrl;
+        }
+      }
+      
+      // Último recurso: imagen por defecto
+      return this.defaultImage;
+    } catch (error) {
+      console.error('Error en getValidatedImage:', error, { brand, model, fallbackUrl });
+      return this.defaultImage;
     }
-    
-    // Último recurso: imagen por defecto
-    return this.defaultImage;
   }
 };

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from 'sweetalert2';
 import CarouselCars from "../CarouselCars";
 import VehicleCard from "../VehicleCard";
 import { imageService } from "../../services/imageService";
@@ -12,19 +13,22 @@ function Panel({ activeSection, setActiveSection, user }) {
   const [userInfo, setUserInfo] = useState(user || {});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const vehiclesLoaded = useRef(false); // Ref para evitar múltiples cargas
+  const initializationStarted = useRef(false); // Ref para evitar múltiples inicializaciones
   const navigate = useNavigate();
 
-  // ✅ FUNCIÓN PARA VALIDAR Y OBTENER EL ID DEL USUARIO
-  const getUserId = useCallback(() => {
-    let userId = userInfo?.id || userInfo?.customer_id || userInfo?.userId;
+  // ✅ FUNCIÓN PARA VALIDAR Y OBTENER EL ID DEL USUARIO (FUERA DEL USEEFFECT PARA REUTILIZAR)
+  const getUserId = () => {
+    // Buscar el ID usando la estructura real del API (idCustomer)
+    let userId = userInfo?.idCustomer || userInfo?.id || userInfo?.customer_id || userInfo?.userId;
     
+    // Si no está en el estado, obtenerlo directamente del localStorage
     if (!userId) {
       const storedUser = localStorage.getItem("User");
       if (storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
-          userId = parsedUser?.id || parsedUser?.customer_id || parsedUser?.userId;
+          userId = parsedUser?.idCustomer || parsedUser?.id || parsedUser?.customer_id || parsedUser?.userId;
         } catch (e) {
           console.error("Error parsing stored user:", e);
         }
@@ -34,70 +38,12 @@ function Panel({ activeSection, setActiveSection, user }) {
     const numericId = userId ? parseInt(userId, 10) : null;
     
     if (!numericId || isNaN(numericId)) {
-      console.error("ID de usuario inválido:", userId);
+      console.error("ID de usuario inválido:", userId, "userInfo:", userInfo);
       return null;
     }
     
     return numericId;
-  }, [userInfo]);  // ✅ FUNCIÓN PARA OBTENER LOS VEHÍCULOS DISPONIBLES
-  const fetchVehicles = useCallback(async () => {
-    try {
-      console.log("Fetching vehicles..."); 
-      
-      const response = await fetch('http://localhost:8080/vehicle');
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-      const data = await response.json();
-      console.log("Vehicles fetched successfully:", data);
-      console.log("Sample vehicle structure:", data[0]); // Debug para ver estructura      // ✅ PROCESAR IMÁGENES CON SERVICIO DE MAPEO
-      const dataWithCorrectFields = await Promise.all(data.map(async (vehicle) => {
-        let finalImageUrl;
-        
-        // Si la API provee imageUrl, usarla; si no, usar el servicio de mapeo
-        if (vehicle.imageUrl && vehicle.imageUrl.trim() !== '') {
-          finalImageUrl = await imageService.getValidatedImage(vehicle.brand, vehicle.model, vehicle.imageUrl);
-        } else {
-          finalImageUrl = await imageService.getValidatedImage(vehicle.brand, vehicle.model);
-        }
-        
-        return {
-          ...vehicle,
-          vehicle_id: vehicle.vehicleId || vehicle.vehicle_id,
-          image_url: finalImageUrl,
-          imageLoaded: true // Marcador para indicar que la imagen está procesada
-        };
-      }));
-      
-      console.log("Processed vehicle structure:", dataWithCorrectFields[0]); // Debug
-      
-      // Filtrar vehículos disponibles
-      const available = dataWithCorrectFields.filter(vehicle => !vehicle.id_user || vehicle.id_user === 'NULL');
-      setAvailableCars(available);
-      console.log("Available cars:", available);
-        // Obtener vehículos alquilados por el usuario actual
-      const currentUserId = getUserId();
-      if (currentUserId) {
-        const rented = dataWithCorrectFields.filter(vehicle => 
-          vehicle.id_user && 
-          parseInt(vehicle.id_user, 10) === currentUserId
-        );
-        setRentedCars(rented);
-        console.log("Rented cars for user:", rented);
-      }
-      
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching vehicles:', error);
-      // No bloquear el dashboard por errores de API
-      setRentedCars([]);
-      setAvailableCars([]);
-      setLoading(false);
-      console.warn("Dashboard cargará sin datos de vehículos debido a:", error.message);
-    }
-  }, [getUserId]);
-
-  // ✅ FUNCIÓN PARA MANEJAR CAMBIOS EN LA INFORMACIÓN DEL USUARIO
+  };// ✅ FUNCIÓN PARA MANEJAR CAMBIOS EN LA INFORMACIÓN DEL USUARIO
   const handleUserInfoChange = (e) => {
     const { name, value } = e.target;
     setUserInfo(prevUserInfo => ({
@@ -105,40 +51,242 @@ function Panel({ activeSection, setActiveSection, user }) {
       [name]: value
     }));
   };
-  // ✅ EFECTO PARA INICIALIZAR EL USUARIO
-  useEffect(() => {
-    console.log("Initializing user...");
-    
-    if (!userInfo?.id && !isInitialized) {
-      const storedUser = localStorage.getItem("User");
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          console.log("User loaded from localStorage:", parsedUser);
-          setUserInfo(parsedUser);
-        } catch (e) {
-          console.error("Error parsing stored user:", e);
-          // En lugar de mostrar error, cargar dashboard sin datos de usuario
-          setUserInfo({ name: 'Usuario', id: 'demo' });
-          console.warn("Cargando dashboard en modo demo");
-        }
-      } else {
-        console.warn("No user found in localStorage, loading demo mode");
-        // Cargar dashboard en modo demo
-        setUserInfo({ name: 'Usuario', id: 'demo' });
-      }
-      setIsInitialized(true);
-    } else if (userInfo?.id && isInitialized) {
-      // Usuario válido, cargar vehículos
-      fetchVehicles();
-    }
-  }, [userInfo?.id, isInitialized, fetchVehicles]);
 
-  // Función para alquilar un vehículo
+  // ✅ FUNCIÓN PARA RECARGAR VEHÍCULOS (PARA USAR DESPUÉS DE ALQUILAR)
+  const reloadVehicles = async () => {
+    try {
+      console.log("Reloading vehicles after rental..."); 
+      
+      const response = await fetch('http://localhost:8080/vehicle');
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }      const data = await response.json();
+      console.log("Vehicles reloaded successfully:", data);
+      
+      // ✅ PROCESAR IMÁGENES CON SERVICIO DE MAPEO CON VALIDACIÓN EXTRA
+      const dataWithCorrectFields = await Promise.all(data.map(async (vehicle) => {
+        let finalImageUrl;
+        
+        // Verificar que vehicle tenga las propiedades necesarias
+        const brand = vehicle?.brand || '';
+        const model = vehicle?.model || '';
+        const imageUrl = vehicle?.imageUrl || '';
+        
+        // Log para debug
+        console.log('Reloading vehicle:', { brand, model, imageUrl, vehicleId: vehicle?.vehicleId });
+        
+        if (imageUrl && imageUrl.trim() !== '') {
+          finalImageUrl = await imageService.getValidatedImage(brand, model, imageUrl);
+        } else {
+          finalImageUrl = await imageService.getValidatedImage(brand, model);
+        }
+        
+        return {
+          ...vehicle,
+          vehicle_id: vehicle?.vehicleId || vehicle?.vehicle_id || 0,
+          image_url: finalImageUrl,
+          imageLoaded: true,
+          // Asegurar que las propiedades críticas no sean null
+          brand: brand || 'Sin marca',
+          model: model || 'Sin modelo',
+          plate: vehicle?.plate || 'Sin placa',
+          year: vehicle?.year || 'N/A',
+          price: vehicle?.price || 0
+        };
+      }));
+        // Filtrar vehículos disponibles - un vehículo está disponible si no tiene customer asignado
+      const available = dataWithCorrectFields.filter(vehicle => 
+        !vehicle.customers || !vehicle.customers.id
+      );
+      setAvailableCars(available);
+      console.log("Available vehicles after reload:", available.length);
+      
+      // Obtener vehículos alquilados por el usuario actual
+      const currentUserId = getUserId();
+      if (currentUserId) {
+        const rented = dataWithCorrectFields.filter(vehicle => 
+          vehicle.customers && 
+          vehicle.customers.id && 
+          parseInt(vehicle.customers.id, 10) === currentUserId
+        );
+        setRentedCars(rented);
+        console.log("Rented vehicles for user", currentUserId, "after reload:", rented.length);
+      }
+    } catch (error) {
+      console.error('Error reloading vehicles:', error);
+    }
+  };  // ✅ EFECTO SIMPLE PARA INICIALIZAR - SOLO UNA VEZ
+  useEffect(() => {
+    // Evitar múltiples inicializaciones
+    if (initializationStarted.current) {
+      return;
+    }
+    
+    initializationStarted.current = true;
+    console.log("Initializing component once...");
+      // ✅ FUNCIÓN PARA VALIDAR Y OBTENER EL ID DEL USUARIO (DENTRO DEL USEEFFECT)
+    const getUserIdLocal = () => {
+      // Buscar el ID usando la estructura real del API (idCustomer)
+      let userId = null;
+      
+      // Primero intentar con el user prop
+      if (user && (user.idCustomer || user.id || user.customer_id || user.userId)) {
+        userId = user.idCustomer || user.id || user.customer_id || user.userId;
+      }
+      
+      // Si no está en la prop, obtenerlo directamente del localStorage
+      if (!userId) {
+        const storedUser = localStorage.getItem("User");
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            userId = parsedUser?.idCustomer || parsedUser?.id || parsedUser?.customer_id || parsedUser?.userId;
+          } catch (e) {
+            console.error("Error parsing stored user:", e);
+          }
+        }
+      }
+
+      const numericId = userId ? parseInt(userId, 10) : null;
+      
+      if (!numericId || isNaN(numericId)) {
+        console.error("ID de usuario inválido:", userId);
+        return null;
+      }
+      
+      return numericId;
+    };
+    
+    // ✅ FUNCIÓN PARA OBTENER LOS VEHÍCULOS (MOVIDA DENTRO DEL USEEFFECT)
+    const fetchVehicles = async () => {
+      try {
+        console.log("Fetching vehicles..."); 
+        setLoading(true); // Mostrar loading mientras carga vehículos
+        
+        const response = await fetch('http://localhost:8080/vehicle');
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }        const data = await response.json();
+        console.log("Vehicles fetched successfully:", data);
+        
+        // ✅ PROCESAR IMÁGENES CON SERVICIO DE MAPEO CON VALIDACIÓN EXTRA
+        const dataWithCorrectFields = await Promise.all(data.map(async (vehicle) => {
+          let finalImageUrl;
+          
+          // Verificar que vehicle tenga las propiedades necesarias
+          const brand = vehicle?.brand || '';
+          const model = vehicle?.model || '';
+          const imageUrl = vehicle?.imageUrl || '';
+          
+          // Log para debug
+          console.log('Processing vehicle:', { brand, model, imageUrl, vehicleId: vehicle?.vehicleId });
+          
+          if (imageUrl && imageUrl.trim() !== '') {
+            finalImageUrl = await imageService.getValidatedImage(brand, model, imageUrl);
+          } else {
+            finalImageUrl = await imageService.getValidatedImage(brand, model);
+          }
+          
+          return {
+            ...vehicle,
+            vehicle_id: vehicle?.vehicleId || vehicle?.vehicle_id || 0,
+            image_url: finalImageUrl,
+            imageLoaded: true,
+            // Asegurar que las propiedades críticas no sean null
+            brand: brand || 'Sin marca',
+            model: model || 'Sin modelo',
+            plate: vehicle?.plate || 'Sin placa',
+            year: vehicle?.year || 'N/A',
+            price: vehicle?.price || 0
+          };
+        }));
+          // Filtrar vehículos disponibles - un vehículo está disponible si no tiene customer asignado
+        const available = dataWithCorrectFields.filter(vehicle => 
+          !vehicle.customers || !vehicle.customers.id
+        );
+        setAvailableCars(available);        console.log("Available vehicles:", available.length);
+        
+        // Obtener vehículos alquilados por el usuario actual
+        const currentUserId = getUserIdLocal();
+        if (currentUserId) {
+          const rented = dataWithCorrectFields.filter(vehicle => 
+            vehicle.customers && 
+            vehicle.customers.id && 
+            parseInt(vehicle.customers.id, 10) === currentUserId
+          );
+          setRentedCars(rented);
+          console.log("Rented vehicles for user", currentUserId, ":", rented.length);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching vehicles:', error);
+        setRentedCars([]);
+        setAvailableCars([]);
+        setError(`Error al cargar vehículos: ${error.message}`);
+        setLoading(false);
+      }
+    };
+    
+    const initializeComponent = async () => {
+      try {
+        let finalUserInfo = null;        // 1. Primero intentar usar la prop user
+        if (user && (user.idCustomer || user.id)) {
+          console.log("Using user from props:", user);
+          finalUserInfo = user;
+        } else {
+          // 2. Si no hay prop, intentar localStorage
+          const storedUser = localStorage.getItem("User");
+          if (storedUser) {
+            try {
+              const parsedUser = JSON.parse(storedUser);
+              console.log("Parsed user from localStorage:", parsedUser);
+              // Verificar que el usuario tenga un ID válido usando la estructura real del API
+              if (parsedUser && (parsedUser.idCustomer || parsedUser.id || parsedUser.customer_id || parsedUser.userId)) {
+                console.log("Using user from localStorage:", parsedUser);
+                finalUserInfo = parsedUser;
+              }
+            } catch (e) {
+              console.error("Error parsing stored user:", e);
+            }
+          }
+          
+          // 3. Si no hay usuario válido, mostrar error en lugar de modo demo
+          if (!finalUserInfo) {
+            console.warn("No valid user found, redirecting to login");
+            setError("Sesión expirada. Por favor, inicia sesión nuevamente.");
+            setLoading(false);
+            return;
+          }
+        }
+          // Actualizar estado
+        setUserInfo(finalUserInfo);
+        
+        // Cargar vehículos después de un pequeño delay
+        setTimeout(() => {
+          if (!vehiclesLoaded.current) {
+            vehiclesLoaded.current = true;
+            fetchVehicles();
+          }
+        }, 100);
+        
+      } catch (error) {
+        console.error("Error during initialization:", error);
+        setUserInfo({ name: 'Usuario', id: 'demo' });
+        setLoading(false);
+      }
+    };
+      initializeComponent();
+  }, [user]); // Solo user como dependencia, userInfo se actualiza internamente// Función para alquilar un vehículo con generación de factura
   const rentVehicle = async (vehicleId) => {
     const currentUserId = getUserId();
     if (!currentUserId) {
-      alert("Error: Usuario no válido. Por favor, inicia sesión nuevamente.");
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error de Autenticación',
+        text: 'Usuario no válido. Por favor, inicia sesión nuevamente.',
+        confirmButtonColor: '#014421'
+      });
       return;
     }
 
@@ -148,19 +296,195 @@ function Panel({ activeSection, setActiveSection, user }) {
         throw new Error('Vehículo no encontrado');
       }
 
-      const rentalData = {
-        description: `Alquiler del ${selectedVehicle.brand} ${selectedVehicle.model} (Placa: ${selectedVehicle.plate})`,
-        name: `${selectedVehicle.brand} ${selectedVehicle.model}`,
-        price: selectedVehicle.price || 750,
-        id_branch: 3,
-        id_vehicle: selectedVehicle.vehicle_id,
-        id_assessor: 1,
-        id_customer: currentUserId,
-        id_admin: 1,
-        id_user: currentUserId
-      };
+      // Solicitar duración del alquiler con SweetAlert2
+      const { value: daysInput } = await Swal.fire({
+        title: `Alquilar ${selectedVehicle.brand} ${selectedVehicle.model}`,
+        html: `
+          <div style="text-align: left; margin: 20px 0;">
+            <p><strong>🚗 Vehículo:</strong> ${selectedVehicle.brand} ${selectedVehicle.model}</p>
+            <p><strong>🏷️ Placa:</strong> ${selectedVehicle.plate}</p>
+            <p><strong>📅 Año:</strong> ${selectedVehicle.year || 'N/A'}</p>
+            <p><strong>💰 Precio por día:</strong> $${selectedVehicle.price || 750}</p>
+          </div>
+          <label for="rental-days" style="display: block; margin-bottom: 10px; font-weight: bold;">¿Por cuántos días deseas alquilarlo?</label>
+        `,
+        input: 'number',
+        inputLabel: 'Número de días',
+        inputValue: 1,
+        inputAttributes: {
+          id: 'rental-days',
+          min: 1,
+          max: 365,
+          step: 1
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Continuar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#014421',
+        cancelButtonColor: '#d33',
+        inputValidator: (value) => {
+          if (!value || isNaN(value) || parseInt(value) <= 0) {
+            return 'Debe ingresar un número válido de días mayor a 0';
+          }
+        }
+      });
+      
+      if (!daysInput) {
+        return; // Usuario canceló
+      }
 
-      console.log("Enviando datos de alquiler:", rentalData);
+      const rentalDays = parseInt(daysInput);
+      const dailyPrice = selectedVehicle.price || 750;
+      const totalAmount = dailyPrice * rentalDays;
+
+      // Mostrar confirmación con resumen detallado
+      const confirmResult = await Swal.fire({
+        title: '📋 Confirmar Alquiler',
+        html: `
+          <div style="text-align: left; background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
+            <h4 style="color: #014421; margin-bottom: 15px;">📄 Resumen del Alquiler</h4>
+            <div style="display: grid; gap: 8px;">
+              <p><strong>🚗 Vehículo:</strong> ${selectedVehicle.brand} ${selectedVehicle.model}</p>
+              <p><strong>🏷️ Placa:</strong> ${selectedVehicle.plate}</p>
+              <p><strong>📅 Año:</strong> ${selectedVehicle.year || 'N/A'}</p>
+              <p><strong>📆 Duración:</strong> ${rentalDays} día(s)</p>
+              <p><strong>💵 Precio por día:</strong> $${dailyPrice}</p>
+              <p style="border-top: 2px solid #014421; padding-top: 10px; margin-top: 10px;">
+                <strong style="color: #014421; font-size: 1.2em;">💳 TOTAL A PAGAR: $${totalAmount}</strong>
+              </p>
+            </div>
+          </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '✅ Confirmar Alquiler',
+        cancelButtonText: '❌ Cancelar',
+        confirmButtonColor: '#014421',
+        cancelButtonColor: '#d33',
+        reverseButtons: true
+      });
+      
+      if (!confirmResult.isConfirmed) {
+        return;
+      }
+
+      // Mostrar loading durante el proceso
+      Swal.fire({
+        title: 'Procesando Alquiler...',
+        html: 'Por favor espera mientras procesamos tu solicitud',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
+        }
+      });      // 1. Verificar qué entidades existen en la base de datos
+      let validAdminId = 1;
+      let validBranchId = 1;
+      let validAssessorId = 1;
+      let validCustomerId = currentUserId;
+      let customerEntity = null;
+      
+      try {
+        // Verificar administradores
+        const adminResponse = await fetch('http://localhost:8080/admin');
+        if (adminResponse.ok) {
+          const admins = await adminResponse.json();
+          console.log("Administradores disponibles:", admins);
+          if (admins && admins.length > 0) {
+            validAdminId = admins[0].idAdmin || 1; // Usar idAdmin en lugar de id
+          }
+        }
+
+        // Verificar sucursales
+        const branchResponse = await fetch('http://localhost:8080/branch');
+        if (branchResponse.ok) {
+          const branches = await branchResponse.json();
+          console.log("Sucursales disponibles:", branches);
+          if (branches && branches.length > 0) {
+            validBranchId = branches[0].idBranch || 1; // Usar idBranch únicamente
+          }
+        }
+
+        // Verificar asesores
+        const assessorResponse = await fetch('http://localhost:8080/assessor');
+        if (assessorResponse.ok) {
+          const assessors = await assessorResponse.json();
+          console.log("Asesores disponibles:", assessors);
+          if (assessors && assessors.length > 0) {
+            validAssessorId = assessors[0].idAssessor || 1; // Usar idAssessor en lugar de id
+          }
+        }        // ✅ CRÍTICO: Cargar el Customer completo de la base de datos
+        console.log("Cargando customer completo con ID:", currentUserId);
+        
+        const customerResponse = await fetch(`http://localhost:8080/customer/${currentUserId}`);
+        if (!customerResponse.ok) {
+          // Si no encontramos el customer específico, buscamos en la lista general
+          const allCustomersResponse = await fetch('http://localhost:8080/customer');
+          if (allCustomersResponse.ok) {
+            const customers = await allCustomersResponse.json();
+            console.log("Customers disponibles:", customers);
+            
+            // Buscar el customer actual por su ID
+            customerEntity = customers.find(customer => 
+              customer.id === currentUserId || 
+              customer.idCustomer === currentUserId ||
+              customer.customer_id === currentUserId
+            );
+            
+            if (!customerEntity) {
+              console.error("CRÍTICO: Customer con ID", currentUserId, "no encontrado en la base de datos");
+              console.log("Customers disponibles:", customers.map(c => ({ 
+                id: c.id, 
+                idCustomer: c.idCustomer, 
+                name: c.name, 
+                email: c.email 
+              })));
+              
+              throw new Error(`El usuario con ID ${currentUserId} no existe en la base de datos. Por favor, verifica tu sesión.`);
+            }
+            
+            // Usar el ID exacto que está en la base de datos
+            validCustomerId = customerEntity.id || customerEntity.idCustomer || customerEntity.customer_id;
+            console.log("Customer encontrado en BD:", customerEntity, "usando ID:", validCustomerId);
+          } else {
+            throw new Error("No se pudieron cargar los customers de la base de datos");
+          }
+        } else {
+          customerEntity = await customerResponse.json();
+          console.log("Customer cargado directamente:", customerEntity);
+          validCustomerId = customerEntity.id || customerEntity.idCustomer || currentUserId;
+        }
+      } catch (error) {
+        console.error("Error al verificar entidades:", error);
+        throw error; // Re-lanzar el error para que se maneje en el catch principal
+      }
+
+      // 2. Crear el registro de alquiler con todos los campos requeridos
+      const currentDate = new Date();
+      const startDate = currentDate.toISOString().split('T')[0]; // Fecha actual
+      const endDate = new Date(currentDate.getTime() + (rentalDays * 24 * 60 * 60 * 1000)).toISOString().split('T')[0]; // Fecha final
+        const rentalData = {
+        name: `${selectedVehicle.brand} ${selectedVehicle.model}`,
+        description: `Alquiler del ${selectedVehicle.brand} ${selectedVehicle.model} (Placa: ${selectedVehicle.plate}) por ${rentalDays} día(s)`,
+        price: totalAmount,
+        startDate: startDate,
+        endDate: endDate,
+        status: "ACTIVE",        // IDs de relaciones (usando los nombres que espera el backend)
+        vehicle: {
+          vehicleId: selectedVehicle.vehicle_id
+        },
+        customer: customerEntity, // Usar la entidad completa cargada desde BD
+        assessor: {
+          idAssessor: validAssessorId // Usar idAssessor en lugar de id
+        },
+        branch: {
+          idBranch: validBranchId
+        },
+        admin: {
+          idAdmin: validAdminId // Usar idAdmin en lugar de id
+        }
+      };console.log("Creando registro de alquiler:", rentalData);
 
       const rentalResponse = await fetch('http://localhost:8080/rental', {
         method: 'POST',
@@ -172,48 +496,166 @@ function Panel({ activeSection, setActiveSection, user }) {
 
       if (!rentalResponse.ok) {
         const errorText = await rentalResponse.text();
+        console.error("Error en respuesta del rental:", errorText);
         throw new Error(`Error al crear el registro de alquiler: ${errorText}`);
       }
+
+      const rentalResult = await rentalResponse.json();
+      console.log("Alquiler creado exitosamente:", rentalResult);      // 3. Actualizar el estado del vehículo para asignarlo al usuario
+      const vehicleUpdateData = {
+        customers: {
+          id: customerEntity.id || customerEntity.idCustomer // Usar el ID correcto de la entidad cargada
+        },
+        branches: {
+          idBranch: validBranchId
+        },
+        admin: {
+          idAdmin: validAdminId // Usar idAdmin en lugar de id
+        }
+      };
+
+      console.log("Actualizando vehículo con datos:", vehicleUpdateData);
 
       const vehicleUpdateResponse = await fetch(`http://localhost:8080/vehicle/${selectedVehicle.vehicle_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          id_user: currentUserId,
-          id_branch: 3,
-          id_admin: 1
-        }),
+        body: JSON.stringify(vehicleUpdateData),
       });
 
       if (!vehicleUpdateResponse.ok) {
         const errorText = await vehicleUpdateResponse.text();
         throw new Error(`Error al actualizar el estado del vehículo: ${errorText}`);
+      }      // 4. Generar factura mediante el endpoint de pago
+      const paymentData = {
+        paymentMethod: "CREDIT_CARD", // Usar el enum correcto
+        amount: totalAmount,
+        rental: {
+          idRental: rentalResult.idRental || rentalResult.id_rental || rentalResult.id
+        }
+      };
+
+      console.log("Generando factura:", paymentData);
+
+      const paymentResponse = await fetch('http://localhost:8080/payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData),
+      });      let paymentResult = null;
+      let invoiceId = 'N/A';
+
+      if (!paymentResponse.ok) {
+        const errorText = await paymentResponse.text();
+        console.warn("Error al generar factura:", errorText);
+        invoiceId = 'Error en generación';
+      } else {
+        paymentResult = await paymentResponse.json();
+        console.log("Factura generada:", paymentResult);
+        invoiceId = paymentResult.idPayment || paymentResult.id_payment || paymentResult.id || 'Generado';
+      }// 5. Actualizar la lista de vehículos inmediatamente
+      console.log("Actualizando vehículos después del alquiler...");
+      vehiclesLoaded.current = false;
+      await reloadVehicles();
+
+      // 6. Mostrar factura detallada con SweetAlert2
+      await Swal.fire({
+        title: '🎉 ¡ALQUILER EXITOSO!',
+        html: `
+          <div style="text-align: left; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 25px; border-radius: 15px; margin: 20px 0; border: 2px solid #014421;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h3 style="color: #014421; margin: 0;">📋 FACTURA DE ALQUILER</h3>
+              <p style="color: #666; margin: 5px 0;">Fecha: ${new Date().toLocaleDateString('es-ES')}</p>
+            </div>
+            
+            <div style="border: 1px solid #014421; border-radius: 10px; padding: 15px; background: white; margin-bottom: 15px;">
+              <h4 style="color: #014421; margin-bottom: 10px;">🚗 DATOS DEL VEHÍCULO</h4>
+              <div style="display: grid; gap: 5px; font-size: 14px;">
+                <p><strong>Marca y Modelo:</strong> ${selectedVehicle.brand} ${selectedVehicle.model}</p>
+                <p><strong>Placa:</strong> ${selectedVehicle.plate}</p>
+                <p><strong>Año:</strong> ${selectedVehicle.year || 'N/A'}</p>
+              </div>
+            </div>
+
+            <div style="border: 1px solid #014421; border-radius: 10px; padding: 15px; background: white; margin-bottom: 15px;">
+              <h4 style="color: #014421; margin-bottom: 10px;">👤 DATOS DEL CLIENTE</h4>
+              <div style="display: grid; gap: 5px; font-size: 14px;">
+                <p><strong>Nombre:</strong> ${userInfo.name || "Cliente"}</p>
+                <p><strong>Email:</strong> ${userInfo.email || "cliente@email.com"}</p>
+                <p><strong>ID Cliente:</strong> ${currentUserId}</p>
+              </div>
+            </div>
+
+            <div style="border: 1px solid #014421; border-radius: 10px; padding: 15px; background: white;">
+              <h4 style="color: #014421; margin-bottom: 10px;">💰 DETALLES DE PAGO</h4>
+              <div style="display: grid; gap: 5px; font-size: 14px;">
+                <p><strong>Duración:</strong> ${rentalDays} día(s)</p>
+                <p><strong>Precio por día:</strong> $${dailyPrice}</p>
+                <p><strong>Método de pago:</strong> Tarjeta de Crédito</p>
+                <p style="border-top: 2px solid #014421; padding-top: 10px; margin-top: 10px;">
+                  <strong style="color: #014421; font-size: 16px;">TOTAL PAGADO: $${totalAmount}</strong>
+                </p>
+                <p><strong>ID Factura:</strong> <span style="color: #014421;">${invoiceId}</span></p>
+              </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px; padding: 15px; background: #014421; color: white; border-radius: 10px;">
+              <h4 style="margin: 0;">✅ PAGO PROCESADO EXITOSAMENTE</h4>
+              <p style="margin: 5px 0; font-size: 14px;">¡Gracias por confiar en C2K Autos!</p>
+            </div>
+          </div>
+        `,
+        icon: 'success',
+        confirmButtonText: '🏠 Ir al Dashboard',
+        confirmButtonColor: '#014421',
+        allowOutsideClick: false,
+        width: '600px'
+      });
+
+      // 7. Navegar al dashboard principal
+      if (setActiveSection) {
+        setActiveSection("inicio");
       }
 
-      await fetchVehicles();
-      if (setActiveSection) {
-        setActiveSection("rentados");
-      }
-      alert('¡Vehículo alquilado con éxito!');
     } catch (error) {
-      console.error('Error:', error);
-      alert(`Error al alquilar el vehículo: ${error.message}`);
+      console.error('Error durante el alquiler:', error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error en el Alquiler',
+        text: `Ocurrió un error: ${error.message}`,
+        confirmButtonColor: '#014421'
+      });
     }
   };
-
   // Función para guardar la información actualizada del usuario
   const saveUserInfo = async () => {
     const currentUserId = getUserId();
     if (!currentUserId) {
-      alert("Error: Usuario no válido. Por favor, inicia sesión nuevamente.");
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error de Autenticación',
+        text: 'Usuario no válido. Por favor, inicia sesión nuevamente.',
+        confirmButtonColor: '#014421'
+      });
       return;
     }
 
     try {
       console.log("Actualizando usuario con ID:", currentUserId);
       console.log("Datos a enviar:", userInfo);
+
+      // Mostrar loading
+      Swal.fire({
+        title: 'Actualizando información...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
+        }
+      });
 
       const response = await fetch(`http://localhost:8080/customer/${currentUserId}`, {
         method: 'PUT',
@@ -229,10 +671,21 @@ function Panel({ activeSection, setActiveSection, user }) {
       }
       
       localStorage.setItem("User", JSON.stringify(userInfo));
-      alert("Información actualizada correctamente");
+      
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Actualización Exitosa!',
+        text: 'Tu información ha sido actualizada correctamente.',
+        confirmButtonColor: '#014421'
+      });
     } catch (error) {
       console.error('Error:', error);
-      alert(`Error al actualizar la información: ${error.message}`);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error al Actualizar',
+        text: `Error al actualizar la información: ${error.message}`,
+        confirmButtonColor: '#014421'
+      });
     }
   };
 
