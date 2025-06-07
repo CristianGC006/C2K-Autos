@@ -1,12 +1,54 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import VehicleManagement from './VehicleManagement';
-import '../../styles/admin/AdminMain.css';
+import { getDashboardStats, getRecentActivity, formatTimestamp } from '../../services/DashboardService';
+import './AdminHome.css';
 
 const AdminHome = () => {
     const navigate = useNavigate();
     const [selectedSection, setSelectedSection] = useState('dashboard');
     const [selectedCrudType, setSelectedCrudType] = useState('customers');
+    
+    // Estados para el dashboard
+    const [dashboardStats, setDashboardStats] = useState({
+        totalUsers: 0,
+        totalAssessors: 0,
+        totalVehicles: 0,
+        availableVehicles: 0,
+        activeRentals: 0,
+        totalBranches: 0
+    });
+    const [recentActivity, setRecentActivity] = useState([]);
+    const [isLoadingStats, setIsLoadingStats] = useState(true);
+    const [statsError, setStatsError] = useState(null);
+
+    // Cargar datos del dashboard
+    useEffect(() => {
+        const loadDashboardData = async () => {
+            try {
+                setIsLoadingStats(true);
+                setStatsError(null);
+                
+                const [stats, activity] = await Promise.all([
+                    getDashboardStats(),
+                    getRecentActivity()
+                ]);
+                
+                setDashboardStats(stats);
+                setRecentActivity(activity);
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                setStatsError('Error al cargar las estadísticas del dashboard');
+            } finally {
+                setIsLoadingStats(false);
+            }
+        };
+
+        // Cargar datos al montar el componente y cuando se selecciona dashboard
+        if (selectedSection === 'dashboard') {
+            loadDashboardData();
+        }
+    }, [selectedSection]);
 
     const handleLogout = () => {
         localStorage.removeItem("Token");
@@ -106,43 +148,105 @@ const AdminHome = () => {
                 </nav>
             </aside>
 
-            <main className="admin-main">
-                {selectedSection === 'dashboard' && (
+            <main className="admin-main">                {selectedSection === 'dashboard' && (
                     <div className="dashboard-content">
                         <header className="content-header">
-                            <h1>📊 Dashboard Administrativo</h1>
-                            <p>Panel de control y estadísticas del sistema C2K</p>
+                            <div className="header-info">
+                                <h1>📊 Dashboard Administrativo</h1>
+                                <p>Panel de control y estadísticas del sistema C2K</p>
+                            </div>
+                            {!isLoadingStats && (
+                                <button 
+                                    onClick={() => {
+                                        setSelectedSection('dashboard');
+                                        window.location.reload();
+                                    }}
+                                    className="refresh-btn"
+                                >
+                                    🔄 Actualizar
+                                </button>
+                            )}
                         </header>
                         
+                        {/* Mensaje de error si existe */}
+                        {statsError && (
+                            <div className="error-message">
+                                <span>❌</span>
+                                <p>{statsError}</p>
+                            </div>
+                        )}
+                        
+                        {/* Estadísticas principales */}
                         <div className="stats-grid">
                             <div className="stat-card">
                                 <div className="stat-icon">👥</div>
                                 <div className="stat-info">
-                                    <h3>1,247</h3>
-                                    <p>Usuarios Totales</p>
+                                    <h3>{isLoadingStats ? '...' : dashboardStats.totalUsers.toLocaleString()}</h3>
+                                    <p>Clientes Totales</p>
+                                    {!isLoadingStats && (
+                                        <small>Registrados en el sistema</small>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-icon">💼</div>
+                                <div className="stat-info">
+                                    <h3>{isLoadingStats ? '...' : dashboardStats.totalAssessors.toLocaleString()}</h3>
+                                    <p>Asesores Comerciales</p>
+                                    {!isLoadingStats && (
+                                        <small>Activos: {dashboardStats.activeAssessors}</small>
+                                    )}
                                 </div>
                             </div>
                             <div className="stat-card">
                                 <div className="stat-icon">🚗</div>
                                 <div className="stat-info">
-                                    <h3>89</h3>
-                                    <p>Vehículos Disponibles</p>
-                                </div>
-                            </div>
-                            <div className="stat-card">
-                                <div className="stat-icon">📋</div>
-                                <div className="stat-info">
-                                    <h3>156</h3>
-                                    <p>Rentas Activas</p>
+                                    <h3>{isLoadingStats ? '...' : dashboardStats.totalVehicles.toLocaleString()}</h3>
+                                    <p>Vehículos en Flota</p>
+                                    {!isLoadingStats && (
+                                        <small>Disponibles: {dashboardStats.availableVehicles}</small>
+                                    )}
                                 </div>
                             </div>
                             <div className="stat-card">
                                 <div className="stat-icon">🏢</div>
                                 <div className="stat-info">
-                                    <h3>12</h3>
+                                    <h3>{isLoadingStats ? '...' : dashboardStats.totalBranches}</h3>
                                     <p>Sucursales</p>
+                                    {!isLoadingStats && (
+                                        <small>En operación</small>
+                                    )}
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Actividad reciente */}
+                        <div className="recent-activity">
+                            <h2>📈 Actividad Reciente</h2>
+                            {isLoadingStats ? (
+                                <div className="loading-activity">
+                                    <div className="loading-spinner"></div>
+                                    <p>Cargando actividad reciente...</p>
+                                </div>
+                            ) : (
+                                <div className="activity-list">
+                                    {recentActivity.length > 0 ? (
+                                        recentActivity.map((activity, index) => (
+                                            <div key={index} className="activity-item">
+                                                <span className="activity-icon">{activity.icon}</span>
+                                                <div className="activity-info">
+                                                    <p><strong>{activity.title}:</strong> {activity.description}</p>
+                                                    <small>{formatTimestamp(activity.timestamp)}</small>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="no-activity">
+                                            <p>No hay actividad reciente para mostrar</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

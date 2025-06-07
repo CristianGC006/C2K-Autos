@@ -1,6 +1,6 @@
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import '../../styles/admin/AdminMain.css';
+import './AdminHome.css';
 
 const AdminLayout = () => {
     const navigate = useNavigate();

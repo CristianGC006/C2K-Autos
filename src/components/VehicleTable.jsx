@@ -153,7 +153,7 @@ const VehicleTable = ({ vehicles, onEdit, onDelete, isLoading }) => {
             )}
           </div>
         ) : (
-          <table className="vehicle-table">
+          <table className="data-table">
             <thead>
               <tr>
                 <th onClick={() => handleSort('vehicleId')} className="sortable">
@@ -229,22 +229,21 @@ const VehicleTable = ({ vehicles, onEdit, onDelete, isLoading }) => {
                         🚗
                       </div>
                     )}
-                  </td>
-                  <td>
-                    <div className="action-buttons">
+                  </td>                  <td className="actions-column">
+                    <div className="actions-group">
                       <button
                         onClick={() => onEdit(vehicle)}
-                        className="edit-btn"
+                        className="action-btn edit"
                         title="Editar vehículo"
                       >
-                        ✏️
+                        ✏️ Editar
                       </button>
                       <button
                         onClick={() => onDelete(vehicle)}
-                        className="delete-btn"
-                        title="Desactivar vehículo"
+                        className="action-btn delete"
+                        title="Eliminar vehículo"
                       >
-                        🗑️
+                        🗑️ Eliminar
                       </button>
                     </div>
                   </td>
