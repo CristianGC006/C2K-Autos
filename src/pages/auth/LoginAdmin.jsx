@@ -10,7 +10,7 @@ import Logo from "../../assets/C2K-LogoNoBackground.png";
 import ButtonForm from "../../components/ButtonForm";
 import { generateAdminCode } from "../../helpers/functions";
 let urlAdmins = "http://localhost:8080/admin";
-import "./Login.css";
+import "./LoginAdmin.css";
 
 const LoginAdmin = () => {
   const [getEmail, setEmail] = useState("");
@@ -298,7 +298,7 @@ const LoginAdmin = () => {
   return (
     <div className="container">
       <section className="container_form">
-        {/* Formulario de Login (sin cambios) */}
+        {/* Formulario de Login  */}
         <form
           className={`login_form ${isTransitioning ? "fade-out" : "fade-in"}`}
           action
@@ -342,35 +342,33 @@ const LoginAdmin = () => {
               ¿Olvidaste tu contraseña?
             </p>
           </section>
-        </form>
-
-        {/* ✅ FORMULARIO DE REGISTRO CON VALIDACIONES */}
+        </form>        {/* FORMULARIO DE REGISTRO */}
         <form
-          className={`register_form ${
+          className={`admin_register_form ${
             isTransitioning ? "fade-out" : "fade-in"
           }`}
           action
-          style={{ display: showLoginForm ? "grid" : "none" }}
+          style={{ display: showLoginForm ? "flex" : "none" }}
         >
-          <section className="form_register_left">
-            <div className="div_register">
+          <h2 className="admin_register_title">Registro de Administrador</h2>
+          
+            <div className="admin_div_register">
               <input
                 onChange={handleNameChange} // ✅ Usar handler con validación
-                className={`register_input ${errors.name ? "input-error" : ""}`} // ✅ Clase de error
+                className={`admin_register_input ${errors.name ? "admin-input-error" : ""}`} // ✅ Clase de error
                 placeholder="Nombre"
                 type="text"
                 value={name}
-              />
-              {errors.name && (
-                <span className="error-message">{errors.name}</span>
+              />              {errors.name && (
+                <span className="admin-error-message">{errors.name}</span>
               )}{" "}
               {/* ✅ Mostrar error */}
             </div>
 
-            <div className="div_register">
+            <div className="admin_div_register">
               <select
                 id="document_type"
-                className="register_input"
+                className="admin_register_input"
                 onChange={(e) => setDocumentType(e.target.value)}
                 value={documentType}
               >
@@ -386,26 +384,25 @@ const LoginAdmin = () => {
               </select>
             </div>
 
-            <div className="div_register">
+            <div className="admin_div_register">
               <input
                 onChange={handleDocumentChange} // ✅ Usar handler con validación
-                className={`register_input ${
-                  errors.document ? "input-error" : ""
-                }`}
-                placeholder="Número de Documento"
+                className={`admin_register_input ${
+                  errors.document ? "admin-input-error" : ""
+                }`}                placeholder="Número de Documento"
                 type="text"
                 value={documentNumber}
               />
               {errors.document && (
-                <span className="error-message">{errors.document}</span>
+                <span className="admin-error-message">{errors.document}</span>
               )}
             </div>
 
-            <div className="div_register">
+            <div className="admin_div_register">
               <input
                 onChange={handlePasswordChange} // ✅ Usar handler con validación
-                className={`register_input ${
-                  errors.password ? "input-error" : ""
+                className={`admin_register_input ${
+                  errors.password ? "admin-input-error" : ""
                 }`}
                 name="password"
                 placeholder="Contraseña"
@@ -413,59 +410,55 @@ const LoginAdmin = () => {
                 value={password}
               />
               {errors.password && (
-                <span className="error-message">{errors.password}</span>
+                <span className="admin-error-message">{errors.password}</span>
               )}
             </div>
+         
 
-            <div className="div_register">
+          
+            <div className="admin_div_register">
               <input
-                onChange={handleConfirmPasswordChange} // ✅ Usar handler con validación
-                className={`register_input ${
-                  errors.confirmPassword ? "input-error" : ""
-                }`}
-                name="password_confirmation"
-                placeholder="Confirmar Contraseña"
-                type="password"
-                value={confirmPassword}
-              />
-              {errors.confirmPassword && (
-                <span className="error-message">{errors.confirmPassword}</span>
-              )}
-            </div>
-          </section>
-
-          <section className="form_register_right">
-            <div className="div_register">
-              <input
-                onChange={handleEmailChange} // ✅ Usar handler con validación
-                className={`register_input ${
-                  errors.email ? "input-error" : ""
-                }`}
-                name="email"
+                onChange={handleEmailChange} 
+                className={`admin_register_input ${
+                  errors.email ? "admin-input-error" : ""
+                }`}                name="email"
                 placeholder="Email"
                 type="email"
                 value={email}
               />
               {errors.email && (
-                <span className="error-message">{errors.email}</span>
+                <span className="admin-error-message">{errors.email}</span>
               )}
             </div>
 
-            <div className="div_register">
+            <div className="admin_div_register">
               <input
                 onChange={handlePhoneChange} // ✅ Usar handler con validación
-                className={`register_input ${
-                  errors.phone ? "input-error" : ""
+                className={`admin_register_input ${
+                  errors.phone ? "admin-input-error" : ""
                 }`}
                 placeholder="Número de Telefono"
                 type="tel"
                 value={phone}
               />
               {errors.phone && (
-                <span className="error-message">{errors.phone}</span>
+                <span className="admin-error-message">{errors.phone}</span>
               )}
             </div>
-          </section>
+                <div className="admin_div_register">
+              <input
+                onChange={handleConfirmPasswordChange} // ✅ Usar handler con validación
+                className={`admin_register_input ${
+                  errors.confirmPassword ? "admin-input-error" : ""
+                }`}                name="password_confirmation"
+                placeholder="Confirmar Contraseña"
+                type="password"
+                value={confirmPassword}
+              />
+              {errors.confirmPassword && (
+                <span className="admin-error-message">{errors.confirmPassword}</span>
+              )}
+            </div>
         </form>
 
         {showLoginForm && (

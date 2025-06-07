@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { genericAlert, redirectionAlert } from "../helpers/functions";
+import { genericAlert } from "../helpers/functions";
+import { imageService } from "../services/imageService";
 import './rental.css';
 
 const Rental = () => {
@@ -30,7 +31,7 @@ const Rental = () => {
         const token = localStorage.getItem("Token");
         return user && token;
     };    // Función para manejar la autenticación antes de agregar al carrito
-    const handleAuthenticationCheck = () => {
+    const handleAuthenticationCheck = (vehicleToSave = null) => {
         if (!isUserAuthenticated()) {
             genericAlert(
                 "Autenticación requerida",
@@ -38,43 +39,60 @@ const Rental = () => {
                 "question"
             ).then((result) => {
                 if (result.isConfirmed) {
-                    redirectionAlert(
-                        navigate,
-                        "Redirigiendo...",
-                        "Te llevamos a la página de login",
-                        "info",
-                        "/login"
-                    );
+                    // Guardar el vehículo que el usuario quería alquilar
+                    if (vehicleToSave) {
+                        const vehicleDatesForVehicle = vehicleDates[vehicleToSave.id] || {};
+                        const pendingRental = {
+                            vehicle: vehicleToSave,
+                            dates: vehicleDatesForVehicle,
+                            timestamp: Date.now()
+                        };
+                        localStorage.setItem('pendingRental', JSON.stringify(pendingRental));
+                    }
+                    
+                    // Redirigir al login
+                    navigate("/login");
                 }
             });
             return false;
         }
         return true;
-    };
-
-    // Cargar vehículos del endpoint real
+    };    // Cargar vehículos del endpoint real
     useEffect(() => {
-        setLoading(true);
-        fetch('http://localhost:8080/vehicle')
-            .then(response => response.json())
-            .then(data => {
+        const loadVehicles = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch('http://localhost:8080/vehicle');
+                const data = await response.json();
                 console.log('Vehículos cargados:', data);
+                
                 // Filtrar solo vehículos disponibles (sin rentals activos)
                 const availableVehicles = data.filter(vehicle => {
                     const hasActiveRentals = vehicle.rentals && Array.isArray(vehicle.rentals) && vehicle.rentals.length > 0;
                     return !hasActiveRentals && vehicle.brand && vehicle.model;
-                }).map(vehicle => ({
-                    ...vehicle,
-                    id: vehicle.vehicleId || vehicle.id,
-                    image: vehicle.imageUrl || 'https://es.valleychevy.com/wp-content/uploads/2021/11/2023-Chevrolet-Camaro-ZL1-Coupe-001.jpg',
-                    price: vehicle.price || Math.floor(Math.random() * 500) + 250 // Precio aleatorio entre 250-750 si no existe
+                });
+
+                // Procesar imágenes con el servicio de mapeo
+                const vehiclesWithImages = await Promise.all(availableVehicles.map(async (vehicle) => {
+                    let finalImageUrl;
+                    
+                    // Si la API provee imageUrl, usarla; si no, usar el servicio de mapeo
+                    if (vehicle.imageUrl && vehicle.imageUrl.trim() !== '') {
+                        finalImageUrl = await imageService.getValidatedImage(vehicle.brand, vehicle.model, vehicle.imageUrl);
+                    } else {
+                        finalImageUrl = await imageService.getValidatedImage(vehicle.brand, vehicle.model);
+                    }
+                      return {
+                        ...vehicle,
+                        id: vehicle.vehicleId || vehicle.id,
+                        image: finalImageUrl,
+                        price: vehicle.price || vehicle.dailyRate || Math.floor(Math.random() * 500) + 250
+                    };
                 }));
-                
-                setVehicles(availableVehicles);
-                setFilteredVehicles(availableVehicles);
+                  setVehicles(vehiclesWithImages);
+                setFilteredVehicles(vehiclesWithImages);
                 setLoading(false);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error:', error);
                 setLoading(false);
                 // Datos de fallback si el API no responde
@@ -102,12 +120,84 @@ const Rental = () => {
                         plate: 'DEF-456',
                         price: 650,
                         image: 'https://es.valleychevy.com/wp-content/uploads/2021/11/2023-Chevrolet-Camaro-ZL1-Coupe-001.jpg'
-                    }
-                ];
+                    }                ];
+                
                 setVehicles(fallbackData);
                 setFilteredVehicles(fallbackData);
-            });
-    }, []);const handleFilterChange = (e) => {
+            }
+        };
+        
+        loadVehicles();
+    }, []);
+
+    // Detectar si el usuario regresó del login con un vehículo pendiente
+    useEffect(() => {
+        const checkPendingRental = () => {
+            // Solo procesar si el usuario está autenticado y hay un vehículo pendiente
+            if (isUserAuthenticated()) {
+                const pendingRental = localStorage.getItem('pendingRental');
+                if (pendingRental) {
+                    try {
+                        const { vehicle, dates, timestamp } = JSON.parse(pendingRental);
+                        
+                        // Verificar que la información no sea muy antigua (24 horas)
+                        const hoursSinceSaved = (Date.now() - timestamp) / (1000 * 60 * 60);
+                        if (hoursSinceSaved < 24) {
+                            // Restaurar las fechas del vehículo
+                            if (dates.startDate && dates.endDate) {
+                                setVehicleDates(prev => ({
+                                    ...prev,
+                                    [vehicle.id]: dates
+                                }));
+                            }
+                            
+                            // Mostrar mensaje de bienvenida y pregunta para continuar
+                            setTimeout(() => {
+                                genericAlert(
+                                    "¡Bienvenido de vuelta!",
+                                    `¿Deseas continuar con el alquiler del ${vehicle.brand} ${vehicle.model} que estabas viendo?`,
+                                    "question"
+                                ).then((result) => {
+                                    if (result.isConfirmed) {
+                                        // Agregar directamente al carrito si tenía fechas
+                                        if (dates.startDate && dates.endDate) {
+                                            const cartItem = {
+                                                ...vehicle,
+                                                startDate: dates.startDate,
+                                                endDate: dates.endDate,
+                                                cartId: Date.now()
+                                            };
+                                            setCart(prevCart => [...prevCart, cartItem]);
+                                            setShowCart(true);
+                                            
+                                            genericAlert(
+                                                "¡Agregado al carrito!",
+                                                `${vehicle.brand} ${vehicle.model} ha sido agregado a tu carrito de alquiler`,
+                                                "success"
+                                            );
+                                        }
+                                    }
+                                    // Limpiar el vehículo pendiente independientemente de la respuesta
+                                    localStorage.removeItem('pendingRental');
+                                });
+                            }, 1000); // Esperar 1 segundo para que la página se cargue completamente
+                        } else {
+                            // Si es muy antigua, eliminar la información
+                            localStorage.removeItem('pendingRental');
+                        }
+                    } catch (error) {
+                        console.error('Error al procesar vehículo pendiente:', error);
+                        localStorage.removeItem('pendingRental');
+                    }
+                }
+            }
+        };
+
+        // Solo ejecutar una vez cuando el componente se monta
+        checkPendingRental();
+    }, [vehicles]); // Depende de vehicles para asegurar que ya estén cargados
+
+    const handleFilterChange = (e) => {
         const { name, value } = e.target;
         setFilters(prevFilters => ({
             ...prevFilters,
@@ -161,8 +251,8 @@ const Rental = () => {
             return;
         }
 
-        // Verificar autenticación antes de agregar al carrito
-        if (!handleAuthenticationCheck()) {
+        // Verificar autenticación antes de agregar al carrito, pasando el vehículo para guardarlo
+        if (!handleAuthenticationCheck(vehicle)) {
             return;
         }
 
@@ -199,9 +289,7 @@ const Rental = () => {
             const days = calculateDays(item.startDate, item.endDate);
             return total + (item.price * days);
         }, 0);
-    };
-
-    const handleCheckout = () => {
+    };    const handleCheckout = async () => {
         // Verificar autenticación antes del checkout
         if (!handleAuthenticationCheck()) {
             return;
@@ -216,29 +304,72 @@ const Rental = () => {
             return;
         }
 
-        // Aquí se implementaría la lógica de checkout/pago
-        // Por ahora, mostrar un resumen y confirmar la reserva
         const totalPrice = getTotalPrice();
         const itemsCount = cart.length;
         const user = JSON.parse(localStorage.getItem("User"));
 
+        // Confirmar reserva múltiple
         genericAlert(
             "Confirmar Reserva",
             `¿Confirmas la reserva de ${itemsCount} vehículo(s) por un total de $${totalPrice.toLocaleString()}?`,
             "question"
-        ).then((result) => {
+        ).then(async (result) => {
             if (result.isConfirmed) {
-                // Aquí se enviaría la información al backend para crear las reservas
-                // Por ahora, simulamos el proceso
-                genericAlert(
-                    "¡Reserva confirmada!",
-                    `Hola ${user.name}, tu reserva ha sido procesada exitosamente. Te contactaremos pronto con los detalles.`,
-                    "success"
-                ).then(() => {
-                    // Limpiar el carrito después de la reserva exitosa
-                    setCart([]);
-                    setShowCart(false);
-                });
+                try {
+                    // Mostrar indicador de carga
+                    genericAlert(
+                        "Procesando reservas...",
+                        "Estamos creando tus reservas, por favor espera",
+                        "info"
+                    );                    // Crear reservas para cada vehículo en el carrito
+                    const reservationPromises = cart.map(async (item) => {
+                        const days = calculateDays(item.startDate, item.endDate);
+                        const itemTotalCost = item.price * days;
+                        const reservationData = createReservationData(item, item.startDate, item.endDate, itemTotalCost, user);
+
+                        const response = await fetch('http://localhost:8080/rental', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem("Token")}`
+                            },
+                            body: JSON.stringify(reservationData)
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`Error al reservar ${item.brand} ${item.model}`);
+                        }
+
+                        return await response.json();
+                    });
+
+                    // Esperar a que todas las reservas se completen
+                    const createdRentals = await Promise.all(reservationPromises);
+                    console.log('Reservas creadas exitosamente:', createdRentals);
+
+                    // Mostrar confirmación de éxito
+                    genericAlert(
+                        "¡Reservas confirmadas!",
+                        `Hola ${user.name}, todas tus reservas han sido procesadas exitosamente. Total: ${createdRentals.length} vehículos reservados.`,
+                        "success"
+                    ).then(() => {
+                        // Limpiar el carrito después de la reserva exitosa
+                        setCart([]);
+                        setShowCart(false);
+                        
+                        // Recargar la página para actualizar disponibilidad
+                        window.location.reload();
+                    });
+
+                } catch (error) {
+                    console.error('Error al procesar las reservas:', error);
+                    
+                    genericAlert(
+                        "Error en el proceso",
+                        "Hubo un problema al procesar algunas reservas. Por favor verifica tu cuenta y vuelve a intentar.",
+                        "error"
+                    );
+                }
             }
         });
     };
@@ -254,7 +385,7 @@ const Rental = () => {
         });
         setFilteredVehicles(vehicles);
     };    // Función para reservar directamente un vehículo sin agregar al carrito
-    const handleDirectReservation = (vehicle) => {
+    const handleDirectReservation = async (vehicle) => {
         const vehicleDatesForVehicle = vehicleDates[vehicle.id] || {};
         const { startDate, endDate } = vehicleDatesForVehicle;
 
@@ -266,10 +397,8 @@ const Rental = () => {
                 "warning"
             );
             return;
-        }
-
-        // Verificar autenticación
-        if (!handleAuthenticationCheck()) {
+        }        // Verificar autenticación
+        if (!handleAuthenticationCheck(vehicle)) {
             return;
         }
 
@@ -282,36 +411,99 @@ const Rental = () => {
             "Confirmar Reserva Directa",
             `¿Deseas reservar el ${vehicle.brand} ${vehicle.model} desde ${startDate} hasta ${endDate}? (${days} días por $${totalCost.toLocaleString()})`,
             "question"
-        ).then((result) => {
+        ).then(async (result) => {
             if (result.isConfirmed) {
-                // Aquí se enviaría la información al backend para crear la reserva
-                // Por ahora, simulamos el proceso
-                const reservationData = {
-                    vehicleId: vehicle.vehicleId || vehicle.id,
-                    customerId: user.idCustomer || user.id,
-                    startDate: startDate,
-                    endDate: endDate,
-                    totalCost: totalCost,
-                    vehicle: vehicle,
-                    customer: user
-                };
+                try {
+                    // Mostrar indicador de carga
+                    genericAlert(
+                        "Procesando reserva...",
+                        "Estamos creando tu reserva, por favor espera",
+                        "info"
+                    );                    // Preparar datos para el backend usando función auxiliar
+                    const reservationData = createReservationData(vehicle, startDate, endDate, totalCost, user);
 
-                console.log('Datos de reserva:', reservationData);
+                    console.log('Enviando datos de reserva:', reservationData);
 
-                // Simular llamada al backend
-                genericAlert(
-                    "¡Reserva exitosa!",
-                    `Hola ${user.name}, tu reserva del ${vehicle.brand} ${vehicle.model} ha sido confirmada. Te contactaremos pronto con los detalles de entrega.`,
-                    "success"
-                ).then(() => {
-                    // Limpiar las fechas después de la reserva
-                    setVehicleDates(prev => ({
-                        ...prev,
-                        [vehicle.id]: { startDate: '', endDate: '' }
-                    }));
-                });
+                    // Llamada real al backend para crear la reserva
+                    const response = await fetch('http://localhost:8080/rental', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem("Token")}` // Si usas tokens de autenticación
+                        },
+                        body: JSON.stringify(reservationData)
+                    });
+
+                    if (response.ok) {
+                        const createdRental = await response.json();
+                        console.log('Reserva creada exitosamente:', createdRental);
+                        
+                        // Mostrar confirmación de éxito
+                        genericAlert(
+                            "¡Reserva exitosa!",
+                            `Hola ${user.name}, tu reserva del ${vehicle.brand} ${vehicle.model} ha sido confirmada. Número de reserva: ${createdRental.id || 'N/A'}`,
+                            "success"
+                        ).then(() => {
+                            // Limpiar las fechas después de la reserva exitosa
+                            setVehicleDates(prev => ({
+                                ...prev,
+                                [vehicle.id]: { startDate: '', endDate: '' }
+                            }));
+
+                            // Recargar la lista de vehículos para actualizar disponibilidad
+                            window.location.reload();
+                        });
+                    } else {
+                        // Manejar errores del servidor
+                        const errorData = await response.json().catch(() => ({}));
+                        console.error('Error del servidor:', errorData);
+                        
+                        genericAlert(
+                            "Error en la reserva",
+                            errorData.message || "Hubo un problema al procesar tu reserva. Por favor intenta nuevamente.",
+                            "error"
+                        );
+                    }
+                } catch (error) {
+                    // Manejar errores de red o conexión
+                    console.error('Error al crear la reserva:', error);
+                    
+                    genericAlert(
+                        "Error de conexión",
+                        "No se pudo conectar con el servidor. Verifica tu conexión a internet e intenta nuevamente.",
+                        "error"
+                    );
+                }
             }
         });
+    };    // Función auxiliar para crear datos de reserva consistentes
+    const createReservationData = (vehicle, startDate, endDate, totalCost, user) => {
+        // Convertir fechas a formato ISO con hora (como espera el backend)
+        const formatDateWithTime = (dateStr) => {
+            return `${dateStr}T09:00:00`;
+        };
+
+        return {
+            name: `Alquiler ${vehicle.brand} ${vehicle.model}`,
+            description: `Alquiler de vehículo ${vehicle.brand} ${vehicle.model} ${vehicle.year || 'N/A'} (${vehicle.color || 'Color N/A'}) desde ${startDate} hasta ${endDate}. Placa: ${vehicle.plate || 'N/A'}`,
+            price: totalCost,
+            startDate: formatDateWithTime(startDate),
+            endDate: formatDateWithTime(endDate),
+            status: "PENDING", // Cambiado de ACTIVE a PENDING como en tu ejemplo
+            // Objetos anidados con IDs (como espera tu backend)
+            vehicle: {
+                vehicleId: vehicle.vehicleId || vehicle.id
+            },
+            customer: {
+                idCustomer: user.idCustomer || user.id
+            },
+            branch: {
+                idBranch: user.branchId || user.idBranch || 1
+            },
+            assessor: {
+                idAssessor: user.assessorId || user.idAssessor || 1 // Asesor por defecto si no tiene
+            }
+        };
     };
 
     return (
@@ -527,102 +719,121 @@ const Rental = () => {
                                     <h3>No se encontraron vehículos</h3>
                                     <p>Intenta ajustar tus filtros de búsqueda</p>
                                 </div>
-                            ) : (
-                                filteredVehicles.map(vehicle => (
-                                    <div key={vehicle.id} className="vehicle-card">
-                                        <div className="vehicle-image-container">
-                                            <img 
-                                                src={vehicle.image} 
-                                                alt={`${vehicle.brand} ${vehicle.model}`}
-                                                className="vehicle-image"
-                                            />
-                                            <div className="price-badge">
-                                                ${vehicle.price}/día
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="vehicle-info">
-                                            <h3 className="vehicle-title">
-                                                {vehicle.brand} {vehicle.model}
-                                            </h3>
-                                              <div className="vehicle-specs">
-                                                <div className="spec-item">
-                                                    <span className="spec-icon">🚗</span>
-                                                    <span>{vehicle.type || 'Vehículo'}</span>
-                                                </div>
-                                                <div className="spec-item">
-                                                    <span className="spec-icon">📅</span>
-                                                    <span>{vehicle.year}</span>
-                                                </div>
-                                                <div className="spec-item">
-                                                    <span className="spec-icon">🎨</span>
-                                                    <span>{vehicle.color}</span>
-                                                </div>
-                                                <div className="spec-item">
-                                                    <span className="spec-icon">🔢</span>
-                                                    <span>{vehicle.plate}</span>
+                            ) : (                                filteredVehicles.map(vehicle => {
+                                    const vehicleDatesForVehicle = vehicleDates[vehicle.id] || {};
+                                    const hasValidDates = vehicleDatesForVehicle.startDate && vehicleDatesForVehicle.endDate;
+                                    
+                                    return (
+                                        <div key={vehicle.id} className="vehicle-card">                                            <div className="vehicle-image-container">
+                                                <img 
+                                                    src={vehicle.image}
+                                                    alt={`${vehicle.brand} ${vehicle.model}`}
+                                                    className="vehicle-image"
+                                                    onError={(e) => {
+                                                        // Fallback en caso de error de carga de imagen
+                                                        e.target.src = 'https://images.unsplash.com/photo-1494905998402-395d579af36f?w=400&h=300&fit=crop';
+                                                    }}
+                                                    loading="lazy"
+                                                />
+                                                <div className="price-badge">
+                                                    ${vehicle.price}/día
                                                 </div>
                                             </div>
-
-                                            {/* Selección de fechas individual por vehículo */}
-                                            <div className="vehicle-date-selection">
-                                                <h4>📅 Seleccionar Fechas</h4>
-                                                <div className="date-inputs-vehicle">
-                                                    <div className="date-field-vehicle">
-                                                        <label>Inicio:</label>
-                                                        <input 
-                                                            type="date"
-                                                            value={vehicleDates[vehicle.id]?.startDate || ''}
-                                                            onChange={(e) => handleVehicleDateChange(vehicle.id, 'startDate', e.target.value)}
-                                                            min={new Date().toISOString().split('T')[0]}
-                                                        />
+                                            
+                                            <div className="vehicle-info">
+                                                <h3 className="vehicle-title">
+                                                    {vehicle.brand} {vehicle.model}
+                                                </h3>
+                                                <div className="vehicle-specs">
+                                                    <div className="spec-item">
+                                                        <span className="spec-icon">🚗</span>
+                                                        <span>{vehicle.type || 'Vehículo'}</span>
                                                     </div>
-                                                    <div className="date-field-vehicle">
-                                                        <label>Fin:</label>
-                                                        <input 
-                                                            type="date"
-                                                            value={vehicleDates[vehicle.id]?.endDate || ''}
-                                                            onChange={(e) => handleVehicleDateChange(vehicle.id, 'endDate', e.target.value)}
-                                                            min={vehicleDates[vehicle.id]?.startDate || new Date().toISOString().split('T')[0]}
-                                                        />
+                                                    <div className="spec-item">
+                                                        <span className="spec-icon">📅</span>
+                                                        <span>{vehicle.year}</span>
+                                                    </div>
+                                                    <div className="spec-item">
+                                                        <span className="spec-icon">🎨</span>
+                                                        <span>{vehicle.color}</span>
+                                                    </div>
+                                                    <div className="spec-item">
+                                                        <span className="spec-icon">🔢</span>
+                                                        <span>{vehicle.plate}</span>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            {vehicleDates[vehicle.id]?.startDate && vehicleDates[vehicle.id]?.endDate && (
-                                                <div className="rental-calculation">
-                                                    <p className="rental-days">
-                                                        ⏰ {calculateDays(vehicleDates[vehicle.id].startDate, vehicleDates[vehicle.id].endDate)} días
-                                                    </p>
-                                                    <p className="total-cost">
-                                                        💰 Total: ${(vehicle.price * calculateDays(vehicleDates[vehicle.id].startDate, vehicleDates[vehicle.id].endDate)).toLocaleString()}
-                                                    </p>
+                                                {/* Selección de fechas individual por vehículo */}
+                                                <div className="vehicle-date-selection">
+                                                    <h4>📅 Seleccionar Fechas</h4>
+                                                    <div className="date-inputs-vehicle">
+                                                        <div className="date-field-vehicle">
+                                                            <label>Inicio:</label>
+                                                            <input 
+                                                                type="date"
+                                                                value={vehicleDatesForVehicle.startDate || ''}
+                                                                onChange={(e) => handleVehicleDateChange(vehicle.id, 'startDate', e.target.value)}
+                                                                min={new Date().toISOString().split('T')[0]}
+                                                            />
+                                                        </div>
+                                                        <div className="date-field-vehicle">
+                                                            <label>Fin:</label>
+                                                            <input 
+                                                                type="date"
+                                                                value={vehicleDatesForVehicle.endDate || ''}
+                                                                onChange={(e) => handleVehicleDateChange(vehicle.id, 'endDate', e.target.value)}
+                                                                min={vehicleDatesForVehicle.startDate || new Date().toISOString().split('T')[0]}
+                                                            />
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            )}<div className="vehicle-actions">
-                                                <button 
-                                                    className="add-to-cart-btn"
-                                                    onClick={() => addToCart(vehicle)}
-                                                    disabled={!vehicleDates[vehicle.id]?.startDate || !vehicleDates[vehicle.id]?.endDate}
-                                                >
-                                                    {!vehicleDates[vehicle.id]?.startDate || !vehicleDates[vehicle.id]?.endDate 
-                                                        ? '📅 Selecciona fechas' 
-                                                        : '🛒 Agregar al Carrito'
-                                                    }
-                                                </button>
-                                                
-                                                <button 
-                                                    className="reserve-btn"
-                                                    onClick={() => handleDirectReservation(vehicle)}
-                                                    disabled={!vehicleDates[vehicle.id]?.startDate || !vehicleDates[vehicle.id]?.endDate}
-                                                >
-                                                    {!vehicleDates[vehicle.id]?.startDate || !vehicleDates[vehicle.id]?.endDate 
-                                                        ? '📅 Selecciona fechas' 
-                                                        : '🎯 Reservar Ahora'
-                                                    }
-                                                </button>                                            </div>
+
+                                                {hasValidDates && (
+                                                    <div className="rental-calculation">
+                                                        <p className="rental-days">
+                                                            ⏰ {calculateDays(vehicleDatesForVehicle.startDate, vehicleDatesForVehicle.endDate)} días
+                                                        </p>
+                                                        <p className="total-cost">
+                                                            💰 Total: ${(vehicle.price * calculateDays(vehicleDatesForVehicle.startDate, vehicleDatesForVehicle.endDate)).toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                <div className="vehicle-actions">
+                                                    <button 
+                                                        className="add-to-cart-btn"
+                                                        onClick={() => addToCart(vehicle)}
+                                                        disabled={!hasValidDates}
+                                                        style={{
+                                                            opacity: hasValidDates ? 1 : 0.6,
+                                                            cursor: hasValidDates ? 'pointer' : 'not-allowed'
+                                                        }}
+                                                    >
+                                                        {!hasValidDates 
+                                                            ? '📅 Selecciona fechas' 
+                                                            : '🛒 Agregar al Carrito'
+                                                        }
+                                                    </button>
+                                                    
+                                                    <button 
+                                                        className="reserve-btn"
+                                                        onClick={() => handleDirectReservation(vehicle)}
+                                                        disabled={!hasValidDates}
+                                                        style={{
+                                                            opacity: hasValidDates ? 1 : 0.6,
+                                                            cursor: hasValidDates ? 'pointer' : 'not-allowed'
+                                                        }}
+                                                    >
+                                                        {!hasValidDates 
+                                                            ? '📅 Selecciona fechas' 
+                                                            : '🎯 Reservar Ahora'
+                                                        }
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
                     </>

@@ -51,8 +51,7 @@ export let routes = [
     {
         path: "/Info",
         element: <Info/>
-    },
-    {
+    },    {
         path: "/Location",
         element: <Location/>
     }

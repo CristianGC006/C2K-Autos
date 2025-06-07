@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import CarouselCars from "../CarouselCars";
+import VehicleCard from "../VehicleCard";
+import { imageService } from "../../services/imageService";
 import "./panel.css";
 
 function Panel({ activeSection, setActiveSection, user }) {
@@ -37,9 +39,7 @@ function Panel({ activeSection, setActiveSection, user }) {
     }
     
     return numericId;
-  }, [userInfo]);
-
-  // ✅ FUNCIÓN PARA OBTENER LOS VEHÍCULOS DISPONIBLES
+  }, [userInfo]);  // ✅ FUNCIÓN PARA OBTENER LOS VEHÍCULOS DISPONIBLES
   const fetchVehicles = useCallback(async () => {
     try {
       console.log("Fetching vehicles..."); 
@@ -48,14 +48,25 @@ function Panel({ activeSection, setActiveSection, user }) {
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
-      const data = await response.json();      console.log("Vehicles fetched successfully:", data);
-      console.log("Sample vehicle structure:", data[0]); // Debug para ver estructura
-      
-      // ✅ CORREGIR NOMBRES DE CAMPOS - LA API DEVUELVE vehicleId NO vehicle_id
-      const dataWithCorrectFields = data.map(vehicle => ({
-        ...vehicle,
-        vehicle_id: vehicle.vehicleId || vehicle.vehicle_id,
-        image_url: vehicle.imageUrl || vehicle.image_url
+      const data = await response.json();
+      console.log("Vehicles fetched successfully:", data);
+      console.log("Sample vehicle structure:", data[0]); // Debug para ver estructura      // ✅ PROCESAR IMÁGENES CON SERVICIO DE MAPEO
+      const dataWithCorrectFields = await Promise.all(data.map(async (vehicle) => {
+        let finalImageUrl;
+        
+        // Si la API provee imageUrl, usarla; si no, usar el servicio de mapeo
+        if (vehicle.imageUrl && vehicle.imageUrl.trim() !== '') {
+          finalImageUrl = await imageService.getValidatedImage(vehicle.brand, vehicle.model, vehicle.imageUrl);
+        } else {
+          finalImageUrl = await imageService.getValidatedImage(vehicle.brand, vehicle.model);
+        }
+        
+        return {
+          ...vehicle,
+          vehicle_id: vehicle.vehicleId || vehicle.vehicle_id,
+          image_url: finalImageUrl,
+          imageLoaded: true // Marcador para indicar que la imagen está procesada
+        };
       }));
       
       console.log("Processed vehicle structure:", dataWithCorrectFields[0]); // Debug
@@ -64,8 +75,7 @@ function Panel({ activeSection, setActiveSection, user }) {
       const available = dataWithCorrectFields.filter(vehicle => !vehicle.id_user || vehicle.id_user === 'NULL');
       setAvailableCars(available);
       console.log("Available cars:", available);
-      
-      // Obtener vehículos alquilados por el usuario actual
+        // Obtener vehículos alquilados por el usuario actual
       const currentUserId = getUserId();
       if (currentUserId) {
         const rented = dataWithCorrectFields.filter(vehicle => 
@@ -312,43 +322,16 @@ function Panel({ activeSection, setActiveSection, user }) {
         return (
           <div className="rented-cars-section">
             <h2>Tus coches alquilados</h2>
-            
-            {rentedCars.length > 0 ? (
+              {rentedCars.length > 0 ? (
               <div className="rented-cars-grid">
                 {rentedCars.map(car => (
-                  <div className="rented-car-card" key={car.vehicle_id}>
-                    <img 
-                      src={car.image_url || "https://es.valleychevy.com/wp-content/uploads/2021/11/2023-Chevrolet-Camaro-ZL1-Coupe-001.jpg"} 
-                      alt={`${car.brand} ${car.model}`} 
-                      className="car-image" 
-                    />
-                    <div className="car-details">
-                      <h3>{car.brand} {car.model}</h3>
-                      <div className="car-info-grid">
-                        <div className="info-item">
-                          <span className="info-label">Tipo:</span>
-                          <span className="info-value">{car.type}</span>
-                        </div>
-                        <div className="info-item">
-                          <span className="info-label">Año:</span>
-                          <span className="info-value">{car.year}</span>
-                        </div>
-                        <div className="info-item">
-                          <span className="info-label">Color:</span>
-                          <span className="info-value">{car.color}</span>
-                        </div>
-                        <div className="info-item">
-                          <span className="info-label">Placa:</span>
-                          <span className="info-value">{car.plate}</span>
-                        </div>
-                      </div>
-                      <div className="rental-period">
-                        <p><strong>Fecha de alquiler:</strong> {new Date().toLocaleDateString()}</p>
-                        <p><strong>Fecha de devolución:</strong> {new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString()}</p>
-                      </div>
-                      <button className="extend-button">Extender alquiler</button>
-                    </div>
-                  </div>
+                  <VehicleCard 
+                    key={car.vehicle_id}
+                    car={car}
+                    onRent={rentVehicle}
+                    showRentButton={false}
+                    showRentalInfo={true}
+                  />
                 ))}
               </div>
             ) : (
@@ -396,52 +379,15 @@ function Panel({ activeSection, setActiveSection, user }) {
                 <div className="available-cars-grid-section">
                   <h3 style={{ color: '#014421', marginBottom: '1.5rem', fontSize: '1.3rem' }}>
                     🚗 Todos los Vehículos Disponibles
-                  </h3>
-                  <div className="rented-cars-grid">
+                  </h3>                  <div className="rented-cars-grid">
                     {availableCars.map(car => (
-                      <div className="rented-car-card" key={car.vehicle_id}>
-                        <img 
-                          src={car.image_url || "https://es.valleychevy.com/wp-content/uploads/2021/11/2023-Chevrolet-Camaro-ZL1-Coupe-001.jpg"} 
-                          alt={`${car.brand} ${car.model}`} 
-                          className="car-image" 
-                        />
-                        <div className="car-details">
-                          <h3>{car.brand} {car.model}</h3>
-                          <div className="car-info-grid">
-                            <div className="info-item">
-                              <span className="info-label">Tipo:</span>
-                              <span className="info-value">{car.type}</span>
-                            </div>
-                            <div className="info-item">
-                              <span className="info-label">Año:</span>
-                              <span className="info-value">{car.year}</span>
-                            </div>
-                            <div className="info-item">
-                              <span className="info-label">Color:</span>
-                              <span className="info-value">{car.color}</span>
-                            </div>
-                            <div className="info-item">
-                              <span className="info-label">Placa:</span>
-                              <span className="info-value">{car.plate}</span>
-                            </div>
-                          </div>
-                          <div className="rental-info">
-                            <p style={{ color: '#2d8659', fontWeight: 'bold', fontSize: '1.2rem', margin: '1rem 0' }}>
-                              💰 ${car.price || 750}/día
-                            </p>
-                            <p style={{ color: '#014421', fontWeight: '500', margin: '0.5rem 0' }}>
-                              ✅ Disponible ahora
-                            </p>
-                          </div>
-                          <button 
-                            className="extend-button"
-                            onClick={() => rentVehicle(car.vehicle_id)}
-                            style={{ background: 'linear-gradient(135deg, #4caf50 0%, #2d8659 100%)' }}
-                          >
-                            🚗 Alquilar Ahora
-                          </button>
-                        </div>
-                      </div>
+                      <VehicleCard 
+                        key={car.vehicle_id}
+                        car={car}
+                        onRent={rentVehicle}
+                        showRentButton={true}
+                        showRentalInfo={false}
+                      />
                     ))}
                   </div>
                 </div>
