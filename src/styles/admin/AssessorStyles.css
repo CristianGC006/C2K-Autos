@@ -1,0 +1,485 @@
+/* AssessorStyles.css - Estilos específicos para la gestión de asesores */
+
+/* ========== ASSESSOR MANAGEMENT ========== */
+.assessor-management {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.assessor-form-container {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.form-header h2 {
+    color: #014421;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.assessor-form .form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.assessor-form .form-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.assessor-form .form-section h3 {
+    color: #014421;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.assessor-form .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.assessor-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.assessor-form .form-group label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.95rem;
+}
+
+.assessor-form .form-group input,
+.assessor-form .form-group select,
+.assessor-form .form-group textarea {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.assessor-form .form-group input:focus,
+.assessor-form .form-group select:focus,
+.assessor-form .form-group textarea:focus {
+    outline: none;
+    border-color: #014421;
+    box-shadow: 0 0 0 3px rgba(1, 68, 33, 0.1);
+}
+
+.assessor-form .form-group input.error,
+.assessor-form .form-group select.error,
+.assessor-form .form-group textarea.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.assessor-form .readonly-field {
+    background: #f9fafb !important;
+    color: #6b7280 !important;
+    cursor: not-allowed !important;
+    border-color: #d1d5db !important;
+}
+
+.assessor-form .field-help {
+    color: #6b7280;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    font-style: italic;
+}
+
+.assessor-form .error-message {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.assessor-form .input-with-button {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.assessor-form .input-with-button input {
+    flex-grow: 1;
+}
+
+.assessor-form .generate-btn {
+    background: #6366f1;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    min-width: 50px;
+}
+
+.assessor-form .generate-btn:hover:not(:disabled) {
+    background: #4f46e5;
+    transform: translateY(-2px);
+}
+
+.assessor-form .generate-btn:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+}
+
+.assessor-form .preview-btn {
+    background: #6366f1;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.assessor-form .preview-btn:hover {
+    background: #4f46e5;
+}
+
+.form-preview {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 2rem;
+    border: 2px dashed #014421;
+}
+
+.form-preview h3 {
+    color: #014421;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 1.4rem;
+}
+
+.preview-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.preview-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.preview-section h4 {
+    color: #014421;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-bottom: 2px solid #f3f4f6;
+    padding-bottom: 0.5rem;
+}
+
+.preview-section p {
+    margin: 0.5rem 0;
+    color: #374151;
+    line-height: 1.5;
+}
+
+.preview-section .status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.preview-section .status.active {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.preview-section .status.inactive {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.assessor-form .form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.assessor-form .btn-primary {
+    background: #014421;
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.assessor-form .btn-primary:hover:not(:disabled) {
+    background: #1a5f3f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(1, 68, 33, 0.3);
+}
+
+.assessor-form .btn-secondary {
+    background: #6b7280;
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.assessor-form .btn-secondary:hover {
+    background: #4b5563;
+    transform: translateY(-2px);
+}
+
+.assessor-form .btn-primary:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ========== ASSESSOR TABLE ========== */
+.assessor-table-container {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.assessor-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.assessor-table th {
+    background: #f9fafb;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
+    font-size: 0.9rem;
+}
+
+.assessor-table th.sortable {
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.assessor-table th.sortable:hover {
+    background: #f3f4f6;
+}
+
+.assessor-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+.assessor-table tr:hover {
+    background: #f9fafb;
+}
+
+.assessor-table tr.inactive-row {
+    opacity: 0.6;
+    background: #fef2f2;
+}
+
+.assessor-id {
+    font-family: 'Monaco', 'Menlo', monospace;
+    background: #f3f4f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.employee-id {
+    font-family: 'Monaco', 'Menlo', monospace;
+    background: #dbeafe;
+    color: #1d4ed8;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.assessor-name .full-name {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.assessor-email {
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.assessor-phone {
+    font-family: 'Monaco', 'Menlo', monospace;
+    color: #374151;
+}
+
+.department-badge {
+    background: #f0fdf4;
+    color: #16a34a;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid #bbf7d0;
+}
+
+.assessor-position {
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.hire-date {
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.assessor-salary {
+    font-weight: 600;
+    color: #059669;
+    font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+    min-width: 80px;
+}
+
+.status-badge.active {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.status-badge.inactive {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* ========== RESPONSIVE ASSESSORS ========== */
+@media (max-width: 1200px) {
+    .assessor-management {
+        padding: 1.5rem;
+    }
+
+    .assessor-form .form-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+
+    .preview-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .assessor-management {
+        padding: 1rem;
+    }
+
+    .assessor-form-container {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .assessor-form .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .assessor-form .form-actions {
+        flex-direction: column;
+    }
+
+    .assessor-form .input-with-button {
+        flex-direction: column;
+    }
+
+    .table-filters {
+        padding: 1rem;
+    }
+
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-select {
+        min-width: auto;
+    }
+
+    .table-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+    .assessor-table th,
+    .assessor-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .edit-btn, .delete-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+}

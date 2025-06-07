@@ -1,0 +1,117 @@
+/* AdminLayout.css - Estilos del layout principal de administración */
+
+/* Admin Panel - Diseño Moderno C2K */
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ========== CONTENIDO PRINCIPAL ========== */
+.admin-main {
+    margin-left: 300px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 0;
+    background: #f8fafc;
+}
+
+.admin-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+}
+
+/* Header de Contenido */
+.admin-header {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* ========== RESPONSIVE LAYOUT ========== */
+@media (max-width: 1024px) {
+    .admin-main {
+        margin-left: 250px;
+    }
+
+    .admin-header {
+        padding: 1rem 1.5rem;
+    }
+
+    .header-title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-main {
+        margin-left: 200px;
+    }
+
+    .admin-header {
+        padding: 1rem;
+    }
+
+    .header-title {
+        font-size: 1.3rem;
+    }
+
+    .header-actions {
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .admin-layout {
+        flex-direction: column;
+    }
+
+    .admin-main {
+        margin-left: 0;
+        margin-top: 60px;
+    }
+
+    .admin-header {
+        padding: 0.8rem;
+    }
+
+    .header-title {
+        font-size: 1.2rem;
+    }
+}
+
+/* ========== BOTÓN HAMBURGUESA ========== */
+.mobile-menu-toggle {
+    display: none !important;
+}
+
+@media (max-width: 640px) {
+    .mobile-menu-toggle {
+        display: block !important;
+    }
+}

@@ -10,16 +10,19 @@ import {
 
 const AssessorManagement = () => {
   const [assessors, setAssessors] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [admins, setAdmins] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingAssessor, setEditingAssessor] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isTableLoading, setIsTableLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-
   // Cargar asesores al montar el componente
   useEffect(() => {
     loadAssessors();
+    loadBranches();
+    loadAdmins();
   }, []);
 
   const loadAssessors = async () => {
@@ -37,6 +40,41 @@ const AssessorManagement = () => {
     }
   };
 
+  const loadBranches = async () => {
+    try {
+      // Aquí deberías llamar a tu servicio de sucursales
+      // const data = await getAllBranches();
+      // setBranches(Array.isArray(data) ? data : []);
+      
+      // Datos de ejemplo mientras no esté el servicio
+      setBranches([
+        { id: 1, name: 'Sucursal Norte' },
+        { id: 2, name: 'Sucursal Centro' },
+        { id: 3, name: 'Sucursal Sur' }
+      ]);
+    } catch (error) {
+      console.error('Error loading branches:', error);
+      setBranches([]);
+    }
+  };
+
+  const loadAdmins = async () => {
+    try {
+      // Aquí deberías llamar a tu servicio de administradores
+      // const data = await getAllAdmins();
+      // setAdmins(Array.isArray(data) ? data : []);
+      
+      // Datos de ejemplo mientras no esté el servicio
+      setAdmins([
+        { id: 1, name: 'Admin Principal' },
+        { id: 2, name: 'Admin Secundario' }
+      ]);
+    } catch (error) {
+      console.error('Error loading admins:', error);
+      setAdmins([]);
+    }
+  };
+
   const handleAddAssessor = () => {
     setEditingAssessor(null);
     setShowForm(true);
@@ -48,40 +86,37 @@ const AssessorManagement = () => {
     setShowForm(true);
     setError(null);
   };
-
   const handleDeleteAssessor = async (assessor) => {
-    const action = assessor.isActive !== false ? 'desactivar' : 'activar';
-    const confirmMessage = `¿Está seguro que desea ${action} al asesor ${assessor.firstName} ${assessor.lastName}?`;
+    const confirmMessage = `¿Está seguro que desea eliminar al asesor ${assessor.name}?`;
     
     if (window.confirm(confirmMessage)) {
       try {
         setIsLoading(true);
-        await deleteAssessor(assessor.assessorId);
-        setSuccessMessage(`Asesor ${assessor.firstName} ${assessor.lastName} ${action === 'desactivar' ? 'desactivado' : 'activado'} exitosamente`);
+        await deleteAssessor(assessor.idAssessor);
+        setSuccessMessage(`Asesor ${assessor.name} eliminado exitosamente`);
         await loadAssessors();
         
         // Limpiar mensaje después de 3 segundos
         setTimeout(() => setSuccessMessage(null), 3000);
       } catch (error) {
         console.error('Error deleting assessor:', error);
-        setError(error.message || `Error al ${action} el asesor`);
+        setError(error.message || 'Error al eliminar el asesor');
       } finally {
         setIsLoading(false);
       }
     }
   };
-
   const handleFormSubmit = async (assessorData) => {
     try {
       setIsLoading(true);
       setError(null);
 
       if (editingAssessor) {
-        await updateAssessor(editingAssessor.assessorId, assessorData);
-        setSuccessMessage(`Asesor ${assessorData.firstName} ${assessorData.lastName} actualizado exitosamente`);
+        await updateAssessor(editingAssessor.idAssessor, assessorData);
+        setSuccessMessage(`Asesor ${assessorData.name} actualizado exitosamente`);
       } else {
         await createAssessor(assessorData);
-        setSuccessMessage(`Asesor ${assessorData.firstName} ${assessorData.lastName} creado exitosamente`);
+        setSuccessMessage(`Asesor ${assessorData.name} creado exitosamente`);
       }
 
       setShowForm(false);
@@ -103,16 +138,11 @@ const AssessorManagement = () => {
     setEditingAssessor(null);
     setError(null);
   };
-
   const getStats = () => {
     const totalAssessors = assessors.length;
-    const activeAssessors = assessors.filter(a => a.isActive !== false).length;
-    const departments = new Set(assessors.map(a => a.department)).size;
-    const averageSalary = assessors.length > 0 
-      ? Math.round(assessors.filter(a => a.salary).reduce((sum, a) => sum + (a.salary || 0), 0) / assessors.filter(a => a.salary).length)
-      : 0;
+    const branches = new Set(assessors.map(a => a.branch?.name).filter(Boolean)).size;
 
-    return { totalAssessors, activeAssessors, departments, averageSalary };
+    return { totalAssessors, branches };
   };
 
   const stats = getStats();
@@ -155,9 +185,7 @@ const AssessorManagement = () => {
               Agregar Asesor
             </button>
           </div>
-        </div>
-
-        {/* Estadísticas */}
+        </div>        {/* Estadísticas */}
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-icon">💼</div>
@@ -167,24 +195,10 @@ const AssessorManagement = () => {
             </div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">✅</div>
-            <div className="stat-info">
-              <h3>{stats.activeAssessors}</h3>
-              <p>Asesores Activos</p>
-            </div>
-          </div>
-          <div className="stat-card">
             <div className="stat-icon">🏢</div>
             <div className="stat-info">
-              <h3>{stats.departments}</h3>
-              <p>Departamentos</p>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">💰</div>
-            <div className="stat-info">
-              <h3>${stats.averageSalary.toLocaleString()}</h3>
-              <p>Salario Promedio</p>
+              <h3>{stats.branches}</h3>
+              <p>Sucursales</p>
             </div>
           </div>
         </div>
@@ -192,12 +206,13 @@ const AssessorManagement = () => {
         {/* Formulario de asesor */}
         {showForm && (
           <div className="modal-overlay">
-            <div className="modal-content">
-              <AssessorForm
+            <div className="modal-content">              <AssessorForm
                 assessor={editingAssessor}
                 onSubmit={handleFormSubmit}
                 onCancel={handleFormCancel}
                 isLoading={isLoading}
+                branches={branches}
+                admins={admins}
               />
             </div>
           </div>

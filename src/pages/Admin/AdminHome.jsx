@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import VehicleManagement from './VehicleManagement';
-import './AdminHome.css';
+import '../../styles/admin/AdminMain.css';
 
 const AdminHome = () => {
     const navigate = useNavigate();

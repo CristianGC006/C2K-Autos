@@ -1686,6 +1686,27 @@
     font-weight: 600;
 }
 
+/* Campo de solo lectura */
+.readonly-field {
+    background-color: #f1f5f9 !important;
+    color: #64748b !important;
+    cursor: not-allowed !important;
+    border: 2px solid #e2e8f0 !important;
+}
+
+.readonly-field:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1) !important;
+}
+
+.field-help {
+    display: block;
+    margin-top: 0.25rem;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-style: italic;
+}
+
 /* Assessor Table Styles */
 .assessor-table-container {
     background: white;

@@ -85,7 +85,7 @@ export const formatAssessorData = (assessorData) => {
 // Obtener todos los asesores
 export const getAllAssessors = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/all`, {
+    const response = await fetch(`${API_BASE_URL}`, {
       method: 'GET',
       headers: defaultHeaders,
     });

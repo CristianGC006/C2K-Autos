@@ -179,7 +179,8 @@ const isValidUrl = (string) => {
   try {
     new URL(string);
     return true;
-  } catch (_) {
+  } catch (error) {
+    console.error('Invalid URL:', string, error);
     return false;
   }
 };

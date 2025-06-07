@@ -1,15 +1,24 @@
-import { useState } from 'react';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
-import './AdminHome.css';
+import { useState } from 'react';
+import '../../styles/admin/AdminMain.css';
 
 const AdminLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     
     const handleLogout = () => {
         localStorage.removeItem("Token");
         localStorage.removeItem("Admin");
         navigate('/adminLogin');
+    };
+
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
+    };
+
+    const closeSidebar = () => {
+        setIsSidebarOpen(false);
     };
 
     const adminUser = JSON.parse(localStorage.getItem("Admin")) || { name: "Administrador" };
@@ -23,7 +32,38 @@ const AdminLayout = () => {
 
     return (
         <div className="admin-layout">
-            <aside className="admin-sidebar">
+            {/* Botón hamburguesa para móvil */}
+            <button 
+                className="mobile-menu-toggle"
+                onClick={toggleSidebar}
+                style={{
+                    display: 'none',
+                    position: 'fixed',
+                    top: '1rem',
+                    left: '1rem',
+                    zIndex: 1200,
+                    background: '#014421',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.8rem',
+                    borderRadius: '8px',
+                    fontSize: '1.2rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+                }}
+            >
+                ☰
+            </button>
+
+            {/* Overlay para cerrar sidebar en móvil */}
+            {isSidebarOpen && (
+                <div 
+                    className="sidebar-overlay active"
+                    onClick={closeSidebar}
+                />
+            )}
+
+            <aside className={`admin-sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`}>
                 {/* Perfil del Admin */}
                 <div className="admin-profile">
                     <div className="admin-avatar">
@@ -119,6 +159,11 @@ const AdminLayout = () => {
                 {/* Aquí se renderizan los componentes hijos según la ruta */}
                 <Outlet />
             </main>
+
+            {/* Botón para abrir/cerrar la sidebar en móvil */}
+            <div className="sidebar-toggle" onClick={toggleSidebar}>
+                {isSidebarOpen ? '❌' : '☰'}
+            </div>
         </div>
     );
 };
