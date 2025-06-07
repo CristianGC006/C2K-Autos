@@ -214,7 +214,7 @@ import "./Login.css";
               "Bienvenido",
               "Se ha iniciado sesión correctamente",
               "success",
-              "/logisticOp"
+              "/logisticOpHome"
             );
           } else {
             genericAlert("Error", "Usuario o contraseña incorrectos", "error");
