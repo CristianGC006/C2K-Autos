@@ -28,7 +28,7 @@ export let routes = [
         element:<LoginAssessor/>
     },
     {
-        path:"/admin",
+        path:"/adminHome",
         element:<ProtectedRoute security={<AdminHome />} />
     },
     {
