@@ -12,6 +12,8 @@ import VehicleManagement from "../pages/Admin/VehicleManagement";
 import AdminManagement from "../pages/Admin/AdminManagement";
 import AssessorManagement from "../pages/Admin/AssessorManagement";
 import LogisticManagement from "../pages/Admin/LogisticManagement";
+import RentalManagement from "../pages/Admin/RentalManagement";
+import BranchManagement from "../pages/Admin/BranchManagement";
 import AdminReports from "../pages/Admin/AdminReports";
 import AdminSettings from "../pages/Admin/AdminSettings";
 import AssessorHome from "../pages/Assessor/AssessorHome";
@@ -49,10 +51,13 @@ export let routes = [
             },            {
                 path: "customers",
                 element: <CustomerManagement />
-            },
-            {
+            },            {
                 path: "vehicles",
                 element: <VehicleManagement />
+            },
+            {
+                path: "branches",
+                element: <BranchManagement />
             },
             {
                 path: "admins",
@@ -61,10 +66,13 @@ export let routes = [
             {
                 path: "assessors",
                 element: <AssessorManagement />
-            },
-            {
+            },            {
                 path: "logistics",
                 element: <LogisticManagement />
+            },
+            {
+                path: "rentals",
+                element: <RentalManagement />
             },
             {
                 path: "reports",

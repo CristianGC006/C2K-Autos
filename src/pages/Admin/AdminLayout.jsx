@@ -118,9 +118,7 @@ const AdminLayout = () => {
                         >
                             <span className="nav-icon">📦</span>
                             <span className="nav-text">Operadores</span>
-                        </button></div>
-
-                    <div className="nav-section">
+                        </button></div>                    <div className="nav-section">
                         <h4 className="nav-section-title">Gestión de Inventario</h4>
                         <button 
                             className={`nav-item ${isActiveRoute('/admin/vehicles') ? 'active' : ''}`}
@@ -128,6 +126,24 @@ const AdminLayout = () => {
                         >
                             <span className="nav-icon">🚗</span>
                             <span className="nav-text">Vehículos</span>
+                        </button>
+                        <button 
+                            className={`nav-item ${isActiveRoute('/admin/branches') ? 'active' : ''}`}
+                            onClick={() => navigate('/admin/branches')}
+                        >
+                            <span className="nav-icon">🏢</span>
+                            <span className="nav-text">Sucursales</span>
+                        </button>
+                    </div>
+
+                    <div className="nav-section">
+                        <h4 className="nav-section-title">Gestión de Rentas</h4>
+                        <button 
+                            className={`nav-item ${isActiveRoute('/admin/rentals') ? 'active' : ''}`}
+                            onClick={() => navigate('/admin/rentals')}
+                        >
+                            <span className="nav-icon">📅</span>
+                            <span className="nav-text">Rentas</span>
                         </button>
                     </div>
 
