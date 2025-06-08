@@ -112,14 +112,13 @@ const AdminLayout = () => {
                         >
                             <span className="nav-icon">💼</span>
                             <span className="nav-text">Asesores</span>
-                        </button>
-                        <button 
+                        </button>                        <button 
                             className={`nav-item ${isActiveRoute('/admin/logistics') ? 'active' : ''}`}
                             onClick={() => navigate('/admin/logistics')}
                         >
                             <span className="nav-icon">📦</span>
-                            <span className="nav-text">Op. Logístico</span>
-                        </button>                    </div>
+                            <span className="nav-text">Operadores</span>
+                        </button></div>
 
                     <div className="nav-section">
                         <h4 className="nav-section-title">Gestión de Inventario</h4>

@@ -742,3 +742,214 @@
         padding: 12px 8px;
     }
 }
+
+/* ===== ESTILOS ESPECÍFICOS PARA OPERADORES LOGÍSTICOS ===== */
+
+/* Badge del área de servicio */
+.service-area-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px solid #0891b2;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #0c4a6e;
+    margin-top: 8px;
+}
+
+.service-area-badge .service-icon {
+    font-size: 1.1rem;
+}
+
+.service-area-badge .service-label {
+    color: #0c4a6e;
+}
+
+/* Información del área de servicio en el formulario */
+.service-area-info {
+    margin-top: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border-left: 4px solid #0891b2;
+}
+
+/* Celda del área de servicio en la tabla */
+.service-area-cell {
+    padding: 8px 12px;
+}
+
+.service-area-cell .service-area-badge {
+    margin-top: 0;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+}
+
+/* Celda de dirección en la tabla */
+.address-cell {
+    max-width: 200px;
+    padding: 8px 12px;
+}
+
+.address-info {
+    font-size: 0.9rem;
+    color: #475569;
+    line-height: 1.4;
+}
+
+/* Textarea para direcciones */
+.form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+    font-family: inherit;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background-color: #ffffff;
+}
+
+.form-group textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+.form-group textarea.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Estadísticas específicas para operadores logísticos */
+.logistic-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.logistic-stat-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.logistic-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #0891b2;
+}
+
+.logistic-stat-card .stat-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.logistic-stat-card .stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0c4a6e;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.logistic-stat-card .stat-label {
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Badges para diferentes áreas de servicio */
+.service-area-badge.transport {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-color: #f59e0b;
+    color: #92400e;
+}
+
+.service-area-badge.cleaning {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-color: #3b82f6;
+    color: #1e40af;
+}
+
+.service-area-badge.repair {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border-color: #ef4444;
+    color: #dc2626;
+}
+
+.service-area-badge.storage {
+    background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+    border-color: #8b5cf6;
+    color: #7c3aed;
+}
+
+.service-area-badge.inspection {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-color: #10b981;
+    color: #047857;
+}
+
+.service-area-badge.others {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border-color: #64748b;
+    color: #475569;
+}
+
+/* Iconos de área de servicio más grandes en la tabla */
+.service-area-cell .service-icon {
+    font-size: 1.2rem;
+    margin-right: 6px;
+}
+
+/* Enlaces de contacto en la tabla */
+.email-cell a,
+.phone-cell a {
+    color: #0891b2;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.email-cell a:hover,
+.phone-cell a:hover {
+    color: #0c4a6e;
+    text-decoration: underline;
+}
+
+/* Responsive para dispositivos móviles */
+@media (max-width: 768px) {
+    .logistic-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .logistic-stat-card {
+        padding: 16px;
+    }
+    
+    .logistic-stat-card .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .service-area-badge {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+    }
+    
+    .address-cell {
+        max-width: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logistic-stats {
+        grid-template-columns: 1fr;
+    }
+}

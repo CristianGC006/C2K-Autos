@@ -3,22 +3,6 @@ import { getAllAssessors, getAssessorStats } from './AssessorService';
 import { getCustomers } from './CustomerService';
 import { getAllVehicles } from './VehicleService';
 
-const API_BASE_URL = 'http://localhost:8080';
-
-// Función auxiliar para manejar respuestas
-const handleResponse = async (response) => {
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Error ${response.status}: ${errorText}`);
-  }
-  
-  const contentType = response.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
-    return await response.json();
-  }
-  return await response.text();
-};
-
 // Obtener estadísticas generales del dashboard
 export const getDashboardStats = async () => {
   try {
