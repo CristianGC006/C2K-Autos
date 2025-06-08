@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { genericAlert } from "../helpers/functions";
 import { imageService } from "../services/imageService";
 import './rental.css';
+import Reserve from '../components/Reserve';
 
 const Rental = () => {
     const navigate = useNavigate();
@@ -385,7 +386,7 @@ const Rental = () => {
         });
         setFilteredVehicles(vehicles);
     };    // Función para reservar directamente un vehículo sin agregar al carrito
-    const handleDirectReservation = async (vehicle) => {
+    const HANDLE_DIRECT_RESERVATION = async (vehicle) => {
         const vehicleDatesForVehicle = vehicleDates[vehicle.id] || {};
         const { startDate, endDate } = vehicleDatesForVehicle;
 
@@ -815,20 +816,12 @@ const Rental = () => {
                                                         }
                                                     </button>
                                                     
-                                                    <button 
-                                                        className="reserve-btn"
-                                                        onClick={() => handleDirectReservation(vehicle)}
-                                                        disabled={!hasValidDates}
-                                                        style={{
-                                                            opacity: hasValidDates ? 1 : 0.6,
-                                                            cursor: hasValidDates ? 'pointer' : 'not-allowed'
-                                                        }}
-                                                    >
-                                                        {!hasValidDates 
-                                                            ? '📅 Selecciona fechas' 
-                                                            : '🎯 Reservar Ahora'
-                                                        }
-                                                    </button>
+                                                    <Reserve 
+                                                        vehicle={vehicle}
+                                                        vehicleDates={vehicleDates}
+                                                        hasValidDates={vehicleDates[vehicle.id]?.startDate && vehicleDates[vehicle.id]?.endDate}
+                                                        calculateDays={calculateDays}
+                                                    />
                                                 </div>
                                             </div>
                                         </div>

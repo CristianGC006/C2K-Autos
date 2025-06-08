@@ -961,3 +961,6 @@ function Panel({ activeSection, setActiveSection, user }) {
 }
 
 export default Panel;
+
+// Agregar un event listener para actualizar los vehículos cuando se realiza una renta
+
