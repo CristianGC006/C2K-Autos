@@ -21,6 +21,7 @@ import Location from "../pages/Location";
 import LoginAssessor from "../pages/auth/LoginAssessor";
 import LoginLogisticOp from "../pages/auth/LoginLogisticOp";
 import LogisticOperatorLayout from '../pages/LogisticOperator/LogisticOperatorLayout';
+import VehicleManagementLO from '../pages/LogisticOperator/VehicleManagementLO';
 
 /*Creacion de rutas*/
 export let routes  = [
@@ -42,7 +43,8 @@ export let routes  = [
     },
     {
         path:"/logisticOp",
-        element: <LoginLogisticOp/>
+        element: <LoginLogisticOp/>,
+        
     },    {
         path:"/admin",
         element:<ProtectedRoute security={<AdminLayout />} />,
@@ -119,7 +121,7 @@ export let routes  = [
     path: '/logisticOpHome',
     element: <LogisticOperatorLayout />,
     children: [
-      { path: 'vehicles', element: <VehicleManagement /> },
+      { path: 'vehicles', element: <VehicleManagementLO /> },
       // Puedes agregar más rutas hijas aquí si lo necesitas
     ],
   }

@@ -816,12 +816,21 @@ const Rental = () => {
                                                         }
                                                     </button>
                                                     
-                                                    <Reserve 
-                                                        vehicle={vehicle}
-                                                        vehicleDates={vehicleDates}
-                                                        hasValidDates={vehicleDates[vehicle.id]?.startDate && vehicleDates[vehicle.id]?.endDate}
-                                                        calculateDays={calculateDays}
-                                                    />
+                                                     <button
+                                                        className="reserve-btn"
+                                                        onClick={() => navigate('/login')}
+                                                        style={{
+                                                        
+                                                        background: '#014421',
+                                                        color: '#fff',
+                                                        border: 'none',
+                                                        borderRadius: '8px',
+                                                        padding: '0.5rem 1rem',
+                                                        cursor: 'pointer'
+        }}
+    >
+        Iniciar sesión para reservar
+    </button>
                                                 </div>
                                             </div>
                                         </div>

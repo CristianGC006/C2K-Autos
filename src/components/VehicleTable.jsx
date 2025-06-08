@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const VehicleTable = ({ vehicles, onEdit, onDelete, isLoading }) => {
+const VehicleTable = ({ vehicles, onEdit, onDelete, isLoading, hideDelete }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBrand, setFilterBrand] = useState('');
   const [filterType, setFilterType] = useState('');
@@ -238,13 +238,15 @@ const VehicleTable = ({ vehicles, onEdit, onDelete, isLoading }) => {
                       >
                         ✏️ Editar
                       </button>
-                      <button
-                        onClick={() => onDelete(vehicle)}
-                        className="action-btn delete"
-                        title="Eliminar vehículo"
-                      >
-                        🗑️ Eliminar
-                      </button>
+                      {!hideDelete && (
+      <button
+        onClick={() => onDelete(vehicle)}
+        className="action-btn delete"
+        title="Eliminar vehículo"
+      >
+        🗑️ Eliminar
+      </button>
+    )}
                     </div>
                   </td>
                 </tr>
