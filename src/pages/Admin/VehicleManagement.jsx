@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import VehicleForm from '../../components/VehicleForm';
 import VehicleTable from '../../components/VehicleTable';
+import Swal from 'sweetalert2';
 import { 
   getAllVehicles, 
   createVehicle, 
@@ -37,10 +38,14 @@ const VehicleManagement = () => {
         type: vehicle.type || '',
         imageUrl: vehicle.imageUrl || ''
       })) : [];
-      setVehicles(normalizedVehicles);
-    } catch (error) {
+      setVehicles(normalizedVehicles);    } catch (error) {
       console.error('Error loading vehicles:', error);
-      setError('Error al cargar los vehículos. Por favor, intente nuevamente.');
+      await Swal.fire({
+        title: 'Error de conexión',
+        text: 'Error al cargar los vehículos. Por favor, intente nuevamente.',
+        icon: 'error',
+        confirmButtonColor: '#dc3545'
+      });
       setVehicles([]);
     } finally {
       setIsTableLoading(false);
@@ -60,33 +65,47 @@ const VehicleManagement = () => {
     setError(null);
     setSuccessMessage(null);
   };
-
   const handleDeleteVehicle = async (vehicle) => {
-    const confirmDelete = window.confirm(
-      `¿Está seguro de que desea desactivar el vehículo ${vehicle.brand} ${vehicle.model} (${vehicle.plate})?`
-    );
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: `Se desactivará el vehículo ${vehicle.brand} ${vehicle.model} (${vehicle.plate}) permanentemente`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, desactivar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    });
 
-    if (!confirmDelete) return;
-
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      await deleteVehicle(vehicle.vehicleId);
-      
-      setSuccessMessage(`Vehículo ${vehicle.brand} ${vehicle.model} desactivado exitosamente`);
-      await loadVehicles();
-      
-      // Limpiar mensaje después de 3 segundos
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (error) {
-      console.error('Error deleting vehicle:', error);
-      setError(error.message || 'Error al desactivar el vehículo');
-    } finally {
-      setIsLoading(false);
+    if (result.isConfirmed) {
+      try {
+        setIsLoading(true);
+        await deleteVehicle(vehicle.vehicleId);
+        
+        await Swal.fire({
+          title: '¡Desactivado!',
+          text: `El vehículo ${vehicle.brand} ${vehicle.model} ha sido desactivado exitosamente`,
+          icon: 'success',
+          confirmButtonColor: '#28a745',
+          timer: 3000,
+          timerProgressBar: true
+        });
+        
+        await loadVehicles();
+      } catch (error) {
+        console.error('Error deleting vehicle:', error);
+        await Swal.fire({
+          title: 'Error',
+          text: error.message || 'Error al desactivar el vehículo',
+          icon: 'error',
+          confirmButtonColor: '#dc3545'
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
-
   const handleFormSubmit = async (vehicleData) => {
     try {
       setIsLoading(true);
@@ -95,22 +114,41 @@ const VehicleManagement = () => {
       if (editingVehicle) {
         // Actualizar vehículo existente
         await updateVehicle(editingVehicle.vehicleId, vehicleData);
-        setSuccessMessage(`Vehículo ${vehicleData.brand} ${vehicleData.model} actualizado exitosamente`);
+        
+        await Swal.fire({
+          title: '¡Actualizado!',
+          text: `El vehículo ${vehicleData.brand} ${vehicleData.model} ha sido actualizado exitosamente`,
+          icon: 'success',
+          confirmButtonColor: '#28a745',
+          timer: 3000,
+          timerProgressBar: true
+        });
       } else {
         // Crear nuevo vehículo
         await createVehicle(vehicleData);
-        setSuccessMessage(`Vehículo ${vehicleData.brand} ${vehicleData.model} creado exitosamente`);
+        
+        await Swal.fire({
+          title: '¡Creado!',
+          text: `El vehículo ${vehicleData.brand} ${vehicleData.model} ha sido creado exitosamente`,
+          icon: 'success',
+          confirmButtonColor: '#28a745',
+          timer: 3000,
+          timerProgressBar: true
+        });
       }
 
       setShowForm(false);
       setEditingVehicle(null);
       await loadVehicles();
-
-      // Limpiar mensaje después de 3 segundos
-      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
       console.error('Error submitting vehicle:', error);
-      setError(error.message || 'Error al guardar el vehículo');
+      
+      await Swal.fire({
+        title: 'Error',
+        text: error.message || 'Error al procesar el vehículo',
+        icon: 'error',
+        confirmButtonColor: '#dc3545'
+      });
     } finally {
       setIsLoading(false);
     }

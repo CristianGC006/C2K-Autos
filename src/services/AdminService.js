@@ -23,7 +23,7 @@ const handleResponse = async (response) => {
 // ========== FUNCIONES DE VALIDACIÓN ==========
 
 // Función auxiliar para validar datos de administrador
-export const validateAdminData = (adminData) => {
+export const validateAdminData = (adminData, isUpdate = false) => {
   const errors = [];
   
   if (!adminData.name?.trim()) {
@@ -50,10 +50,18 @@ export const validateAdminData = (adminData) => {
     errors.push('El tipo de identificación es obligatorio');
   }
   
-  if (!adminData.password?.trim()) {
-    errors.push('La contraseña es obligatoria');
-  } else if (adminData.password.length < 6) {
-    errors.push('La contraseña debe tener al menos 6 caracteres');
+  // Solo validar contraseña como obligatoria para nuevos administradores
+  if (!isUpdate) {
+    if (!adminData.password?.trim()) {
+      errors.push('La contraseña es obligatoria');
+    } else if (adminData.password.length < 6) {
+      errors.push('La contraseña debe tener al menos 6 caracteres');
+    }
+  } else {
+    // Para actualizaciones, solo validar si se proporciona una contraseña
+    if (adminData.password && adminData.password.trim() && adminData.password.length < 6) {
+      errors.push('La contraseña debe tener al menos 6 caracteres');
+    }
   }
   
   if (!adminData.adminCode?.trim()) {
@@ -117,8 +125,8 @@ export const getAdminById = async (adminId) => {
 // Crear nuevo administrador
 export const createAdmin = async (adminData) => {
   try {
-    // Validar datos
-    const validationErrors = validateAdminData(adminData);
+    // Validar datos para creación (contraseña obligatoria)
+    const validationErrors = validateAdminData(adminData, false);
     if (validationErrors.length > 0) {
       throw new Error(validationErrors.join(', '));
     }
@@ -146,22 +154,22 @@ export const updateAdmin = async (adminId, adminData) => {
       throw new Error('ID de administrador requerido para actualizar');
     }
     
-    // Validar datos (excluyendo contraseña si no se está cambiando)
-    const dataToValidate = { ...adminData };
-    if (!dataToValidate.password) {
-      delete dataToValidate.password;
-    }
-    
-    const validationErrors = validateAdminData(dataToValidate);
+    // Validar datos usando la validación para actualizaciones
+    const validationErrors = validateAdminData(adminData, true);
     if (validationErrors.length > 0) {
       throw new Error(validationErrors.join(', '));
     }
     
-    // Formatear datos
+    // Formatear datos - excluir contraseña si está vacía
     const formattedData = formatAdminData({
       ...adminData,
       idAdmin: adminId
     });
+    
+    // No enviar contraseña vacía al backend
+    if (!adminData.password || adminData.password.trim() === '') {
+      delete formattedData.password;
+    }
     
     const response = await fetch(`${API_BASE_URL}/${adminId}`, {
       method: 'PUT',

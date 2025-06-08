@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { generateAdminCode, checkEmailExists, checkAdminCodeExists } from '../services/AdminService';
+import Swal from 'sweetalert2';
 import './CustomerForm.css'; // Reutilizamos los estilos existentes
 
 const initialState = {
@@ -81,11 +82,10 @@ const AdminForm = ({ onSubmit, onCancel, admin, isEditing = false, isLoading = f
         
         if (!form.adminCode.trim()) {
             newErrors.adminCode = 'El código de administrador es requerido';
-        }
-        
-        // Validación de contraseña (solo para nuevos admins o si se está cambiando)
-        if (!isEditing || form.password) {
-            if (!form.password.trim()) {
+        }        // Validación de contraseña
+        if (!isEditing) {
+            // Para nuevos administradores, la contraseña es obligatoria
+            if (!form.password || form.password.trim() === '') {
                 newErrors.password = 'La contraseña es requerida';
             } else if (form.password.length < 6) {
                 newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
@@ -94,6 +94,20 @@ const AdminForm = ({ onSubmit, onCancel, admin, isEditing = false, isLoading = f
             if (form.password !== form.confirmPassword) {
                 newErrors.confirmPassword = 'Las contraseñas no coinciden';
             }
+        } else {
+            // Para ediciones, solo validar si se está intentando cambiar la contraseña
+            const passwordValue = form.password ? form.password.trim() : '';
+            if (passwordValue !== '') {
+                // Solo validar si realmente se quiere cambiar la contraseña
+                if (passwordValue.length < 6) {
+                    newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
+                }
+                
+                if (form.password !== form.confirmPassword) {
+                    newErrors.confirmPassword = 'Las contraseñas no coinciden';
+                }
+            }
+            // Si la contraseña está vacía en modo edición, no se genera error
         }
         
         // Validaciones asíncronas
@@ -116,13 +130,19 @@ const AdminForm = ({ onSubmit, onCancel, admin, isEditing = false, isLoading = f
         
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = async (e) => {
+    };    const handleSubmit = async (e) => {
         e.preventDefault();
         
         const isValid = await validateForm();
-        if (!isValid) return;
+        if (!isValid) {
+            await Swal.fire({
+                title: 'Datos incompletos',
+                text: 'Por favor, complete todos los campos requeridos correctamente',
+                icon: 'warning',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
 
         // Preparar datos para envío
         const adminData = {
@@ -132,14 +152,42 @@ const AdminForm = ({ onSubmit, onCancel, admin, isEditing = false, isLoading = f
             documentNumber: form.documentNumber.trim(),
             identificationType: form.identificationType,
             adminCode: form.adminCode.trim()
-        };
-
-        // Solo incluir contraseña si se está creando un nuevo admin o si se está cambiando
-        if (!isEditing || form.password) {
+        };        // Solo incluir contraseña si se está creando un nuevo admin o si se está cambiando
+        if (!isEditing || (form.password && form.password.trim() !== '')) {
             adminData.password = form.password;
         }
 
         onSubmit(adminData);
+    };
+
+    const handleCancel = async () => {
+        // Verificar si hay cambios en el formulario
+        const hasChanges = Object.keys(form).some(key => {
+            if (admin) {
+                return form[key] !== (admin[key] || '');
+            }
+            return form[key] !== '';
+        });
+
+        if (hasChanges) {
+            const result = await Swal.fire({
+                title: '¿Descartar cambios?',
+                text: 'Los cambios que has realizado se perderán si continúas',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, descartar',
+                cancelButtonText: 'Continuar editando',
+                reverseButtons: true
+            });
+
+            if (result.isConfirmed) {
+                onCancel();
+            }
+        } else {
+            onCancel();
+        }
     };
 
     const identificationTypes = [
@@ -156,7 +204,7 @@ const AdminForm = ({ onSubmit, onCancel, admin, isEditing = false, isLoading = f
                 <button 
                     type="button" 
                     className="close-button"
-                    onClick={onCancel}
+                    onClick={handleCancel}
                     disabled={isLoading}
                 >
                     ✕
@@ -344,7 +392,7 @@ const AdminForm = ({ onSubmit, onCancel, admin, isEditing = false, isLoading = f
                     <button 
                         type="button" 
                         className="cancel-button"
-                        onClick={onCancel}
+                        onClick={handleCancel}
                         disabled={isLoading}
                     >
                         ❌ Cancelar

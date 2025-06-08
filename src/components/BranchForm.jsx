@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import { FaBuilding, FaMapMarkerAlt, FaPhone, FaClock, FaCheck } from 'react-icons/fa';
 import { validateBranchData, getBranchStatuses } from '../services/BranchService';
 
@@ -65,10 +66,8 @@ const BranchForm = ({
                 [field]: validation.errors[field]
             }));
         }
-    };
-
-    // Manejar submit del formulario
-    const handleSubmit = (e) => {
+    };    // Manejar submit del formulario
+    const handleSubmit = async (e) => {
         e.preventDefault();
         
         // Validar todos los campos
@@ -83,11 +82,59 @@ const BranchForm = ({
                 schedule: true,
                 status: true
             });
+            await Swal.fire({
+                title: 'Datos incompletos',
+                text: 'Por favor, complete todos los campos requeridos correctamente',
+                icon: 'warning',
+                confirmButtonColor: '#ffc107'
+            });
             return;
         }
-        
-        // Enviar datos
+          // Enviar datos
         onSubmit(formData);
+    };
+
+    const handleCancel = async () => {
+        // Verificar si hay cambios en el formulario
+        const initialData = {
+            name: '',
+            address: '',
+            phone: '',
+            schedule: '',
+            status: 'ACTIVA'
+        };
+
+        const branchData = branch && mode === 'edit' ? {
+            name: branch.name || '',
+            address: branch.address || '',
+            phone: branch.phone || '',
+            schedule: branch.schedule || '',
+            status: branch.status || 'ACTIVA'
+        } : initialData;
+
+        const hasChanges = Object.keys(formData).some(key => 
+            formData[key] !== branchData[key]
+        );
+
+        if (hasChanges) {
+            const result = await Swal.fire({
+                title: '¿Descartar cambios?',
+                text: 'Los cambios que has realizado se perderán si continúas.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, descartar',
+                cancelButtonText: 'Continuar editando',
+                reverseButtons: true
+            });
+
+            if (result.isConfirmed) {
+                onCancel();
+            }
+        } else {
+            onCancel();
+        }
     };
 
     return (
@@ -221,10 +268,9 @@ const BranchForm = ({
                 </div>
 
                 {/* Botones */}
-                <div className="form-actions">
-                    <button
+                <div className="form-actions">                    <button
                         type="button"
-                        onClick={onCancel}
+                        onClick={handleCancel}
                         className="btn-secondary"
                         disabled={loading}
                     >

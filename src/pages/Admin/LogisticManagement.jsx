@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import LogisticOperatorForm from '../../components/LogisticOperatorForm';
 import LogisticOperatorTable from '../../components/LogisticOperatorTable';
+import Swal from 'sweetalert2';
 import {
     getAllLogisticOperators,
     createLogisticOperator,
@@ -29,7 +30,12 @@ const LogisticManagement = () => {
                 setStats(statsData);
             } catch (error) {
                 console.error('Error loading operators:', error);
-                showMessage('error', 'Error al cargar los operadores logísticos');
+                await Swal.fire({
+                    title: 'Error de conexión',
+                    text: 'Error al cargar los operadores logísticos',
+                    icon: 'error',
+                    confirmButtonColor: '#dc3545'
+                });
             } finally {
                 setIsLoading(false);
             }
@@ -68,20 +74,34 @@ const LogisticManagement = () => {
     const handleEditOperator = (operator) => {
         setEditingOperator(operator);
         setIsFormOpen(true);
-    };
-
-    const handleFormSubmit = async (operatorData) => {
+    };    const handleFormSubmit = async (operatorData) => {
         try {
             setIsFormLoading(true);
             
             if (editingOperator) {
                 // Actualizar operador existente
                 await updateLogisticOperator(editingOperator.idLogisticOperator, operatorData);
-                showMessage('success', 'Operador logístico actualizado correctamente');
+                
+                await Swal.fire({
+                    title: '¡Actualizado!',
+                    text: `El operador logístico ${operatorData.name} ha sido actualizado exitosamente`,
+                    icon: 'success',
+                    confirmButtonColor: '#28a745',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
             } else {
                 // Crear nuevo operador
                 await createLogisticOperator(operatorData);
-                showMessage('success', 'Operador logístico creado correctamente');
+                
+                await Swal.fire({
+                    title: '¡Creado!',
+                    text: `El operador logístico ${operatorData.name} ha sido creado exitosamente`,
+                    icon: 'success',
+                    confirmButtonColor: '#28a745',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
             }
             
             // Recargar datos y cerrar formulario
@@ -90,23 +110,55 @@ const LogisticManagement = () => {
             setEditingOperator(null);
         } catch (error) {
             console.error('Error saving operator:', error);
-            showMessage('error', error.message || 'Error al guardar el operador logístico');
+            
+            await Swal.fire({
+                title: 'Error',
+                text: error.message || 'Error al guardar el operador logístico',
+                icon: 'error',
+                confirmButtonColor: '#dc3545'
+            });
         } finally {
             setIsFormLoading(false);
         }
-    };
+    };    const handleDeleteOperator = async (operatorId, operatorName = 'este operador') => {
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: `Se eliminará al operador logístico ${operatorName} permanentemente`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+        });
 
-    const handleDeleteOperator = async (operatorId) => {
-        try {
-            setIsLoading(true);
-            await deleteLogisticOperator(operatorId);
-            showMessage('success', 'Operador logístico eliminado correctamente');
-            await loadOperators();
-        } catch (error) {
-            console.error('Error deleting operator:', error);
-            showMessage('error', error.message || 'Error al eliminar el operador logístico');
-        } finally {
-            setIsLoading(false);
+        if (result.isConfirmed) {
+            try {
+                setIsLoading(true);
+                await deleteLogisticOperator(operatorId);
+                
+                await Swal.fire({
+                    title: '¡Eliminado!',
+                    text: `El operador logístico ${operatorName} ha sido eliminado exitosamente`,
+                    icon: 'success',
+                    confirmButtonColor: '#28a745',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+                
+                await loadOperators();
+            } catch (error) {
+                console.error('Error deleting operator:', error);
+                await Swal.fire({
+                    title: 'Error',
+                    text: error.message || 'Error al eliminar el operador logístico',
+                    icon: 'error',
+                    confirmButtonColor: '#dc3545'
+                });
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 

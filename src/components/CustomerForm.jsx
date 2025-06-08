@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import './CustomerForm.css';
 
 const initialState = {
@@ -76,37 +77,78 @@ const CustomerForm = ({ onSubmit, onCancel, customer, isEditing = false }) => {
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    };    const handleSubmit = (e) => {
+    };    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (validateForm()) {
-            const customerData = { ...form };
-            
-            // Transformar tipos de identificación para el backend
-            const identificationTypeMapping = {
-                'CC': 'CEDULA_DE_CIUDADANIA',
-                'CE': 'CEDULA_DE_EXTRANJERIA', 
-                'PA': 'PASAPORTE',
-                'TI': 'TARJETA_DE_IDENTIDAD'
-            };
-            customerData.identificationType = identificationTypeMapping[customerData.identificationType] || customerData.identificationType;
-            
-            // IMPORTANTE: Si es edición y la contraseña está vacía, NO la enviamos
-            // Esto evita que se guarde como null en la base de datos
-            if (isEditing) {
-                if (!customerData.password || customerData.password.trim() === '') {
-                    delete customerData.password;
-                    console.log('CustomerForm - Contraseña eliminada del objeto (no se actualizará)');
-                } else {
-                    console.log('CustomerForm - Contraseña será actualizada');
-                }
+        if (!validateForm()) {
+            await Swal.fire({
+                title: 'Datos incompletos',
+                text: 'Por favor, complete todos los campos requeridos correctamente',
+                icon: 'warning',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
+        
+        const customerData = { ...form };
+        
+        // Transformar tipos de identificación para el backend
+        const identificationTypeMapping = {
+            'CC': 'CEDULA_DE_CIUDADANIA',
+            'CE': 'CEDULA_DE_EXTRANJERIA', 
+            'PA': 'PASAPORTE',
+            'TI': 'TARJETA_DE_IDENTIDAD'
+        };
+        customerData.identificationType = identificationTypeMapping[customerData.identificationType] || customerData.identificationType;
+        
+        // IMPORTANTE: Si es edición y la contraseña está vacía, NO la enviamos
+        // Esto evita que se guarde como null en la base de datos
+        if (isEditing) {
+            if (!customerData.password || customerData.password.trim() === '') {
+                delete customerData.password;
+                console.log('CustomerForm - Contraseña eliminada del objeto (no se actualizará)');
+            } else {
+                console.log('CustomerForm - Contraseña será actualizada');
             }
-            
-            // Log para debugging
-            console.log('CustomerForm - Datos a enviar:', customerData);
-            console.log('CustomerForm - Es edición:', isEditing);
-            console.log('CustomerForm - Contraseña incluida:', 'password' in customerData);
-            
-            onSubmit(customerData);
+        }
+        
+        // Log para debugging
+        console.log('CustomerForm - Datos a enviar:', customerData);
+        console.log('CustomerForm - Es edición:', isEditing);
+        console.log('CustomerForm - Contraseña incluida:', 'password' in customerData);
+          onSubmit(customerData);
+    };
+
+    const handleCancel = async () => {
+        // Verificar si hay cambios en el formulario
+        const hasChanges = customer ? 
+            Object.keys(form).some(key => {
+                if (key === 'password') return false; // No considerar password para cambios
+                return form[key] !== (customer[key] || '');
+            }) :
+            Object.values(form).some((value, index) => {
+                const key = Object.keys(form)[index];
+                if (key === 'password') return value !== '';
+                return value !== initialState[key];
+            });
+
+        if (hasChanges) {
+            const result = await Swal.fire({
+                title: '¿Descartar cambios?',
+                text: 'Los cambios que has realizado se perderán si continúas.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, descartar',
+                cancelButtonText: 'Continuar editando',
+                reverseButtons: true
+            });
+
+            if (result.isConfirmed) {
+                onCancel();
+            }
+        } else {
+            onCancel();
         }
     };
 
@@ -243,8 +285,7 @@ const CustomerForm = ({ onSubmit, onCancel, customer, isEditing = false }) => {
                 <div className="form-actions">
                     <button type="submit" className="btn-primary">
                         {isEditing ? 'Actualizar' : 'Crear'} Cliente
-                    </button>
-                    <button type="button" className="btn-secondary" onClick={onCancel}>
+                    </button>                    <button type="button" className="btn-secondary" onClick={handleCancel}>
                         Cancelar
                     </button>
                 </div>

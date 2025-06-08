@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AdminForm from '../../components/AdminForm';
 import AdminTable from '../../components/AdminTable';
+import Swal from 'sweetalert2';
 import { 
   getAllAdmins, 
   createAdmin, 
@@ -39,10 +40,14 @@ const AdminManagement = () => {
         isActive: admin.isActive !== false // Por defecto true
       })) : [];
       
-      setAdmins(normalizedAdmins);
-    } catch (error) {
+      setAdmins(normalizedAdmins);    } catch (error) {
       console.error('Error loading admins:', error);
-      setError('Error al cargar los administradores. Verifique la conexión con el servidor.');
+      await Swal.fire({
+        title: 'Error de conexión',
+        text: 'Error al cargar los administradores. Verifique la conexión con el servidor.',
+        icon: 'error',
+        confirmButtonColor: '#dc3545'
+      });
       setAdmins([]);
     } finally {
       setIsTableLoading(false);
@@ -60,27 +65,47 @@ const AdminManagement = () => {
     setShowForm(true);
     setError(null);
   };
-
   const handleDeleteAdmin = async (admin) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      await deleteAdmin(admin.idAdmin);
-      
-      setSuccessMessage(`Administrador ${admin.name} desactivado exitosamente`);
-      await loadAdmins();
-      
-      // Limpiar mensaje después de 3 segundos
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (error) {
-      console.error('Error deleting admin:', error);
-      setError(error.message || 'Error al desactivar el administrador');
-    } finally {
-      setIsLoading(false);
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: `Se desactivará al administrador ${admin.name} permanentemente`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, desactivar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setIsLoading(true);
+        await deleteAdmin(admin.idAdmin);
+        
+        await Swal.fire({
+          title: '¡Desactivado!',
+          text: `El administrador ${admin.name} ha sido desactivado exitosamente`,
+          icon: 'success',
+          confirmButtonColor: '#28a745',
+          timer: 3000,
+          timerProgressBar: true
+        });
+        
+        await loadAdmins();
+      } catch (error) {
+        console.error('Error deleting admin:', error);
+        await Swal.fire({
+          title: 'Error',
+          text: error.message || 'Error al desactivar el administrador',
+          icon: 'error',
+          confirmButtonColor: '#dc3545'
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
-
   const handleFormSubmit = async (adminData) => {
     try {
       setIsLoading(true);
@@ -89,21 +114,40 @@ const AdminManagement = () => {
       if (editingAdmin) {
         // Actualizar administrador existente
         await updateAdmin(editingAdmin.idAdmin, adminData);
-        setSuccessMessage(`Administrador ${adminData.name} actualizado exitosamente`);
+        
+        await Swal.fire({
+          title: '¡Actualizado!',
+          text: `El administrador ${adminData.name} ha sido actualizado exitosamente`,
+          icon: 'success',
+          confirmButtonColor: '#28a745',
+          timer: 3000,
+          timerProgressBar: true
+        });
       } else {
         // Crear nuevo administrador
         await createAdmin(adminData);
-        setSuccessMessage(`Administrador ${adminData.name} creado exitosamente`);
+        
+        await Swal.fire({
+          title: '¡Creado!',
+          text: `El administrador ${adminData.name} ha sido creado exitosamente`,
+          icon: 'success',
+          confirmButtonColor: '#28a745',
+          timer: 3000,
+          timerProgressBar: true
+        });
       }
 
       await loadAdmins();
       handleFormCancel();
-      
-      // Limpiar mensaje después de 3 segundos
-      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
       console.error('Error submitting admin:', error);
-      setError(error.message || 'Error al procesar el administrador');
+      
+      await Swal.fire({
+        title: 'Error',
+        text: error.message || 'Error al procesar el administrador',
+        icon: 'error',
+        confirmButtonColor: '#dc3545'
+      });
     } finally {
       setIsLoading(false);
     }

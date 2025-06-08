@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { validateVehicleData } from '../services/VehicleService';
+import Swal from 'sweetalert2';
 
 const VehicleForm = ({ vehicle, onSubmit, onCancel, isLoading }) => {
   const [formData, setFormData] = useState({
@@ -64,8 +65,39 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel, isLoading }) => {
       }));
     }
   };
+  const handleCancel = async () => {
+    // Verificar si hay cambios en el formulario
+    const hasChanges = vehicle ? 
+      Object.keys(formData).some(key => {
+        if (key === 'year') {
+          return parseInt(formData[key]) !== vehicle[key];
+        }
+        return formData[key] !== (vehicle[key] || '');
+      }) :
+      Object.values(formData).some(value => value !== '' && value !== new Date().getFullYear());
 
-  const handleSubmit = (e) => {
+    if (hasChanges) {
+      const result = await Swal.fire({
+        title: '¿Descartar cambios?',
+        text: 'Los cambios que has realizado se perderán si continúas.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, descartar',
+        cancelButtonText: 'Continuar editando',
+        reverseButtons: true
+      });
+
+      if (result.isConfirmed) {
+        onCancel();
+      }
+    } else {
+      onCancel();
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validar datos
@@ -73,6 +105,12 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel, isLoading }) => {
     
     if (!validation.isValid) {
       setErrors(validation.errors);
+      await Swal.fire({
+        title: 'Datos incompletos',
+        text: 'Por favor, complete todos los campos requeridos correctamente',
+        icon: 'warning',
+        confirmButtonColor: '#ffc107'
+      });
       return;
     }
 
@@ -119,10 +157,9 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel, isLoading }) => {
     <div className="vehicle-form-container">
       <form onSubmit={handleSubmit} className="vehicle-form">
         <div className="form-header">
-          <h3>{vehicle ? 'Editar Vehículo' : 'Agregar Nuevo Vehículo'}</h3>
-          <button 
+          <h3>{vehicle ? 'Editar Vehículo' : 'Agregar Nuevo Vehículo'}</h3>          <button 
             type="button" 
-            onClick={onCancel}
+            onClick={handleCancel}
             className="close-btn"
             disabled={isLoading}
           >
@@ -275,10 +312,9 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel, isLoading }) => {
           </div>
         )}
 
-        <div className="form-actions">
-          <button 
+        <div className="form-actions">          <button 
             type="button" 
-            onClick={onCancel}
+            onClick={handleCancel}
             className="cancel-btn"
             disabled={isLoading}
           >

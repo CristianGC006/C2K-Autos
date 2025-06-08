@@ -1,5 +1,6 @@
 // filepath: c:\Proyectos\C2K-Autos\src\components\RentalForm.jsx
 import React, { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import { FaCalendarAlt, FaCar, FaUser, FaDollarSign, FaSave, FaTimes } from 'react-icons/fa';
 import { getCustomers } from '../services/CustomerService';
 import { getAllVehicles } from '../services/VehicleService';
@@ -108,9 +109,7 @@ const RentalForm = ({ rental, onSubmit, onCancel, loading }) => {
             const selectedVehicle = vehicles.find(v => v.vehicleId.toString() === value);
             setSelectedVehiclePrice(selectedVehicle ? selectedVehicle.pricePerDay || 0 : 0);
         }
-    };
-
-    // Manejar envío del formulario
+    };    // Manejar envío del formulario
     const handleSubmit = async (e) => {
         e.preventDefault();
         
@@ -124,6 +123,12 @@ const RentalForm = ({ rental, onSubmit, onCancel, loading }) => {
         
         if (!validation.isValid) {
             setErrors(validation.errors);
+            await Swal.fire({
+                title: 'Datos incompletos',
+                text: 'Por favor, complete todos los campos requeridos correctamente',
+                icon: 'warning',
+                confirmButtonColor: '#ffc107'
+            });
             return;
         }
 
@@ -136,6 +141,53 @@ const RentalForm = ({ rental, onSubmit, onCancel, loading }) => {
             startDate: formData.startDate + 'T00:00:00',
             endDate: formData.endDate + 'T23:59:59'
         };        await onSubmit(rentalData);
+    };
+
+    const handleCancel = async () => {
+        // Verificar si hay cambios en el formulario
+        const initialData = {
+            customerId: '',
+            vehicleId: '',
+            startDate: '',
+            endDate: '',
+            totalCost: '',
+            status: 'PENDIENTE',
+            notes: ''
+        };
+
+        const rentalData = rental ? {
+            customerId: rental.customerId?.toString() || '',
+            vehicleId: rental.vehicleId?.toString() || '',
+            startDate: rental.startDate ? rental.startDate.split('T')[0] : '',
+            endDate: rental.endDate ? rental.endDate.split('T')[0] : '',
+            totalCost: (rental.totalCost || rental.price)?.toString() || '',
+            status: rental.status || 'PENDIENTE',
+            notes: rental.notes || ''
+        } : initialData;
+
+        const hasChanges = Object.keys(formData).some(key => 
+            formData[key] !== rentalData[key]
+        );
+
+        if (hasChanges) {
+            const result = await Swal.fire({
+                title: '¿Descartar cambios?',
+                text: 'Los cambios que has realizado se perderán si continúas.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, descartar',
+                cancelButtonText: 'Continuar editando',
+                reverseButtons: true
+            });
+
+            if (result.isConfirmed) {
+                onCancel();
+            }
+        } else {
+            onCancel();
+        }
     };
 
     // Obtener nombre del cliente
@@ -399,10 +451,9 @@ const RentalForm = ({ rental, onSubmit, onCancel, loading }) => {
                 )}
 
                 {/* Botones de acción */}
-                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 mt-6 pt-6 border-t border-gray-200">
-                    <button
+                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 mt-6 pt-6 border-t border-gray-200">                    <button
                         type="button"
-                        onClick={onCancel}
+                        onClick={handleCancel}
                         className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#014421] transition-colors duration-150"
                         disabled={loading}
                     >

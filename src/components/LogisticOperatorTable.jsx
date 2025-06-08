@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import Swal from 'sweetalert2';
 import { getServiceAreaIcon, getServiceAreaLabel } from '../services/LogisticOperatorService';
 import './CustomerTable.css'; // Reutilizamos los estilos existentes
 
@@ -59,10 +60,25 @@ const LogisticOperatorTable = ({
     const getSortIcon = (columnKey) => {
         if (sortConfig.key !== columnKey) return '↕️';
         return sortConfig.direction === 'asc' ? '↑' : '↓';
-    };
+    };    const handleDelete = async (operator) => {
+        const result = await Swal.fire({
+            title: '¿Está seguro?',
+            html: `Se eliminará al operador logístico:<br><br>
+                   <strong>👤 ${operator.name}</strong><br>
+                   📧 ${operator.email}<br>
+                   📱 ${operator.phone}<br>
+                   🏢 ${getServiceAreaLabel(operator.serviceArea)}<br><br>
+                   <em>Esta acción no se puede deshacer.</em>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+        });
 
-    const handleDelete = (operator) => {
-        if (window.confirm(`¿Está seguro de que desea eliminar al operador logístico "${operator.name}"?`)) {
+        if (result.isConfirmed) {
             onDelete(operator.idLogisticOperator);
         }
     };

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import { checkEmailExists, getServiceAreas, getServiceAreaIcon } from '../services/LogisticOperatorService';
 import './CustomerForm.css'; // Reutilizamos los estilos existentes
 
@@ -66,9 +67,9 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
             newErrors.serviceArea = 'El área de servicio es requerida';
         }
         
-        // Validación de contraseña (solo para nuevos operadores o si se está cambiando)
-        if (!isEditing || form.password) {
-            if (!form.password.trim()) {
+        // Validación de contraseña (solo para nuevos operadores o si se está cambiando)        // Validación de contraseña (solo para nuevos operadores o si se está cambiando)
+        if (!isEditing || (form.password && form.password.trim() !== '')) {
+            if (!form.password || !form.password.trim()) {
                 newErrors.password = 'La contraseña es requerida';
             } else if (form.password.length < 6) {
                 newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
@@ -93,13 +94,19 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
         
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = async (e) => {
+    };    const handleSubmit = async (e) => {
         e.preventDefault();
         
         const isValid = await validateForm();
-        if (!isValid) return;
+        if (!isValid) {
+            await Swal.fire({
+                title: 'Datos incompletos',
+                text: 'Por favor, complete todos los campos requeridos correctamente',
+                icon: 'warning',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
 
         // Preparar datos para envío
         const operatorData = {
@@ -108,14 +115,44 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
             phone: form.phone.trim(),
             address: form.address.trim(),
             serviceArea: form.serviceArea
-        };
-
-        // Solo incluir contraseña si se está creando un nuevo operador o si se está cambiando
-        if (!isEditing || form.password) {
+        };        // Solo incluir contraseña si se está creando un nuevo operador o si se está cambiando
+        if (!isEditing || (form.password && form.password.trim() !== '')) {
             operatorData.password = form.password;
-        }
+        }onSubmit(operatorData);
+    };
 
-        onSubmit(operatorData);
+    const handleCancel = async () => {
+        // Verificar si hay cambios en el formulario
+        const hasChanges = operator ? 
+            Object.keys(form).some(key => {
+                if (key === 'password' || key === 'confirmPassword') return form[key] !== '';
+                return form[key] !== (operator[key] || '');
+            }) :
+            Object.values(form).some((value, index) => {
+                const key = Object.keys(form)[index];
+                if (key === 'password' || key === 'confirmPassword') return value !== '';
+                return value !== initialState[key];
+            });
+
+        if (hasChanges) {
+            const result = await Swal.fire({
+                title: '¿Descartar cambios?',
+                text: 'Los cambios que has realizado se perderán si continúas.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, descartar',
+                cancelButtonText: 'Continuar editando',
+                reverseButtons: true
+            });
+
+            if (result.isConfirmed) {
+                onCancel();
+            }
+        } else {
+            onCancel();
+        }
     };
 
     const serviceAreas = getServiceAreas();
@@ -123,11 +160,10 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
     return (
         <div className="customer-form-container">
             <div className="customer-form-header">
-                <h2>{isEditing ? '✏️ Editar Operador Logístico' : '➕ Nuevo Operador Logístico'}</h2>
-                <button 
+                <h2>{isEditing ? '✏️ Editar Operador Logístico' : '➕ Nuevo Operador Logístico'}</h2>                <button 
                     type="button" 
                     className="close-button"
-                    onClick={onCancel}
+                    onClick={handleCancel}
                     disabled={isLoading}
                 >
                     ✕
@@ -293,11 +329,10 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
                 </div>
 
                 {/* Botones de acción */}
-                <div className="form-actions">
-                    <button 
+                <div className="form-actions">                    <button 
                         type="button" 
                         className="cancel-button"
-                        onClick={onCancel}
+                        onClick={handleCancel}
                         disabled={isLoading}
                     >
                         ❌ Cancelar

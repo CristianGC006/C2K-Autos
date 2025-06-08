@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Swal from 'sweetalert2';
 import './CustomerTable.css'; // Reutilizamos los estilos existentes
 
 const AdminTable = ({ 
@@ -60,15 +61,24 @@ const AdminTable = ({
             'OTRO': 'Otro'
         };
         return types[type] || type;
-    };
+    };    const handleDeleteClick = async (admin) => {
+        const result = await Swal.fire({
+            title: '¿Está seguro?',
+            html: `Se desactivará al administrador:<br><br>
+                   <strong>👤 ${admin.name}</strong><br>
+                   📧 ${admin.email}<br>
+                   🔖 ${admin.adminCode}<br><br>
+                   <em>Esta acción se puede revertir posteriormente.</em>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, desactivar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+        });
 
-    const handleDeleteClick = (admin) => {
-        if (window.confirm(
-            `¿Está seguro de que desea desactivar al administrador ${admin.name}?\n\n` +
-            `Email: ${admin.email}\n` +
-            `Código: ${admin.adminCode}\n\n` +
-            `Esta acción se puede revertir posteriormente.`
-        )) {
+        if (result.isConfirmed) {
             onDelete(admin);
         }
     };
