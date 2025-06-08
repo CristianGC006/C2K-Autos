@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
+import './AssessorManagement.css';
 import AssessorForm from '../../components/AssessorForm';
 import AssessorTable from '../../components/AssessorTable';
+import Swal from 'sweetalert2';
 import { 
   getAllAssessors, 
   createAssessor, 
   updateAssessor, 
   deleteAssessor
 } from '../../services/AssessorService';
+import { getBranches } from '../../services/BranchService';
+import { getAllAdmins } from '../../services/AdminService';
 
 const AssessorManagement = () => {
   const [assessors, setAssessors] = useState([]);
@@ -16,61 +20,58 @@ const AssessorManagement = () => {
   const [editingAssessor, setEditingAssessor] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isTableLoading, setIsTableLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
-  // Cargar asesores al montar el componente
+  const [error, setError] = useState(null);  const [successMessage, setSuccessMessage] = useState(null);
+
+  // Cargar datos al montar el componente
   useEffect(() => {
-    loadAssessors();
     loadBranches();
     loadAdmins();
-  }, []);
-
-  const loadAssessors = async () => {
+    loadAssessors();
+  }, []);  const loadAssessors = async () => {
     try {
       setIsTableLoading(true);
       setError(null);
-      const data = await getAllAssessors();
-      setAssessors(Array.isArray(data) ? data : []);
+      console.log('🔄 Cargando lista de asesores...');
+      
+      const assessorsData = await getAllAssessors();
+      console.log('📊 Asesores obtenidos:', assessorsData);
+      setAssessors(assessorsData);
+      
     } catch (error) {
-      console.error('Error loading assessors:', error);
-      setError('Error al cargar los asesores. Verifique la conexión con el servidor.');
+      console.error('❌ Error loading assessors:', error);
+      const errorMessage = 'Error al cargar los asesores. Verifique la conexión con el servidor.';
+      setError(errorMessage);
       setAssessors([]);
+      
+      await Swal.fire({
+        title: 'Error de conexión',
+        text: errorMessage,
+        icon: 'error',
+        confirmButtonColor: '#dc3545'
+      });
     } finally {
       setIsTableLoading(false);
     }
-  };
-
-  const loadBranches = async () => {
+  };const loadBranches = async () => {
     try {
-      // Aquí deberías llamar a tu servicio de sucursales
-      // const data = await getAllBranches();
-      // setBranches(Array.isArray(data) ? data : []);
-      
-      // Datos de ejemplo mientras no esté el servicio
-      setBranches([
-        { id: 1, name: 'Sucursal Norte' },
-        { id: 2, name: 'Sucursal Centro' },
-        { id: 3, name: 'Sucursal Sur' }
-      ]);
+      console.log('🏢 Cargando sucursales...');
+      const data = await getBranches();
+      console.log('Sucursales obtenidas del servidor:', data);
+      setBranches(data || []);
     } catch (error) {
       console.error('Error loading branches:', error);
+      setError('Error al cargar las sucursales. Verifique la conexión con el servidor.');
       setBranches([]);
     }
-  };
-
-  const loadAdmins = async () => {
+  };  const loadAdmins = async () => {
     try {
-      // Aquí deberías llamar a tu servicio de administradores
-      // const data = await getAllAdmins();
-      // setAdmins(Array.isArray(data) ? data : []);
-      
-      // Datos de ejemplo mientras no esté el servicio
-      setAdmins([
-        { id: 1, name: 'Admin Principal' },
-        { id: 2, name: 'Admin Secundario' }
-      ]);
+      console.log('👤 Cargando administradores...');
+      const data = await getAllAdmins();
+      console.log('Administradores obtenidos del servidor:', data);
+      setAdmins(data || []);
     } catch (error) {
       console.error('Error loading admins:', error);
+      setError('Error al cargar los administradores. Verifique la conexión con el servidor.');
       setAdmins([]);
     }
   };
@@ -85,49 +86,91 @@ const AssessorManagement = () => {
     setEditingAssessor(assessor);
     setShowForm(true);
     setError(null);
-  };
-  const handleDeleteAssessor = async (assessor) => {
-    const confirmMessage = `¿Está seguro que desea eliminar al asesor ${assessor.name}?`;
-    
-    if (window.confirm(confirmMessage)) {
+  };  const handleDeleteAssessor = async (assessor) => {
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: `Se eliminará al asesor ${assessor.name} permanentemente`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
       try {
         setIsLoading(true);
         await deleteAssessor(assessor.idAssessor);
-        setSuccessMessage(`Asesor ${assessor.name} eliminado exitosamente`);
-        await loadAssessors();
         
-        // Limpiar mensaje después de 3 segundos
-        setTimeout(() => setSuccessMessage(null), 3000);
+        await Swal.fire({
+          title: '¡Eliminado!',
+          text: `El asesor ${assessor.name} ha sido eliminado exitosamente`,
+          icon: 'success',
+          confirmButtonColor: '#28a745',
+          timer: 3000,
+          timerProgressBar: true
+        });
+        
+        await loadAssessors();
       } catch (error) {
         console.error('Error deleting assessor:', error);
-        setError(error.message || 'Error al eliminar el asesor');
+        await Swal.fire({
+          title: 'Error',
+          text: error.message || 'Error al eliminar el asesor',
+          icon: 'error',
+          confirmButtonColor: '#dc3545'
+        });
       } finally {
         setIsLoading(false);
       }
     }
-  };
-  const handleFormSubmit = async (assessorData) => {
+  };  const handleFormSubmit = async (assessorData) => {
     try {
       setIsLoading(true);
       setError(null);
 
+      console.log('📝 Datos del formulario recibidos:', assessorData);
+
       if (editingAssessor) {
+        console.log('✏️ Actualizando asesor con ID:', editingAssessor.idAssessor);
         await updateAssessor(editingAssessor.idAssessor, assessorData);
-        setSuccessMessage(`Asesor ${assessorData.name} actualizado exitosamente`);
+        
+        await Swal.fire({
+          title: '¡Actualizado!',
+          text: `El asesor ${assessorData.name} ha sido actualizado exitosamente`,
+          icon: 'success',
+          confirmButtonColor: '#28a745',
+          timer: 3000,
+          timerProgressBar: true
+        });
       } else {
+        console.log('➕ Creando nuevo asesor');
         await createAssessor(assessorData);
-        setSuccessMessage(`Asesor ${assessorData.name} creado exitosamente`);
+        
+        await Swal.fire({
+          title: '¡Creado!',
+          text: `El asesor ${assessorData.name} ha sido creado exitosamente`,
+          icon: 'success',
+          confirmButtonColor: '#28a745',
+          timer: 3000,
+          timerProgressBar: true
+        });
       }
 
       setShowForm(false);
       setEditingAssessor(null);
       await loadAssessors();
-
-      // Limpiar mensaje después de 3 segundos
-      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
-      console.error('Error submitting assessor:', error);
-      setError(error.message || 'Error al guardar el asesor');
+      console.error('❌ Error submitting assessor:', error);
+      
+      await Swal.fire({
+        title: 'Error',
+        text: error.message || 'Error al guardar el asesor',
+        icon: 'error',
+        confirmButtonColor: '#dc3545'
+      });
     } finally {
       setIsLoading(false);
     }

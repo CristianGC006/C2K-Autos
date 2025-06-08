@@ -2,11 +2,14 @@ import { useState } from 'react';
 
 const AssessorTable = ({ assessors, onEdit, onDelete, isLoading }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterBranch, setFilterBranch] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
-  // Obtener sucursales únicas para el filtro
-  const uniqueBranches = [...new Set(assessors.map(assessor => assessor.branch?.name).filter(Boolean))].sort();
+  // 🔍 DEBUG: Log para ver qué datos recibe la tabla
+  console.log('📋 AssessorTable recibió assessors:', assessors);
+  
+  if (assessors.length > 0) {
+    console.log('📋 Estructura del primer asesor en tabla:', assessors[0]);
+  }
 
   // Función para ordenar
   const handleSort = (key) => {
@@ -24,30 +27,15 @@ const AssessorTable = ({ assessors, onEdit, onDelete, isLoading }) => {
         (assessor.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (assessor.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (assessor.phone || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (assessor.address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (assessor.branch?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (assessor.admin?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+        (assessor.address || '').toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesBranch = !filterBranch || assessor.branch?.name === filterBranch;
-      
-      return matchesSearch && matchesBranch;
+      return matchesSearch;
     })
     .sort((a, b) => {
       if (!sortConfig.key) return 0;
       
-      let aValue, bValue;
-      
-      // Manejo especial para campos anidados
-      if (sortConfig.key === 'branch') {
-        aValue = a.branch?.name || '';
-        bValue = b.branch?.name || '';
-      } else if (sortConfig.key === 'admin') {
-        aValue = a.admin?.name || '';
-        bValue = b.admin?.name || '';
-      } else {
-        aValue = a[sortConfig.key] || '';
-        bValue = b[sortConfig.key] || '';
-      }
+      let aValue = a[sortConfig.key] || '';
+      let bValue = b[sortConfig.key] || '';
       
       if (aValue < bValue) {
         return sortConfig.direction === 'asc' ? -1 : 1;
@@ -73,7 +61,6 @@ const AssessorTable = ({ assessors, onEdit, onDelete, isLoading }) => {
 
   const clearFilters = () => {
     setSearchTerm('');
-    setFilterBranch('');
     setSortConfig({ key: null, direction: 'asc' });
   };
 
@@ -93,7 +80,7 @@ const AssessorTable = ({ assessors, onEdit, onDelete, isLoading }) => {
         <div className="search-group">
           <input
             type="text"
-            placeholder="Buscar por nombre, email, teléfono, dirección, sucursal o administrador..."
+            placeholder="Buscar por nombre, email, teléfono o dirección..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -101,17 +88,6 @@ const AssessorTable = ({ assessors, onEdit, onDelete, isLoading }) => {
         </div>
         
         <div className="filter-group">
-          <select
-            value={filterBranch}
-            onChange={(e) => setFilterBranch(e.target.value)}
-            className="filter-select"
-          >
-            <option value="">Todas las sucursales</option>
-            {uniqueBranches.map(branch => (
-              <option key={branch} value={branch}>{branch}</option>
-            ))}
-          </select>
-          
           <button onClick={clearFilters} className="clear-filters-btn">
             Limpiar filtros
           </button>
@@ -123,7 +99,7 @@ const AssessorTable = ({ assessors, onEdit, onDelete, isLoading }) => {
         <span>
           Mostrando {filteredAndSortedAssessors.length} de {assessors.length} asesores
         </span>
-        {(searchTerm || filterBranch) && (
+        {searchTerm && (
           <span className="filter-active">
             (Filtros activos)
           </span>
@@ -142,7 +118,7 @@ const AssessorTable = ({ assessors, onEdit, onDelete, isLoading }) => {
                 : 'No hay asesores que coincidan con los filtros aplicados.'
               }
             </p>
-            {(searchTerm || filterBranch) && (
+            {searchTerm && (
               <button onClick={clearFilters} className="clear-filters-btn">
                 Limpiar filtros
               </button>
@@ -166,12 +142,6 @@ const AssessorTable = ({ assessors, onEdit, onDelete, isLoading }) => {
                 </th>
                 <th onClick={() => handleSort('address')} className="sortable">
                   Dirección {getSortIcon('address')}
-                </th>
-                <th onClick={() => handleSort('branch')} className="sortable">
-                  Sucursal {getSortIcon('branch')}
-                </th>
-                <th onClick={() => handleSort('admin')} className="sortable">
-                  Administrador {getSortIcon('admin')}
                 </th>
                 <th>Acciones</th>
               </tr>
@@ -202,16 +172,6 @@ const AssessorTable = ({ assessors, onEdit, onDelete, isLoading }) => {
                           ? `${assessor.address.substring(0, 30)}...`
                           : assessor.address
                       ) : 'N/A'}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="assessor-branch">
-                      {assessor.branch?.name || 'Sin asignar'}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="assessor-admin">
-                      {assessor.admin?.name || 'Sin asignar'}
                     </span>
                   </td>
                   <td>

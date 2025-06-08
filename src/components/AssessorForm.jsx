@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
+import './AssessorForm.css';
+import Swal from 'sweetalert2';
 
 const AssessorForm = ({ assessor, onSubmit, onCancel, isLoading, branches, admins }) => {
+  console.log('🔧 AssessorForm props recibidas:');
+  console.log('  📊 assessor:', assessor);
+  console.log('  🏢 branches:', branches);
+  console.log('  👤 admins:', admins);
+  console.log('  ⏳ isLoading:', isLoading);
+  
   const [formData, setFormData] = useState({
     idAssessor: '',
     name: '',
@@ -14,11 +22,37 @@ const AssessorForm = ({ assessor, onSubmit, onCancel, isLoading, branches, admin
 
   const [errors, setErrors] = useState({});
   const [showPreview, setShowPreview] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  // Cargar datos del asesor en edición
+  const [showPassword, setShowPassword] = useState(false);  // Cargar datos del asesor en edición
   useEffect(() => {
+    console.log('🔄 useEffect ejecutado, assessor:', assessor);
+    
     if (assessor) {
+      console.log('Cargando asesor para edición:', assessor);
+      
+      // Determinar branchId y adminId desde diferentes estructuras posibles
+      let branchId = '';
+      let adminId = '';
+      
+      // Para branch: puede venir como branch.idBranch, branch.id, o branchId directo
+      if (assessor.branch?.idBranch) {
+        branchId = assessor.branch.idBranch.toString();
+      } else if (assessor.branch?.id) {
+        branchId = assessor.branch.id.toString();
+      } else if (assessor.branchId) {
+        branchId = assessor.branchId.toString();
+      }
+      
+      // Para admin: puede venir como admin.idAdmin, admin.id, o adminId directo
+      if (assessor.admin?.idAdmin) {
+        adminId = assessor.admin.idAdmin.toString();
+      } else if (assessor.admin?.id) {
+        adminId = assessor.admin.id.toString();
+      } else if (assessor.adminId) {
+        adminId = assessor.adminId.toString();
+      }
+      
+      console.log('IDs extraídos - branchId:', branchId, 'adminId:', adminId);
+      
       setFormData({
         idAssessor: assessor.idAssessor || '',
         name: assessor.name || '',
@@ -26,10 +60,11 @@ const AssessorForm = ({ assessor, onSubmit, onCancel, isLoading, branches, admin
         password: '', // No cargar la contraseña por seguridad
         phone: assessor.phone || '',
         address: assessor.address || '',
-        branchId: assessor.branch?.id || '',
-        adminId: assessor.admin?.id || ''
+        branchId: branchId,
+        adminId: adminId
       });
     } else {
+      console.log('Reseteando formulario para nuevo asesor');
       // Resetear para nuevo asesor
       setFormData({
         idAssessor: '',
@@ -73,10 +108,11 @@ const AssessorForm = ({ assessor, onSubmit, onCancel, isLoading, branches, admin
         [name]: ''
       }));
     }
-  };
-
-  // Validaciones
+  };  // Validaciones
   const validateForm = () => {
+    console.log('🔍 Iniciando validación del formulario...');
+    console.log('Datos a validar:', formData);
+    
     const newErrors = {};
 
     // Validar nombre
@@ -101,48 +137,78 @@ const AssessorForm = ({ assessor, onSubmit, onCancel, isLoading, branches, admin
       } else if (formData.password.length < 6) {
         newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
       }
+    } else if (formData.password && formData.password.length < 6) {
+      newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
     }
 
     // Validar teléfono
     if (!formData.phone.trim()) {
       newErrors.phone = 'El teléfono es obligatorio';
     } else if (formData.phone.length !== 10) {
-      newErrors.phone = 'El teléfono debe tener 10 dígitos';
+      newErrors.phone = 'El teléfono debe tener exactamente 10 dígitos';
     }
 
     // Validar dirección
     if (!formData.address.trim()) {
       newErrors.address = 'La dirección es obligatoria';
+    } else if (formData.address.length < 10) {
+      newErrors.address = 'La dirección debe ser más específica';
     }
 
     // Validar sucursal
     if (!formData.branchId) {
       newErrors.branchId = 'Debe seleccionar una sucursal';
+      console.log('❌ Error: No se seleccionó sucursal');
+    } else {
+      console.log('✅ Sucursal válida:', formData.branchId);
     }
 
     // Validar administrador
     if (!formData.adminId) {
       newErrors.adminId = 'Debe seleccionar un administrador';
+      console.log('❌ Error: No se seleccionó administrador');
+    } else {
+      console.log('✅ Administrador válido:', formData.adminId);
     }
 
+    console.log('Errores encontrados:', newErrors);
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Enviar formulario
-  const handleSubmit = (e) => {
+    
+    const isValid = Object.keys(newErrors).length === 0;
+    console.log('Formulario válido:', isValid);
+    
+    return isValid;
+  };  // Manejar envío del formulario
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
+      await Swal.fire({
+        title: 'Datos incompletos',
+        text: 'Por favor, complete todos los campos requeridos correctamente',
+        icon: 'warning',
+        confirmButtonColor: '#ffc107'
+      });
       return;
+    }    // Preparar datos para envío
+    const submitData = {
+      ...formData
+    };
+
+    // Convertir IDs a números enteros solo si no están vacíos
+    if (formData.branchId) {
+      const branchId = parseInt(formData.branchId);
+      if (!isNaN(branchId)) {
+        submitData.branchId = branchId;
+      }
     }
 
-    // Preparar datos para envío
-    const submitData = {
-      ...formData,
-      branchId: parseInt(formData.branchId),
-      adminId: parseInt(formData.adminId)
-    };
+    if (formData.adminId) {
+      const adminId = parseInt(formData.adminId);
+      if (!isNaN(adminId)) {
+        submitData.adminId = adminId;
+      }
+    }
 
     // Remover idAssessor para nuevos asesores
     if (!assessor) {
@@ -151,16 +217,51 @@ const AssessorForm = ({ assessor, onSubmit, onCancel, isLoading, branches, admin
 
     // No enviar contraseña si está vacía en edición
     if (assessor && !formData.password) {
-      delete submitData.password;
-    }
+      delete submitData.password;    }
+
+    console.log('Datos del formulario preparados para envío:', submitData);
+    console.log('¿Es edición?', !!assessor);
+    console.log('BranchId seleccionado:', submitData.branchId, typeof submitData.branchId);
+    console.log('AdminId seleccionado:', submitData.adminId, typeof submitData.adminId);
+    console.log('Contraseña incluida:', !!submitData.password);
 
     onSubmit(submitData);
   };
-
   // Vista previa
   const handlePreview = () => {
     if (validateForm()) {
       setShowPreview(true);
+    }
+  };
+
+  // Manejar cancelación con confirmación
+  const handleCancel = async () => {
+    // Verificar si hay cambios en el formulario
+    const hasChanges = Object.keys(formData).some(key => {
+      if (assessor) {
+        return formData[key] !== (assessor[key] || '');
+      }
+      return formData[key] !== '';
+    });
+
+    if (hasChanges) {
+      const result = await Swal.fire({
+        title: '¿Descartar cambios?',
+        text: 'Los cambios que has realizado se perderán si continúas',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, descartar',
+        cancelButtonText: 'Continuar editando',
+        reverseButtons: true
+      });
+
+      if (result.isConfirmed) {
+        onCancel();
+      }
+    } else {
+      onCancel();
     }
   };
 
@@ -244,13 +345,19 @@ const AssessorForm = ({ assessor, onSubmit, onCancel, isLoading, branches, admin
               </div>
             </div>
           )}
-        </div>
-
-        <div className="preview-actions">
+        </div>        <div className="preview-actions">
+          <button 
+            type="button" 
+            onClick={handleCancel}
+            disabled={isLoading}
+            className="btn-secondary"
+          >
+            Cancelar
+          </button>
           <button 
             type="button" 
             onClick={() => setShowPreview(false)}
-            className="btn-secondary"
+            className="btn-outline"
           >
             Volver a editar
           </button>
@@ -467,10 +574,9 @@ const AssessorForm = ({ assessor, onSubmit, onCancel, isLoading, branches, admin
       </div>
 
       {/* Acciones */}
-      <div className="form-actions">
-        <button
+      <div className="form-actions">        <button
           type="button"
-          onClick={onCancel}
+          onClick={handleCancel}
           disabled={isLoading}
           className="btn-secondary"
         >

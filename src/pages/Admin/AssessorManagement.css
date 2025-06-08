@@ -1,0 +1,375 @@
+/* AssessorManagement - Estilos Modernos C2K */
+
+/* ========== CONTENEDOR PRINCIPAL ========== */
+.assessor-content {
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ========== HEADER CONTENT ========== */
+.content-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 68, 33, 0.08);
+  border: 1px solid rgba(1, 68, 33, 0.1);
+}
+
+.content-header h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #014421;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(1, 68, 33, 0.1);
+}
+
+.content-header p {
+  font-size: 1rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* ========== GESTIÓN DE ASESORES ========== */
+.assessor-management {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ========== MENSAJES ========== */
+.success-message,
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+  position: relative;
+}
+
+.success-message {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.error-message {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.success-message span,
+.error-message span {
+  font-size: 1.25rem;
+}
+
+.success-message p,
+.error-message p {
+  flex: 1;
+  margin: 0;
+}
+
+.success-message button,
+.error-message button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.125rem;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.success-message button:hover,
+.error-message button:hover {
+  opacity: 1;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== HEADER DE GESTIÓN ========== */
+.management-header {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 4px 15px rgba(1, 68, 33, 0.08);
+  border: 1px solid rgba(1, 68, 33, 0.1);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #014421;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.add-assessor-btn {
+  background: linear-gradient(135deg, #014421 0%, #1a5f3f 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0.875rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(1, 68, 33, 0.2);
+}
+
+.add-assessor-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(1, 68, 33, 0.3);
+  background: linear-gradient(135deg, #1a5f3f 0%, #2d8659 100%);
+}
+
+.add-assessor-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.add-assessor-btn span {
+  font-size: 1.125rem;
+}
+
+/* ========== ESTADÍSTICAS ========== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 15px rgba(1, 68, 33, 0.08);
+  border: 1px solid rgba(1, 68, 33, 0.1);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(1, 68, 33, 0.12);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  opacity: 0.8;
+}
+
+.stat-info h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #014421;
+  margin: 0;
+  line-height: 1;
+}
+
+.stat-info p {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0.25rem 0 0 0;
+  font-weight: 500;
+}
+
+/* ========== SECCIÓN DE ASESORES ========== */
+.assessors-section {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 15px rgba(1, 68, 33, 0.08);
+  border: 1px solid rgba(1, 68, 33, 0.1);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.section-header h2 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: #014421;
+  margin: 0;
+}
+
+.refresh-btn {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: #374151;
+  transform: translateY(-1px);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 768px) {
+  .assessor-content {
+    padding: 1.5rem;
+  }
+
+  .content-header {
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .content-header h1 {
+    font-size: 1.875rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .assessors-section {
+    padding: 1.5rem;
+  }
+
+  .management-header {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .assessor-content {
+    padding: 1rem;
+  }
+
+  .content-header {
+    padding: 1rem;
+  }
+
+  .content-header h1 {
+    font-size: 1.625rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-icon {
+    font-size: 2rem;
+  }
+
+  .stat-info h3 {
+    font-size: 1.5rem;
+  }
+
+  .add-assessor-btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+  }
+
+  .assessors-section {
+    padding: 1rem;
+  }
+
+  .management-header {
+    padding: 1rem;
+  }
+}
+
+/* ========== ACCESSIBILIDAD ========== */
+@media (prefers-reduced-motion: reduce) {
+  .stat-card,
+  .add-assessor-btn,
+  .refresh-btn,
+  .success-message,
+  .error-message {
+    transition: none;
+    animation: none;
+    transform: none;
+  }
+}
+
+/* Focus states */
+.add-assessor-btn:focus-visible,
+.refresh-btn:focus-visible {
+  outline: 2px solid #014421;
+  outline-offset: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .stat-card,
+  .assessors-section,
+  .management-header {
+    border: 2px solid #014421;
+  }
+
+  .success-message {
+    border: 2px solid #15803d;
+  }
+
+  .error-message {
+    border: 2px solid #dc2626;
+  }
+}
