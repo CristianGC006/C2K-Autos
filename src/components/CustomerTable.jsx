@@ -72,25 +72,22 @@ const CustomerTable = ({ onEdit }) => {
                 </div>
             </div>
 
-            <div className="table-wrapper">
-                <table className="customer-table">
+            <div className="table-wrapper">                <table className="customer-table">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Nombre Completo</th>
-                            <th>Identificación</th>
-                            <th>Email</th>
-                            <th>Teléfono</th>
+                            <th>Cliente</th>
+                            <th>Contacto</th>
                             <th>Género</th>
                             <th>Nacionalidad</th>
-                            <th>Fecha Registro</th>
+                            <th>Fecha</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredCustomers.length === 0 ? (
                             <tr>
-                                <td colSpan="9" className="no-data">
+                                <td colSpan="7" className="no-data">
                                     {searchTerm ? 'No se encontraron clientes con ese criterio' : 'No hay clientes registrados'}
                                 </td>
                             </tr>
@@ -99,18 +96,20 @@ const CustomerTable = ({ onEdit }) => {
                                 <tr key={customer.idCustomer}>
                                     <td>{customer.idCustomer}</td>
                                     <td>
-                                        <div className="customer-name">
+                                        <div className="customer-info">
                                             <strong>{customer.name} {customer.lastName}</strong>
+                                            <div className="identification">
+                                                <span className="id-type">{customer.identificationType}</span>
+                                                <span className="id-number">{customer.identificationNumber}</span>
+                                            </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <div className="identification">
-                                            <span className="id-type">{customer.identificationType}</span>
-                                            <span className="id-number">{customer.identificationNumber}</span>
+                                        <div className="contact-info">
+                                            <div className="email">{customer.email}</div>
+                                            <div className="phone">{customer.phone}</div>
                                         </div>
                                     </td>
-                                    <td>{customer.email}</td>
-                                    <td>{customer.phone}</td>
                                     <td>
                                         <span className="gender-badge">
                                             {customer.genderType === 'MALE' ? 'M' : 
@@ -120,8 +119,12 @@ const CustomerTable = ({ onEdit }) => {
                                     <td>{customer.nationality}</td>
                                     <td>
                                         {customer.recordDate 
-                                            ? new Date(customer.recordDate).toLocaleDateString() 
-                                            : 'No registrada'
+                                            ? new Date(customer.recordDate).toLocaleDateString('es-ES', {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: '2-digit'
+                                            })
+                                            : 'N/A'
                                         }
                                     </td>
                                     <td>

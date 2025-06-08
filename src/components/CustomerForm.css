@@ -2,34 +2,35 @@
 .customer-form-container {
     background: white;
     border-radius: 8px;
-    padding: 24px;
+    padding: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    max-width: 800px;
+    max-width: 600px;
     margin: 0 auto;
+    width: 100%;
 }
 
 .form-header {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 16px;
+    padding-bottom: 12px;
 }
 
 .form-header h3 {
     margin: 0;
     color: #333;
-    font-size: 24px;
+    font-size: 20px;
 }
 
 .customer-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
 }
 
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 16px;
 }
 
 @media (max-width: 768px) {
@@ -41,21 +42,21 @@
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .form-group label {
     font-weight: 600;
     color: #555;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .form-group input,
 .form-group select {
-    padding: 12px;
+    padding: 10px;
     border: 2px solid #e0e0e0;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 13px;
     transition: border-color 0.3s ease;
 }
 
@@ -180,9 +181,9 @@
 .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
-    margin-top: 24px;
-    padding-top: 20px;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
     border-top: 1px solid #e0e0e0;
 }
 
@@ -190,11 +191,12 @@
     background: #6c757d;
     color: white;
     border: none;
-    padding: 12px 24px;
+    padding: 10px 20px;
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    font-size: 13px;
 }
 
 .cancel-button:hover:not(:disabled) {
@@ -205,11 +207,12 @@
     background: #014421;
     color: white;
     border: none;
-    padding: 12px 24px;
+    padding: 10px 20px;
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    font-size: 13px;
 }
 
 .submit-button:hover:not(:disabled) {
@@ -952,4 +955,43 @@
     .logistic-stats {
         grid-template-columns: 1fr;
     }
+}
+
+/* Estilos para botones del formulario de clientes */
+.btn-primary {
+    background: #014421;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 13px;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #023d2e;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 13px;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #545b62;
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }

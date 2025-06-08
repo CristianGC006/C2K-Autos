@@ -182,9 +182,7 @@ const CustomerForm = ({ onSubmit, onCancel, customer, isEditing = false }) => {
                         />
                         {errors.phone && <span className="error-message">{errors.phone}</span>}
                     </div>
-                </div>
-
-                <div className="form-row">
+                </div>                <div className="form-row">
                     <div className="form-group">
                         <label>Licencia de Conducir</label>
                         <input 
