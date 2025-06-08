@@ -4,18 +4,18 @@ import {
   genericAlert,
   generateToken,
   redirectionAlert,
+  generateAssessorCode,
 } from "../../helpers/functions";
 import { useNavigate } from "react-router-dom";
 import Logo from "../../assets/C2K-LogoNoBackground.png";
 import ButtonForm from "../../components/ButtonForm";
-import { generateAdminCode } from "../../helpers/functions";
+import Swal from 'sweetalert2';
 let urlAssessor = "http://localhost:8080/assessor";
 import "./Login.css";
-
  const LoginAssessor = () => {
         const [getEmail, setEmail] = useState("");
         const [getPassword, setPassword] = useState("");
-        const [getAdminCode, setAdminCode] = useState("");
+        const [getAssessorCode, setAssessorCode] = useState("");
         const [assessor, setAssessor] = useState([]);
       
         //estados para manipular el formulario de registro
@@ -42,11 +42,87 @@ import "./Login.css";
         }, []);
       
         //Register functions
-      
         function findAssessor() {
           let assessorFound = assessor.find((item) => email === item.email);
           return assessorFound;
         }
+
+        //  FUNCIÓN PARA MOSTRAR EL MODAL CON EL CÓDIGO DE ASESOR
+        const showAssessorCodeModal = (code, assessorName) => {
+          console.log("🎯 Modal function called with code:", code, "and name:", assessorName);
+          Swal.fire({
+            title: '¡Registro Exitoso! 👨‍💼',
+            html: `
+              <div style="text-align: center; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                  <h3 style="margin: 0; font-size: 18px;">👋 ¡Bienvenido, ${assessorName}!</h3>
+                </div>
+                
+                <div style="background: #f8f9fa; border: 2px dashed #1e3a8a; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                  <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a8a;">📋 Tu Código de Asesor:</p>
+                  <div style="background: white; border: 2px solid #1e3a8a; padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 18px; font-weight: bold; color: #1e3a8a; letter-spacing: 2px;">
+                    ${code}
+                  </div>
+                </div>
+
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                  <p style="margin: 0; font-size: 14px; color: #856404;">
+                    <strong>⚠️ IMPORTANTE:</strong><br>
+                    • Guarda este código en un lugar seguro<br>
+                    • Lo necesitarás para iniciar sesión<br>
+                    • No lo compartas con nadie<br>
+                    • Si lo pierdes, contacta al administrador
+                  </p>
+                </div>
+
+                <div style="margin-top: 20px;">
+                  <p style="font-size: 14px; color: #6c757d;">
+                    🎉 ¡Tu cuenta de Asesor ha sido creada exitosamente!
+                  </p>
+                </div>
+              </div>
+            `,
+            icon: 'success',
+            confirmButtonText: '📋 Copiar Código',
+            showCancelButton: true,
+            cancelButtonText: '✅ Entendido',
+            customClass: {
+              popup: 'swal2-popup-custom',
+              confirmButton: 'swal2-confirm-custom',
+              cancelButton: 'swal2-cancel-custom'
+            },
+            buttonsStyling: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            width: '600px'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // Copiar código al portapapeles
+              navigator.clipboard.writeText(code).then(() => {
+                Swal.fire({
+                  title: '📋 ¡Código Copiado!',
+                  text: 'El código ha sido copiado al portapapeles',
+                  icon: 'success',
+                  timer: 2000,
+                  showConfirmButton: false,
+                  customClass: {
+                    popup: 'swal2-popup-custom'
+                  }
+                });
+              }).catch(() => {
+                Swal.fire({
+                  title: 'Código de Asesor',
+                  text: code,
+                  icon: 'info',
+                  confirmButtonText: 'Cerrar',
+                  customClass: {
+                    popup: 'swal2-popup-custom'
+                  }
+                });
+              });
+            }
+          });
+        };
       
         function registerAssessor() {
           // ✅ LIMPIAR ERRORES PREVIOS
@@ -122,21 +198,20 @@ import "./Login.css";
           if (!validations.documentNumber.validate(documentNumber)) {
             genericAlert("Error", validations.documentNumber.message, "error");
             return;
-          }
-      
-          // ✅ SI TODAS LAS VALIDACIONES PASAN, PROCEDER CON EL REGISTRO
-          if (!findAssessor()) {
-            let newAssessor = {
+          }          // ✅ SI TODAS LAS VALIDACIONES PASAN, PROCEDER CON EL REGISTRO
+          if (!findAssessor()) {            const generatedCode = generateAssessorCode();
+            console.log("🔥 Código de asesor generado:", generatedCode);
+              let newAssessor = {
               name: name,
               identificationType: documentType,
               identificationNumber: documentNumber,
-              adminCode: generateAdminCode(),
+              assessorCode: generatedCode,
               email: email,
               phone: phone,
               password: password,
             };
-      
-      
+
+            console.log("📤 Enviando al backend:", JSON.stringify(newAssessor, null, 2));
       
             fetch(urlAssessor, {
               method: "POST",
@@ -154,15 +229,11 @@ import "./Login.css";
               })
               .then((data) => {
                 console.log("Registro exitoso:", data);
-                getAssessors();
+                getAssessor();
       
-                setTimeout(() => {
-                  genericAlert(
-                    "Registro exitoso",
-                    "Tu cuenta ha sido creada correctamente",
-                    "success"
-                  );
-                }, 500);
+                // 🔥 MOSTRAR MODAL CON SWEETALERT2 Y EL CÓDIGO GENERADO
+                console.log("📢 Intentando mostrar modal con código:", generatedCode, "y nombre:", name);
+                showAssessorCodeModal(generatedCode, name);
       
                 // ✅ LIMPIAR FORMULARIO Y ERRORES
                 setName("");
@@ -192,23 +263,21 @@ import "./Login.css";
               "error"
             );
           }
-        }
-      
-        function getAssessor() {
+        }        function findAssessorForLogin() {
           let customer = assessor.find(
             (item) =>
               item.email == getEmail &&
               item.password == getPassword &&
-              item.adminCode == getAdminCode
+              item.assessorCode == getAssessorCode
           );
           return customer;
         }
       
         function logIn() {
-          if (getAssessor()) {
+          if (findAssessorForLogin()) {
             let accessToken = generateToken();
             localStorage.setItem("Token", JSON.stringify(accessToken));
-            localStorage.setItem("User", JSON.stringify(getAssessor()));
+            localStorage.setItem("User", JSON.stringify(findAssessorForLogin()));
             redirectionAlert(
               redirectLogin,
               "Bienvenido",
@@ -321,11 +390,10 @@ import "./Login.css";
             name="password"
             placeholder="Contraseña"
             type="password"
-          />
-          <input
-            onChange={(e) => setAdminCode(e.target.value)}
+          />          <input
+            onChange={(e) => setAssessorCode(e.target.value)}
             className="login_input"
-            name="adminCode"
+            name="assessorCode"
             placeholder="Código de Asesor"
             type="text"
           />

@@ -4,11 +4,12 @@ import {
   genericAlert,
   generateToken,
   redirectionAlert,
+  generateAssessorCode,
 } from "../../helpers/functions";
 import { useNavigate } from "react-router-dom";
 import Logo from "../../assets/C2K-LogoNoBackground.png";
 import ButtonForm from "../../components/ButtonForm";
-import { generateAdminCode } from "../../helpers/functions";
+import Swal from 'sweetalert2';
 let urlLogisticOp = "http://localhost:8080/logisticOperator";
 import "./Login.css";
 
@@ -31,28 +32,98 @@ import "./Login.css";
         const [errors, setErrors] = useState({});
       
         let redirectLogin = useNavigate();
-      
-        function getLogisticOp() {
+        function getLogisticOps() {
           fetch(urlLogisticOp)
             .then((response) => response.json())
             .then((data) => setLogisticOp(data));
         }
         useEffect(() => {
-          getLogisticOp();
+          getLogisticOps();
         }, []);
       
         //Register functions
-      
         function findLogisticOp() {
           let logisticOpFound = logisticOp.find((item) => email === item.email);
           return logisticOpFound;
-        }
-      
+        }        //  FUNCIÓN PARA MOSTRAR EL MODAL CON EL CÓDIGO DE OPERADOR LOGÍSTICO
+        const showLogisticOperatorCodeModal = (code, operatorName) => {
+          console.log("🎯 Modal function called with code:", code, "and name:", operatorName);
+          Swal.fire({
+            title: '¡Registro Exitoso! 🚛',
+            html: `
+              <div style="text-align: center; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #044b35, #00664a); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                  <h3 style="margin: 0; font-size: 18px;">👋 ¡Bienvenido, ${operatorName}!</h3>
+                </div>
+                
+                <div style="background: #f8f9fa; border: 2px dashed #044b35; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                  <p style="margin: 0 0 10px 0; font-weight: bold; color: #044b35;">📋 Tu Código de Operador Logístico:</p>
+                  <div style="background: white; border: 2px solid #044b35; padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 18px; font-weight: bold; color: #044b35; letter-spacing: 2px;">
+                    ${code}
+                  </div>
+                </div>
+
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                  <p style="margin: 0; font-size: 14px; color: #856404;">
+                    <strong>⚠️ IMPORTANTE:</strong><br>
+                    • Guarda este código en un lugar seguro<br>
+                    • Lo necesitarás para iniciar sesión<br>
+                    • No lo compartas con nadie<br>
+                    • Si lo pierdes, contacta al administrador
+                  </p>
+                </div>
+
+                <div style="margin-top: 20px;">
+                  <p style="font-size: 14px; color: #6c757d;">
+                    🎉 ¡Tu cuenta de Operador Logístico ha sido creada exitosamente!
+                  </p>
+                </div>
+              </div>
+            `,
+            icon: 'success',
+            confirmButtonText: '📋 Copiar Código',
+            showCancelButton: true,
+            cancelButtonText: '✅ Entendido',
+            customClass: {
+              popup: 'swal2-popup-custom',
+              confirmButton: 'swal2-confirm-custom',
+              cancelButton: 'swal2-cancel-custom'
+            },
+            buttonsStyling: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            width: '600px'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // Copiar código al portapapeles
+              navigator.clipboard.writeText(code).then(() => {
+                Swal.fire({
+                  title: '📋 ¡Código Copiado!',
+                  text: 'El código ha sido copiado al portapapeles',
+                  icon: 'success',
+                  timer: 2000,
+                  showConfirmButton: false,
+                  customClass: {
+                    popup: 'swal2-popup-custom'
+                  }
+                });
+              }).catch(() => {
+                Swal.fire({
+                  title: 'Código de Operador Logístico',
+                  text: code,
+                  icon: 'info',
+                  confirmButtonText: 'Cerrar',
+                  customClass: {
+                    popup: 'swal2-popup-custom'
+                  }
+                });
+              });
+            }
+          });
+        };
         function registerLogisticOp() {
           // ✅ LIMPIAR ERRORES PREVIOS
-          setErrors({});
-      
-          // ✅ VALIDAR TODOS LOS CAMPOS CON LAS EXPRESIONES REGULARES
+          setErrors({});          // ✅ VALIDAR TODOS LOS CAMPOS CON LAS EXPRESIONES REGULARES
           const formData = {
             name: name,
             email: email,
@@ -122,21 +193,19 @@ import "./Login.css";
           if (!validations.documentNumber.validate(documentNumber)) {
             genericAlert("Error", validations.documentNumber.message, "error");
             return;
-          }
-      
-          // ✅ SI TODAS LAS VALIDACIONES PASAN, PROCEDER CON EL REGISTRO
+          }          // ✅ SI TODAS LAS VALIDACIONES PASAN, PROCEDER CON EL REGISTRO
           if (!findLogisticOp()) {
+            const generatedCode = generateAssessorCode();
+            console.log("🔥 Código generado:", generatedCode);
             let newLogisticOp = {
               name: name,
               identificationType: documentType,
               identificationNumber: documentNumber,
-              adminCode: generateAdminCode(),
+              adminCode: generatedCode,
               email: email,
               phone: phone,
               password: password,
             };
-      
-      
       
             fetch(urlLogisticOp, {
               method: "POST",
@@ -151,18 +220,13 @@ import "./Login.css";
                   throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
-              })
-              .then((data) => {
+              })              .then((data) => {
                 console.log("Registro exitoso:", data);
                 getLogisticOps();
       
-                setTimeout(() => {
-                  genericAlert(
-                    "Registro exitoso",
-                    "Tu cuenta ha sido creada correctamente",
-                    "success"
-                  );
-                }, 500);
+                // 🔥 MOSTRAR MODAL CON SWEETALERT2 Y EL CÓDIGO GENERADO
+                console.log("📢 Intentando mostrar modal con código:", generatedCode, "y nombre:", name);
+                showLogisticOperatorCodeModal(generatedCode, name);
       
                 // ✅ LIMPIAR FORMULARIO Y ERRORES
                 setName("");
@@ -193,8 +257,7 @@ import "./Login.css";
             );
           }
         }
-      
-        function getLogisticOp() {
+        function findLogisticOpForLogin() {
           let customer = logisticOp.find(
             (item) =>
               item.email == getEmail &&
@@ -205,10 +268,10 @@ import "./Login.css";
         }
       
         function logIn() {
-          if (getLogisticOp()) {
+          if (findLogisticOpForLogin()) {
             let accessToken = generateToken();
             localStorage.setItem("Token", JSON.stringify(accessToken));
-            localStorage.setItem("User", JSON.stringify(getLogisticOp()));
+            localStorage.setItem("User", JSON.stringify(findLogisticOpForLogin()));
             redirectionAlert(
               redirectLogin,
               "Bienvenido",

@@ -108,11 +108,8 @@
   color: #ffffff;
 }
 
-/* Formulario genérico removido - usar admin_register_form */
 
-/* Input genérico removido - usar admin_register_input */
 
-/* Contenedor genérico removido - usar admin_div_register */
 .radio_group {
   display: flex;
   align-items: center;

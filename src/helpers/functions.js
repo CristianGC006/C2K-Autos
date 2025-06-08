@@ -11,6 +11,10 @@ export function generateAdminCode(){
     return "ADMIN " + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
 }
 
+export function generateAssessorCode(){
+    return "ASESOR " + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+}
+
 
 
 export function redirectionAlert(fn, tittle, messaje, icon, url){
