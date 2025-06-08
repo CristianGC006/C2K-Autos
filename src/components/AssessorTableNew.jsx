@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './AssessorTable.css';
 
 const AssessorTable = ({ assessors, onEdit, onDelete, isLoading }) => {
   const [searchTerm, setSearchTerm] = useState('');

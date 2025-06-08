@@ -19,7 +19,7 @@ const CustomerForm = ({ onSubmit, onCancel, customer, isEditing = false }) => {
     const [form, setForm] = useState(initialState);
     const [errors, setErrors] = useState({});    useEffect(() => {
         if (customer) {
-            console.log('CustomerForm - Cliente recibido para edición:', customer);
+            
             
             setForm({
                 name: customer.name || '',
@@ -105,16 +105,12 @@ const CustomerForm = ({ onSubmit, onCancel, customer, isEditing = false }) => {
         if (isEditing) {
             if (!customerData.password || customerData.password.trim() === '') {
                 delete customerData.password;
-                console.log('CustomerForm - Contraseña eliminada del objeto (no se actualizará)');
+        
             } else {
                 console.log('CustomerForm - Contraseña será actualizada');
             }
         }
-        
-        // Log para debugging
-        console.log('CustomerForm - Datos a enviar:', customerData);
-        console.log('CustomerForm - Es edición:', isEditing);
-        console.log('CustomerForm - Contraseña incluida:', 'password' in customerData);
+    
           onSubmit(customerData);
     };
 

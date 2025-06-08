@@ -68,7 +68,7 @@ export const imageService = {
       const normalizedModel = String(model).toLowerCase().trim().replace(/\s+/g, '-');
       const key = `${normalizedBrand}-${normalizedModel}`;
       
-      console.log(`Buscando imagen para: ${key}`);
+      
       
       return this.vehicleImages[key] || this.getImageByBrand(normalizedBrand) || this.defaultImage;
     } catch (error) {

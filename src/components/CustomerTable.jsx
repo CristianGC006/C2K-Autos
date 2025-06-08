@@ -154,11 +154,15 @@ const CustomerTable = ({ onEdit }) => {    const [customers, setCustomers] = use
                                             <div className="email">{customer.email}</div>
                                             <div className="phone">{customer.phone}</div>
                                         </div>
-                                    </td>
-                                    <td>
+                                    </td>                                    <td>
                                         <span className="gender-badge">
-                                            {customer.genderType === 'MALE' ? 'M' : 
-                                             customer.genderType === 'FEMALE' ? 'F' : 'O'}
+                                            {(() => {
+                                                // Manejar valores numéricos (0, 1) o de texto (MALE, FEMALE)
+                                                const gender = customer.genderType;
+                                                if (gender === 'Masculino' || gender === 1 || gender === '1') return 'M';
+                                                if (gender === 'Femenino' || gender === 0 || gender === '0') return 'F';
+                                                return 'O';
+                                            })()}
                                         </span>
                                     </td>
                                     <td>{customer.nationality}</td>

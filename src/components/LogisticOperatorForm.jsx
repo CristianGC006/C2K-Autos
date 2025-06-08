@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { checkEmailExists, getServiceAreas, getServiceAreaIcon } from '../services/LogisticOperatorService';
-import './CustomerForm.css'; // Reutilizamos los estilos existentes
+import './LogisticOperatorForm.css'; // Estilos específicos para operadores logísticos
 
 const initialState = {
     name: '',
@@ -155,14 +155,12 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
         }
     };
 
-    const serviceAreas = getServiceAreas();
-
-    return (
-        <div className="customer-form-container">
-            <div className="customer-form-header">
+    const serviceAreas = getServiceAreas();    return (
+        <div className="logistic-form-container">
+            <div className="logistic-form-header">
                 <h2>{isEditing ? '✏️ Editar Operador Logístico' : '➕ Nuevo Operador Logístico'}</h2>                <button 
                     type="button" 
-                    className="close-button"
+                    className="logistic-close-button"
                     onClick={handleCancel}
                     disabled={isLoading}
                 >
@@ -170,12 +168,12 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
                 </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="customer-form">
+            <form onSubmit={handleSubmit} className="logistic-form">
                 {/* Información Personal */}
-                <div className="form-section">
+                <div className="logistic-form-section">
                     <h3>👤 Información Personal</h3>
                     
-                    <div className="form-group">
+                    <div className="logistic-form-group">
                         <label htmlFor="name">Nombre Completo *</label>
                         <input
                             type="text"
@@ -187,10 +185,10 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
                             placeholder="Ingrese el nombre completo del operador"
                             disabled={isLoading}
                         />
-                        {errors.name && <span className="error-message">{errors.name}</span>}
+                        {errors.name && <span className="logistic-error-message">{errors.name}</span>}
                     </div>
 
-                    <div className="form-group">
+                    <div className="logistic-form-group">
                         <label htmlFor="address">Dirección *</label>
                         <textarea
                             id="address"
@@ -202,15 +200,15 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
                             disabled={isLoading}
                             rows={3}
                         />
-                        {errors.address && <span className="error-message">{errors.address}</span>}
+                        {errors.address && <span className="logistic-error-message">{errors.address}</span>}
                     </div>
                 </div>
 
                 {/* Información de Contacto */}
-                <div className="form-section">
+                <div className="logistic-form-section">
                     <h3>📧 Información de Contacto</h3>
                     
-                    <div className="form-group">
+                    <div className="logistic-form-group">
                         <label htmlFor="email">Email *</label>
                         <input
                             type="email"
@@ -222,10 +220,10 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
                             placeholder="correo@ejemplo.com"
                             disabled={isLoading}
                         />
-                        {errors.email && <span className="error-message">{errors.email}</span>}
+                        {errors.email && <span className="logistic-error-message">{errors.email}</span>}
                     </div>
 
-                    <div className="form-group">
+                    <div className="logistic-form-group">
                         <label htmlFor="phone">Teléfono *</label>
                         <input
                             type="tel"
@@ -237,15 +235,15 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
                             placeholder="Ej: 3001234567"
                             disabled={isLoading}
                         />
-                        {errors.phone && <span className="error-message">{errors.phone}</span>}
+                        {errors.phone && <span className="logistic-error-message">{errors.phone}</span>}
                     </div>
                 </div>
 
                 {/* Área de Servicio */}
-                <div className="form-section">
+                <div className="logistic-form-section">
                     <h3>🚛 Área de Servicio</h3>
                     
-                    <div className="form-group">
+                    <div className="logistic-form-group">
                         <label htmlFor="serviceArea">Área de Servicio *</label>
                         <select
                             id="serviceArea"
@@ -262,17 +260,17 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
                             ))}
                         </select>
                         {errors.serviceArea && (
-                            <span className="error-message">{errors.serviceArea}</span>
+                            <span className="logistic-error-message">{errors.serviceArea}</span>
                         )}
                     </div>
 
                     {/* Información del área seleccionada */}
-                    <div className="service-area-info">
-                        <div className="service-area-badge">
-                            <span className="service-icon">
+                    <div className="logistic-service-area-info">
+                        <div className="logistic-service-area-badge">
+                            <span className="logistic-service-icon">
                                 {getServiceAreaIcon(form.serviceArea)}
                             </span>
-                            <span className="service-label">
+                            <span className="logistic-service-label">
                                 {serviceAreas.find(area => area.value === form.serviceArea)?.label}
                             </span>
                         </div>
@@ -280,17 +278,17 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
                 </div>
 
                 {/* Configuración de Acceso */}
-                <div className="form-section">
+                <div className="logistic-form-section">
                     <h3>🔐 Configuración de Acceso</h3>
                     
                     {isEditing && (
-                        <div className="form-info">
+                        <div className="logistic-form-info">
                             <p>💡 Deje las contraseñas vacías si no desea cambiarla</p>
                         </div>
                     )}
 
-                    <div className="form-row">
-                        <div className="form-group">
+                    <div className="logistic-form-row">
+                        <div className="logistic-form-group">
                             <label htmlFor="password">
                                 {isEditing ? 'Nueva Contraseña' : 'Contraseña *'}
                             </label>
@@ -304,10 +302,10 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
                                 placeholder={isEditing ? 'Nueva contraseña (opcional)' : 'Mínimo 6 caracteres'}
                                 disabled={isLoading}
                             />
-                            {errors.password && <span className="error-message">{errors.password}</span>}
+                            {errors.password && <span className="logistic-error-message">{errors.password}</span>}
                         </div>
 
-                        <div className="form-group">
+                        <div className="logistic-form-group">
                             <label htmlFor="confirmPassword">
                                 {isEditing ? 'Confirmar Nueva Contraseña' : 'Confirmar Contraseña *'}
                             </label>
@@ -322,16 +320,16 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
                                 disabled={isLoading}
                             />
                             {errors.confirmPassword && (
-                                <span className="error-message">{errors.confirmPassword}</span>
+                                <span className="logistic-error-message">{errors.confirmPassword}</span>
                             )}
                         </div>
                     </div>
                 </div>
 
                 {/* Botones de acción */}
-                <div className="form-actions">                    <button 
+                <div className="logistic-form-actions">                    <button 
                         type="button" 
-                        className="cancel-button"
+                        className="logistic-cancel-button"
                         onClick={handleCancel}
                         disabled={isLoading}
                     >
@@ -339,7 +337,7 @@ const LogisticOperatorForm = ({ onSubmit, onCancel, operator, isEditing = false,
                     </button>
                     <button 
                         type="submit" 
-                        className="submit-button"
+                        className="logistic-submit-button"
                         disabled={isLoading}
                     >
                         {isLoading ? (

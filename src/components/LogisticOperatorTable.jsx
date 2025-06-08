@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import Swal from 'sweetalert2';
 import { getServiceAreaIcon, getServiceAreaLabel } from '../services/LogisticOperatorService';
-import './CustomerTable.css'; // Reutilizamos los estilos existentes
+import './LogisticOperatorTable.css'; // Estilos específicos para operadores logísticos
 
 const LogisticOperatorTable = ({ 
     operators = [], 
@@ -96,13 +96,11 @@ const LogisticOperatorTable = ({
             filtered: filteredOperators.length,
             byServiceArea: serviceAreaCount
         };
-    }, [operators, filteredOperators]);
-
-    if (isLoading) {
+    }, [operators, filteredOperators]);    if (isLoading) {
         return (
-            <div className="table-container">
-                <div className="loading-state">
-                    <div className="loading-spinner"></div>
+            <div className="logistic-table-container">
+                <div className="logistic-loading-state">
+                    <div className="logistic-loading-spinner"></div>
                     <p>Cargando operadores logísticos...</p>
                 </div>
             </div>
@@ -110,62 +108,62 @@ const LogisticOperatorTable = ({
     }
 
     return (
-        <div className="table-container">
+        <div className="logistic-table-container">
             {/* Estadísticas */}
-            <div className="table-stats">
-                <div className="stats-grid">
-                    <div className="stat-card">
-                        <span className="stat-icon">👥</span>
-                        <div className="stat-info">
-                            <span className="stat-number">{stats.total}</span>
-                            <span className="stat-label">Total Operadores</span>
+            <div className="logistic-table-stats">
+                <div className="logistic-stats-grid">
+                    <div className="logistic-stat-card">
+                        <span className="logistic-stat-icon">👥</span>
+                        <div className="logistic-stat-info">
+                            <span className="logistic-stat-number">{stats.total}</span>
+                            <span className="logistic-stat-label">Total Operadores</span>
                         </div>
                     </div>
-                    <div className="stat-card">
-                        <span className="stat-icon">🔍</span>
-                        <div className="stat-info">
-                            <span className="stat-number">{stats.filtered}</span>
-                            <span className="stat-label">Filtrados</span>
+                    <div className="logistic-stat-card">
+                        <span className="logistic-stat-icon">🔍</span>
+                        <div className="logistic-stat-info">
+                            <span className="logistic-stat-number">{stats.filtered}</span>
+                            <span className="logistic-stat-label">Filtrados</span>
                         </div>
                     </div>
-                    <div className="stat-card">
-                        <span className="stat-icon">🚛</span>
-                        <div className="stat-info">
-                            <span className="stat-number">{stats.byServiceArea.TRANSPORTE || 0}</span>
-                            <span className="stat-label">Transporte</span>
+                    <div className="logistic-stat-card">
+                        <span className="logistic-stat-icon">🚛</span>
+                        <div className="logistic-stat-info">
+                            <span className="logistic-stat-number">{stats.byServiceArea.TRANSPORTE || 0}</span>
+                            <span className="logistic-stat-label">Transporte</span>
                         </div>
                     </div>
-                    <div className="stat-card">
-                        <span className="stat-icon">🧽</span>
-                        <div className="stat-info">
-                            <span className="stat-number">{stats.byServiceArea.LAVADO || 0}</span>
-                            <span className="stat-label">Lavado</span>
+                    <div className="logistic-stat-card">
+                        <span className="logistic-stat-icon">🧽</span>
+                        <div className="logistic-stat-info">
+                            <span className="logistic-stat-number">{stats.byServiceArea.LAVADO || 0}</span>
+                            <span className="logistic-stat-label">Lavado</span>
                         </div>
                     </div>
-                    <div className="stat-card">
-                        <span className="stat-icon">🔧</span>
-                        <div className="stat-info">
-                            <span className="stat-number">{stats.byServiceArea.REPARACION || 0}</span>
-                            <span className="stat-label">Reparación</span>
+                    <div className="logistic-stat-card">
+                        <span className="logistic-stat-icon">🔧</span>
+                        <div className="logistic-stat-info">
+                            <span className="logistic-stat-number">{stats.byServiceArea.REPARACION || 0}</span>
+                            <span className="logistic-stat-label">Reparación</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Barra de búsqueda */}
-            <div className="table-header">
-                <div className="search-container">
+            <div className="logistic-table-header">
+                <div className="logistic-search-container">
                     <input
                         type="text"
                         placeholder="🔍 Buscar por nombre, email, teléfono, dirección o área de servicio..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
+                        className="logistic-search-input"
                     />
                     {searchTerm && (
                         <button
                             onClick={() => setSearchTerm('')}
-                            className="clear-search"
+                            className="logistic-clear-search"
                         >
                             ✕
                         </button>
@@ -175,7 +173,7 @@ const LogisticOperatorTable = ({
 
             {/* Tabla */}
             {sortedOperators.length === 0 ? (
-                <div className="empty-state">
+                <div className="logistic-empty-state">
                     {operators.length === 0 ? (
                         <>
                             <span className="empty-icon">📦</span>
@@ -191,8 +189,8 @@ const LogisticOperatorTable = ({
                     )}
                 </div>
             ) : (
-                <div className="table-wrapper">
-                    <table className="data-table">
+                <div className="logistic-table-wrapper">
+                    <table className="logistic-data-table">
                         <thead>
                             <tr>
                                 <th onClick={() => handleSort('name')} className="sortable">
@@ -216,23 +214,23 @@ const LogisticOperatorTable = ({
                         <tbody>
                             {sortedOperators.map((operator) => (
                                 <tr key={operator.idLogisticOperator}>
-                                    <td className="name-cell">
+                                    <td className="logistic-name-cell">
                                         <div className="name-info">
                                             <span className="name">{operator.name}</span>
                                             <span className="id">ID: {operator.idLogisticOperator}</span>
                                         </div>
                                     </td>
-                                    <td className="email-cell">
+                                    <td className="logistic-email-cell">
                                         <a href={`mailto:${operator.email}`}>
                                             {operator.email}
                                         </a>
                                     </td>
-                                    <td className="phone-cell">
+                                    <td className="logistic-phone-cell">
                                         <a href={`tel:${operator.phone}`}>
                                             {operator.phone}
                                         </a>
                                     </td>
-                                    <td className="service-area-cell">
+                                    <td className="logistic-service-area-cell">
                                         <div className="service-area-badge">
                                             <span className="service-icon">
                                                 {getServiceAreaIcon(operator.serviceArea)}
@@ -242,7 +240,7 @@ const LogisticOperatorTable = ({
                                             </span>
                                         </div>
                                     </td>
-                                    <td className="address-cell">
+                                    <td className="logistic-address-cell">
                                         <div className="address-info" title={operator.address}>
                                             {operator.address.length > 50 
                                                 ? `${operator.address.substring(0, 50)}...` 
@@ -250,18 +248,18 @@ const LogisticOperatorTable = ({
                                             }
                                         </div>
                                     </td>
-                                    <td className="actions-cell">
+                                    <td className="logistic-actions-cell">
                                         <div className="action-buttons">
                                             <button
                                                 onClick={() => onEdit(operator)}
-                                                className="edit-button"
+                                                className="logistic-edit-button"
                                                 title="Editar operador"
                                             >
                                                 ✏️
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(operator)}
-                                                className="delete-button"
+                                                className="logistic-delete-button"
                                                 title="Eliminar operador"
                                             >
                                                 🗑️
@@ -277,8 +275,8 @@ const LogisticOperatorTable = ({
 
             {/* Información de resultados */}
             {sortedOperators.length > 0 && (
-                <div className="table-footer">
-                    <span className="results-info">
+                <div className="logistic-table-footer">
+                    <span className="logistic-results-info">
                         Mostrando {sortedOperators.length} de {operators.length} operadores logísticos
                         {searchTerm && ` (filtrado por: "${searchTerm}")`}
                     </span>

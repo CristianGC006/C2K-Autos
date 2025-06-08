@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import LogisticOperatorForm from '../../components/LogisticOperatorForm';
 import LogisticOperatorTable from '../../components/LogisticOperatorTable';
 import Swal from 'sweetalert2';
+import './LogisticManagement.css'; // Estilos específicos para gestión de operadores
 import {
     getAllLogisticOperators,
     createLogisticOperator,
@@ -165,18 +166,16 @@ const LogisticManagement = () => {
     const handleFormCancel = () => {
         setIsFormOpen(false);
         setEditingOperator(null);
-    };
-
-    return (
+    };    return (
         <div className="logistic-management">
-            <header className="content-header">
-                <div className="header-content">
-                    <div className="header-text">
+            <header className="logistic-content-header">
+                <div className="logistic-header-content">
+                    <div className="logistic-header-text">
                         <h1>📦 Gestión de Operadores Logísticos</h1>
                         <p>Administrar operadores logísticos del sistema</p>
                     </div>
                     <button 
-                        className="primary-button"
+                        className="logistic-primary-button"
                         onClick={handleCreateOperator}
                         disabled={isLoading}
                     >
@@ -187,13 +186,13 @@ const LogisticManagement = () => {
 
             {/* Mensaje de estado */}
             {message.text && (
-                <div className={`message ${message.type}`}>
-                    <span className="message-icon">
+                <div className={`logistic-message ${message.type}`}>
+                    <span className="logistic-message-icon">
                         {message.type === 'success' ? '✅' : '❌'}
                     </span>
-                    <span className="message-text">{message.text}</span>
+                    <span className="logistic-message-text">{message.text}</span>
                     <button 
-                        className="message-close"
+                        className="logistic-message-close"
                         onClick={() => setMessage({ type: '', text: '' })}
                     >
                         ✕
@@ -203,43 +202,43 @@ const LogisticManagement = () => {
 
             {/* Estadísticas rápidas */}
             {!isLoading && stats.total !== undefined && (
-                <div className="quick-stats">
-                    <div className="stat-item">
+                <div className="logistic-quick-stats">
+                    <div className="logistic-stat-item">
                         <span className="stat-icon">👥</span>
                         <div className="stat-content">
                             <span className="stat-number">{stats.total}</span>
                             <span className="stat-label">Total Operadores</span>
                         </div>
                     </div>
-                    <div className="stat-item">
+                    <div className="logistic-stat-item">
                         <span className="stat-icon">🚛</span>
                         <div className="stat-content">
                             <span className="stat-number">{stats.totalTransporte}</span>
                             <span className="stat-label">Transporte</span>
                         </div>
                     </div>
-                    <div className="stat-item">
+                    <div className="logistic-stat-item">
                         <span className="stat-icon">🧽</span>
                         <div className="stat-content">
                             <span className="stat-number">{stats.totalLavado}</span>
                             <span className="stat-label">Lavado</span>
                         </div>
                     </div>
-                    <div className="stat-item">
+                    <div className="logistic-stat-item">
                         <span className="stat-icon">🔧</span>
                         <div className="stat-content">
                             <span className="stat-number">{stats.totalReparacion}</span>
                             <span className="stat-label">Reparación</span>
                         </div>
                     </div>
-                    <div className="stat-item">
+                    <div className="logistic-stat-item">
                         <span className="stat-icon">📦</span>
                         <div className="stat-content">
                             <span className="stat-number">{stats.totalAlmacenamiento}</span>
                             <span className="stat-label">Almacenamiento</span>
                         </div>
                     </div>
-                    <div className="stat-item">
+                    <div className="logistic-stat-item">
                         <span className="stat-icon">🔍</span>
                         <div className="stat-content">
                             <span className="stat-number">{stats.totalInspeccion}</span>
@@ -250,7 +249,7 @@ const LogisticManagement = () => {
             )}
 
             {/* Tabla de operadores */}
-            <div className="management-content">
+            <div className="logistic-management-content">
                 <LogisticOperatorTable
                     operators={operators}
                     onEdit={handleEditOperator}
@@ -261,8 +260,8 @@ const LogisticManagement = () => {
 
             {/* Modal del formulario */}
             {isFormOpen && (
-                <div className="modal-overlay" onClick={handleFormCancel}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="logistic-modal-overlay" onClick={handleFormCancel}>
+                    <div className="logistic-modal-content" onClick={(e) => e.stopPropagation()}>
                         <LogisticOperatorForm
                             operator={editingOperator}
                             isEditing={!!editingOperator}

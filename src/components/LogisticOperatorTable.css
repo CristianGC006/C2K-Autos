@@ -1,0 +1,517 @@
+/* Estilos específicos para la tabla de operadores logísticos */
+
+/* Contenedor principal de la tabla */
+.logistic-table-container {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 
+        0 10px 25px rgba(1, 68, 33, 0.08),
+        0 4px 10px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(1, 68, 33, 0.1);
+}
+
+/* Estadísticas de la tabla */
+.logistic-table-stats {
+    margin-bottom: 24px;
+}
+
+.logistic-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.logistic-stat-card {
+    background: linear-gradient(135deg, #014421, #1a5f3f);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 
+        0 6px 20px rgba(1, 68, 33, 0.15),
+        0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.logistic-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ffd700, #ffed4e);
+}
+
+.logistic-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 25px rgba(1, 68, 33, 0.2),
+        0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.logistic-stat-icon {
+    font-size: 32px;
+    opacity: 0.9;
+}
+
+.logistic-stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.logistic-stat-number {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.logistic-stat-label {
+    font-size: 14px;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+/* Header de la tabla */
+.logistic-table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 16px;
+}
+
+/* Contenedor de búsqueda */
+.logistic-search-container {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+}
+
+.logistic-search-input {
+    width: 100%;
+    padding: 12px 16px 12px 44px;
+    border: 2px solid #e2e8f0;
+    border-radius: 25px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.logistic-search-input:focus {
+    outline: none;
+    border-color: #014421;
+    box-shadow: 
+        0 0 0 3px rgba(1, 68, 33, 0.1),
+        0 4px 12px rgba(1, 68, 33, 0.1);
+}
+
+.logistic-search-container::before {
+    content: '🔍';
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #6c757d;
+    pointer-events: none;
+}
+
+.logistic-clear-search {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.logistic-clear-search:hover {
+    background: #c82333;
+    transform: translateY(-50%) scale(1.1);
+}
+
+/* Wrapper de la tabla */
+.logistic-table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Tabla principal */
+.logistic-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+    background: white;
+}
+
+/* Header de la tabla */
+.logistic-data-table thead {
+    background: linear-gradient(135deg, #06e868, #80d4ad);
+}
+
+.logistic-data-table th {
+    padding: 16px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.logistic-data-table th:last-child {
+    border-right: none;
+}
+
+.logistic-data-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s ease;
+}
+
+.logistic-data-table th.sortable:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Cuerpo de la tabla */
+.logistic-data-table tbody tr {
+    border-bottom: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.logistic-data-table tbody tr:hover {
+    background: rgba(1, 68, 33, 0.02);
+    transform: scale(1.001);
+    box-shadow: 0 2px 8px rgba(1, 68, 33, 0.1);
+}
+
+.logistic-data-table td {
+    padding: 16px 12px;
+    vertical-align: middle;
+    font-size: 14px;
+    border-right: 1px solid #f1f5f9;
+}
+
+.logistic-data-table td:last-child {
+    border-right: none;
+}
+
+/* Celdas específicas */
+.logistic-name-cell .name-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.logistic-name-cell .name {
+    font-weight: 600;
+    color: #014421;
+    font-size: 14px;
+}
+
+.logistic-name-cell .id {
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.logistic-email-cell a {
+    color: #ccc900;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.logistic-email-cell a:hover {
+    color: #014421;
+    text-decoration: underline;
+}
+
+.logistic-phone-cell a {
+    color: #28a745;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.logistic-phone-cell a:hover {
+    color: #014421;
+    text-decoration: underline;
+}
+
+/* Badge del área de servicio */
+.logistic-service-area-cell .service-area-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    color: rgb(255, 255, 255);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(1, 68, 33, 0.2);
+}
+
+.logistic-service-area-cell .service-icon {
+    font-size: 14px;
+}
+
+.logistic-service-area-cell .service-label {
+    font-weight: 500;
+}
+
+/* Celda de dirección */
+.logistic-address-cell .address-info {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #495057;
+    font-size: 13px;
+}
+
+/* Botones de acción */
+.logistic-actions-cell .action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.logistic-edit-button {
+    background: linear-gradient(135deg, #17b202, #01611f);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.2);
+}
+
+.logistic-edit-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.logistic-delete-button {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.2);
+}
+
+.logistic-delete-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* Estado vacío */
+.logistic-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.logistic-empty-state .empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.logistic-empty-state h3 {
+    margin: 0 0 8px 0;
+    color: #495057;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.logistic-empty-state p {
+    margin: 0;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+/* Estado de carga */
+.logistic-loading-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.logistic-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e2e8f0;
+    border-top: 4px solid #014421;
+    border-radius: 50%;
+    animation: logisticSpin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes logisticSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Footer de la tabla */
+.logistic-table-footer {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    text-align: center;
+}
+
+.logistic-results-info {
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .logistic-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+    }
+    
+    .logistic-stat-card {
+        padding: 16px;
+    }
+    
+    .logistic-stat-icon {
+        font-size: 28px;
+    }
+    
+    .logistic-stat-number {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .logistic-table-container {
+        padding: 16px;
+        margin: 16px;
+    }
+    
+    .logistic-table-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .logistic-search-container {
+        max-width: none;
+    }
+    
+    .logistic-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 8px;
+    }
+    
+    .logistic-stat-card {
+        padding: 12px;
+        gap: 12px;
+    }
+    
+    .logistic-stat-icon {
+        font-size: 24px;
+    }
+    
+    .logistic-stat-number {
+        font-size: 18px;
+    }
+    
+    .logistic-stat-label {
+        font-size: 12px;
+    }
+    
+    .logistic-data-table {
+        font-size: 12px;
+    }
+    
+    .logistic-data-table th,
+    .logistic-data-table td {
+        padding: 8px 6px;
+    }
+    
+    .logistic-actions-cell .action-buttons {
+        flex-direction: column;
+        gap: 4px;
+    }
+}
+
+/* Animaciones */
+@keyframes logisticFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.logistic-table-container {
+    animation: logisticFadeIn 0.4s ease-out;
+}
+
+/* Estados de hover mejorados */
+.logistic-data-table tbody tr:nth-child(even) {
+    background: rgba(1, 68, 33, 0.01);
+}
+
+.logistic-data-table tbody tr:hover:nth-child(even) {
+    background: rgba(1, 68, 33, 0.03);
+}
+
+/* Tooltips para acciones */
+.logistic-edit-button[title],
+.logistic-delete-button[title] {
+    position: relative;
+}
+
+/* Separadores visuales */
+.logistic-table-stats::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #014421, #1a5f3f, #014421);
+    margin-top: 20px;
+    border-radius: 1px;
+}

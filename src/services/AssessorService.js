@@ -129,13 +129,10 @@ export const formatAssessorData = (assessorData) => {
 
 // Función auxiliar para enriquecer datos de asesores con información de relaciones
 export const enrichAssessorData = async (assessors, branches = [], admins = []) => {
-  console.log('🔍 DEBUGGING enrichAssessorData:');
-  console.log('  📊 Asesores recibidos:', assessors);
-  console.log('  🏢 Sucursales disponibles:', branches);
-  console.log('  👤 Administradores disponibles:', admins);
+
   
   if (!Array.isArray(assessors)) {
-    console.log('  ❌ Assessors no es un array');
+
     return [];
   }
   
@@ -384,9 +381,6 @@ export const updateAssessor = async (assessorId, assessorData) => {
       ...assessorData,
       idAssessor: assessorId
     });
-    
-    console.log('Enviando PUT a:', `${API_BASE_URL}/${assessorId}`);
-    console.log('Cuerpo de la petición:', JSON.stringify(formattedData, null, 2));
     
     const response = await fetch(`${API_BASE_URL}/${assessorId}`, {
       method: 'PUT',
