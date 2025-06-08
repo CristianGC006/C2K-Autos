@@ -10,7 +10,7 @@ const LogisticOperatorLayout = () => {
   const handleLogout = () => {
     localStorage.removeItem("Token");
     localStorage.removeItem("User");
-    navigate('/loginLogisticOp');
+    navigate('/');
   };
 
   const isActiveRoute = (path) => location.pathname.includes(path);
@@ -34,8 +34,9 @@ const LogisticOperatorLayout = () => {
           </button>
           {/* Agrega más botones si necesitas más secciones */}
           <button onClick={handleLogout} className="nav-item logout">
-            🚪 Cerrar Sesión
-          </button>
+          <span className="nav-icon">🚪</span>
+          <span className="nav-text">Cerrar sesión</span>
+        </button>
         </nav>
       </aside>
       <main className="main-content">
