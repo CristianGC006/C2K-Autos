@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getCustomers, deleteCustomer } from '../services/CustomerService';
+import Swal from 'sweetalert2';
 import './CustomerTable.css';
 
-const CustomerTable = ({ onEdit }) => {
-    const [customers, setCustomers] = useState([]);
+const CustomerTable = ({ onEdit }) => {    const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -13,24 +13,69 @@ const CustomerTable = ({ onEdit }) => {
         try {
             const data = await getCustomers();
             setCustomers(data);
+            setError(null); // Limpiar errores previos
         } catch (err) {
             setError(err.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al cargar clientes',
+                text: err.message,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#014421'
+            });
         }
         setLoading(false);
     };
 
     useEffect(() => {
         fetchCustomers();
-    }, []);
+    }, []);    const handleDelete = async (id, customerName) => {
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            html: `¿Deseas eliminar el cliente <strong>${customerName}</strong>?<br>Esta acción no se puede deshacer.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#014421',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+        });
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('¿Está seguro de que desea eliminar este cliente?')) return;
-        
-        try {
-            await deleteCustomer(id);
-            fetchCustomers(); // Recargar la lista
-        } catch (error) {
-            alert('Error al eliminar cliente: ' + error.message);
+        if (result.isConfirmed) {
+            try {
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Eliminando cliente...',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    willOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                await deleteCustomer(id);
+                
+                // Éxito
+                await Swal.fire({
+                    icon: 'success',
+                    title: '¡Cliente eliminado!',
+                    text: `${customerName} ha sido eliminado exitosamente.`,
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#014421',
+                    timer: 3000
+                });
+
+                fetchCustomers(); // Recargar la lista
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al eliminar cliente',
+                    text: error.message || 'Ocurrió un error inesperado',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#dc2626'
+                });
+            }
         }
     };
 
@@ -135,9 +180,8 @@ const CustomerTable = ({ onEdit }) => {
                                                 title="Editar cliente"
                                             >
                                                 ✏️
-                                            </button>
-                                            <button 
-                                                onClick={() => handleDelete(customer.idCustomer)} 
+                                            </button>                                            <button 
+                                                onClick={() => handleDelete(customer.idCustomer, `${customer.name} ${customer.lastName}`)} 
                                                 className="btn-delete"
                                                 title="Eliminar cliente"
                                             >

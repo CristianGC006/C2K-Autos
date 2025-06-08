@@ -18,22 +18,35 @@ const CustomerForm = ({ onSubmit, onCancel, customer, isEditing = false }) => {
     const [form, setForm] = useState(initialState);
     const [errors, setErrors] = useState({});    useEffect(() => {
         if (customer) {
+            console.log('CustomerForm - Cliente recibido para edición:', customer);
+            
             setForm({
                 name: customer.name || '',
                 lastName: customer.lastName || '',
-                identificationType: customer.identificationType || 'CC',
+                identificationType: transformBackendToFrontendIdentificationType(customer.identificationType) || 'CC',
                 identificationNumber: customer.identificationNumber || '',
-                genderType: customer.genderType || 'Masculino',
+                genderType: customer.genderType || 'Masculino', // El backend ya envía en español
                 nationality: customer.nationality || '',
                 email: customer.email || '',
                 phone: customer.phone || '',
                 license: customer.license || '',
-                password: customer.password || ''
+                password: '' // Nunca cargar la contraseña por seguridad
             });
         } else {
             setForm(initialState);
         }
     }, [customer]);
+
+    // Función para transformar tipos de identificación del backend al frontend
+    const transformBackendToFrontendIdentificationType = (backendType) => {
+        const typeMapping = {
+            'CEDULA_DE_CIUDADANIA': 'CC',
+            'CEDULA_DE_EXTRANJERIA': 'CE',
+            'PASAPORTE': 'PA',
+            'TARJETA_DE_IDENTIDAD': 'TI'
+        };
+        return typeMapping[backendType] || backendType;
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -63,16 +76,36 @@ const CustomerForm = ({ onSubmit, onCancel, customer, isEditing = false }) => {
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = (e) => {
+    };    const handleSubmit = (e) => {
         e.preventDefault();
         if (validateForm()) {
             const customerData = { ...form };
-            // Si es edición y no se cambió la contraseña, no la enviamos
-            if (isEditing && !customerData.password) {
-                delete customerData.password;
+            
+            // Transformar tipos de identificación para el backend
+            const identificationTypeMapping = {
+                'CC': 'CEDULA_DE_CIUDADANIA',
+                'CE': 'CEDULA_DE_EXTRANJERIA', 
+                'PA': 'PASAPORTE',
+                'TI': 'TARJETA_DE_IDENTIDAD'
+            };
+            customerData.identificationType = identificationTypeMapping[customerData.identificationType] || customerData.identificationType;
+            
+            // IMPORTANTE: Si es edición y la contraseña está vacía, NO la enviamos
+            // Esto evita que se guarde como null en la base de datos
+            if (isEditing) {
+                if (!customerData.password || customerData.password.trim() === '') {
+                    delete customerData.password;
+                    console.log('CustomerForm - Contraseña eliminada del objeto (no se actualizará)');
+                } else {
+                    console.log('CustomerForm - Contraseña será actualizada');
+                }
             }
+            
+            // Log para debugging
+            console.log('CustomerForm - Datos a enviar:', customerData);
+            console.log('CustomerForm - Es edición:', isEditing);
+            console.log('CustomerForm - Contraseña incluida:', 'password' in customerData);
+            
             onSubmit(customerData);
         }
     };

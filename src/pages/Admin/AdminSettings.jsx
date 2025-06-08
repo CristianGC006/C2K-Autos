@@ -16,25 +16,9 @@ const AdminSettings = () => {
                 </div>
 
                 <div className="settings-section">
-                    <h3>🏢 Configuración de la Empresa</h3>
+                    <h3>🏢 Sedes</h3>
                     <div className="settings-content">
-                        <p>Información general de C2K Autos</p>
-                        <button className="settings-btn">Configurar</button>
-                    </div>
-                </div>
-
-                <div className="settings-section">
-                    <h3>🔐 Seguridad</h3>
-                    <div className="settings-content">
-                        <p>Configuración de seguridad y accesos</p>
-                        <button className="settings-btn">Gestionar</button>
-                    </div>
-                </div>
-
-                <div className="settings-section">
-                    <h3>📊 Reportes</h3>
-                    <div className="settings-content">
-                        <p>Configuración de reportes automáticos</p>
+                        <p>Sedes de C2K</p>
                         <button className="settings-btn">Configurar</button>
                     </div>
                 </div>

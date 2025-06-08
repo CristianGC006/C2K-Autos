@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { createCustomer, updateCustomer } from '../../services/CustomerService';
 import CustomerTable from '../../components/CustomerTable';
 import CustomerForm from '../../components/CustomerForm';
+import Swal from 'sweetalert2';
 
 const CustomerManagement = () => {
     const [showForm, setShowForm] = useState(false);
@@ -16,21 +17,65 @@ const CustomerManagement = () => {
     const handleEditCustomer = (customer) => {
         setEditingCustomer(customer);
         setShowForm(true);
-    };
-
-    const handleFormSubmit = async (customerData) => {
+    };    const handleFormSubmit = async (customerData) => {
         try {
+            console.log('CustomerManagement - Datos recibidos del formulario:', customerData);
+            console.log('CustomerManagement - Cliente a editar:', editingCustomer);
+            
+            // Mostrar loading
+            Swal.fire({
+                title: editingCustomer ? 'Actualizando cliente...' : 'Creando cliente...',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                willOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
             if (editingCustomer) {
-                await updateCustomer(editingCustomer.idCustomer, customerData);
+                console.log('CustomerManagement - Actualizando cliente con ID:', editingCustomer.idCustomer);
+                const result = await updateCustomer(editingCustomer.idCustomer, customerData);
+                console.log('CustomerManagement - Resultado de actualización:', result);
+                
+                // Éxito en actualización
+                await Swal.fire({
+                    icon: 'success',
+                    title: '¡Cliente actualizado!',
+                    text: `${customerData.name} ${customerData.lastName} ha sido actualizado exitosamente.`,
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#014421',
+                    timer: 3000
+                });
             } else {
-                await createCustomer(customerData);
+                console.log('CustomerManagement - Creando nuevo cliente');
+                const result = await createCustomer(customerData);
+                console.log('CustomerManagement - Resultado de creación:', result);
+                
+                // Éxito en creación
+                await Swal.fire({
+                    icon: 'success',
+                    title: '¡Cliente creado!',
+                    text: `${customerData.name} ${customerData.lastName} ha sido registrado exitosamente.`,
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#014421',
+                    timer: 3000
+                });
             }
+            
             setShowForm(false);
             setEditingCustomer(null);
             setRefreshTable(prev => prev + 1); // Trigger refresh
         } catch (error) {
-            console.error('Error al guardar cliente:', error);
-            alert('Error al guardar cliente');
+            console.error('CustomerManagement - Error al guardar cliente:', error);
+            
+            // Error
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al guardar cliente',
+                text: error.message || 'Ocurrió un error inesperado al guardar el cliente',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#dc2626'
+            });
         }
     };
 
