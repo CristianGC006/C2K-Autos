@@ -41,7 +41,7 @@ export default function Header() {
             <img className="logo" alt="C2K-Logo" src={C2KLogoNoBackground} />
             <ul className="nav-list">
                 <li>
-                    <a href="#">Solicitar Vehículo</a>
+                    <Link to="/Rental">Solicitar Vehículo</Link>
                 </li>
                 <li className="user-container">
                 <Link to="/Info">¿Quienes Somos?</Link>
