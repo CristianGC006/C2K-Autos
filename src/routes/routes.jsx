@@ -118,12 +118,18 @@ export let routes  = [
         element: <Location/>
     },
     {
-    path: '/logisticOpHome',
-    element: <LogisticOperatorLayout />,
-    children: [
-      { path: 'vehicles', element: <VehicleManagementLO /> },
-      // Puedes agregar más rutas hijas aquí si lo necesitas
-    ],
-  }
+        path: '/logisticOpHome',
+        element: <ProtectedRoute security={<LogisticOperatorLayout />} />,
+        children: [
+            { 
+                path: 'vehicles', 
+                element: <VehicleManagementLO /> 
+            },
+            {
+                // Redirección por defecto a vehículos
+                index: true,
+                element: <VehicleManagementLO />
+            }
+        ]
+    }
 ]
-

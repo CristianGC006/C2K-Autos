@@ -90,18 +90,81 @@ const LogisticManagement = () => {
                     confirmButtonColor: '#28a745',
                     timer: 3000,
                     timerProgressBar: true
-                });
-            } else {
+                });            } else {
                 // Crear nuevo operador
-                await createLogisticOperator(operatorData);
+                const newOperator = await createLogisticOperator(operatorData);
                 
                 await Swal.fire({
-                    title: '¡Creado!',
-                    text: `El operador logístico ${operatorData.name} ha sido creado exitosamente`,
+                    title: '¡Operador Creado Exitosamente! 🚛',
+                    html: `
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="background: linear-gradient(135deg, #044b35, #00664a); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                                <h3 style="margin: 0; font-size: 18px;">👋 ¡Bienvenido, ${operatorData.name}!</h3>
+                            </div>
+                            
+                            <div style="background: #f8f9fa; border: 2px dashed #044b35; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                                <p style="margin: 0 0 10px 0; font-weight: bold; color: #044b35;">📋 Código de Operador Logístico:</p>
+                                <div style="background: white; border: 2px solid #044b35; padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 18px; font-weight: bold; color: #044b35; letter-spacing: 2px;">
+                                    ${newOperator.logisticOperatorCode}
+                                </div>
+                            </div>
+
+                            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                <p style="margin: 0; font-size: 14px; color: #856404;">
+                                    <strong>⚠️ IMPORTANTE:</strong><br>
+                                    • Este código es necesario para iniciar sesión<br>
+                                    • Guárdalo en un lugar seguro<br>
+                                    • No lo compartas con nadie<br>
+                                    • Si se pierde, contacta al administrador
+                                </p>
+                            </div>
+
+                            <div style="margin-top: 20px;">
+                                <p style="font-size: 14px; color: #6c757d;">
+                                    🎉 ¡El operador logístico ha sido registrado exitosamente!
+                                </p>
+                            </div>
+                        </div>
+                    `,
                     icon: 'success',
-                    confirmButtonColor: '#28a745',
-                    timer: 3000,
-                    timerProgressBar: true
+                    confirmButtonText: '📋 Copiar Código',
+                    showCancelButton: true,
+                    cancelButtonText: '✅ Entendido',
+                    customClass: {
+                        popup: 'swal2-popup-custom',
+                        confirmButton: 'swal2-confirm-custom',
+                        cancelButton: 'swal2-cancel-custom'
+                    },
+                    buttonsStyling: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    width: '600px'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Copiar código al portapapeles
+                        navigator.clipboard.writeText(newOperator.logisticOperatorCode).then(() => {
+                            Swal.fire({
+                                title: '📋 ¡Código Copiado!',
+                                text: 'El código ha sido copiado al portapapeles',
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false,
+                                customClass: {
+                                    popup: 'swal2-popup-custom'
+                                }
+                            });
+                        }).catch(() => {
+                            Swal.fire({
+                                title: 'Código de Operador Logístico',
+                                text: newOperator.logisticOperatorCode,
+                                icon: 'info',
+                                confirmButtonText: 'Cerrar',
+                                customClass: {
+                                    popup: 'swal2-popup-custom'
+                                }
+                            });
+                        });
+                    }
                 });
             }
             

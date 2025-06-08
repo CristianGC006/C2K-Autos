@@ -27,10 +27,22 @@ export const getLogisticOperatorById = async (id) => {
 };
 
 export const createLogisticOperator = async (operator) => {
+    // Generar código automáticamente al crear el operador
+    const generateLogisticOperatorCode = () => {
+        const timestamp = Date.now().toString(36);
+        const random = Math.random().toString(36).substr(2, 5);
+        return `LOG-${timestamp}-${random}`.toUpperCase();
+    };
+
+    const operatorWithCode = {
+        ...operator,
+        logisticOperatorCode: generateLogisticOperatorCode()
+    };
+    
     const res = await fetch(API_URL, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify(operator)
+        body: JSON.stringify(operatorWithCode)
     });
     if (!res.ok) throw new Error('Error al crear operador logístico');
     return res.json();
@@ -119,6 +131,7 @@ export const searchLogisticOperators = async (searchTerm) => {
             operator.email.toLowerCase().includes(term) ||
             operator.phone.includes(term) ||
             operator.address.toLowerCase().includes(term) ||
+            (operator.logisticOperatorCode && operator.logisticOperatorCode.toLowerCase().includes(term)) ||
             getServiceAreaLabel(operator.serviceArea).toLowerCase().includes(term)
         );
     } catch (error) {

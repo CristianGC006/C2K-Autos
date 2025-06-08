@@ -152,10 +152,9 @@ const LogisticOperatorTable = ({
 
             {/* Barra de búsqueda */}
             <div className="logistic-table-header">
-                <div className="logistic-search-container">
-                    <input
+                <div className="logistic-search-container">                    <input
                         type="text"
-                        placeholder="🔍 Buscar por nombre, email, teléfono, dirección o área de servicio..."
+                        placeholder="🔍 Buscar por nombre, email, teléfono, código, dirección o área de servicio..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="logistic-search-input"
@@ -190,11 +189,13 @@ const LogisticOperatorTable = ({
                 </div>
             ) : (
                 <div className="logistic-table-wrapper">
-                    <table className="logistic-data-table">
-                        <thead>
+                    <table className="logistic-data-table">                        <thead>
                             <tr>
                                 <th onClick={() => handleSort('name')} className="sortable">
                                     Nombre {getSortIcon('name')}
+                                </th>
+                                <th onClick={() => handleSort('logisticOperatorCode')} className="sortable">
+                                    Código {getSortIcon('logisticOperatorCode')}
                                 </th>
                                 <th onClick={() => handleSort('email')} className="sortable">
                                     Email {getSortIcon('email')}
@@ -213,11 +214,15 @@ const LogisticOperatorTable = ({
                         </thead>
                         <tbody>
                             {sortedOperators.map((operator) => (
-                                <tr key={operator.idLogisticOperator}>
-                                    <td className="logistic-name-cell">
+                                <tr key={operator.idLogisticOperator}>                                    <td className="logistic-name-cell">
                                         <div className="name-info">
                                             <span className="name">{operator.name}</span>
                                             <span className="id">ID: {operator.idLogisticOperator}</span>
+                                        </div>
+                                    </td>
+                                    <td className="logistic-code-cell">
+                                        <div className="code-badge">
+                                            <span className="code-text">🔑 {operator.logisticOperatorCode || 'N/A'}</span>
                                         </div>
                                     </td>
                                     <td className="logistic-email-cell">

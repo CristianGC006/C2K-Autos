@@ -401,6 +401,45 @@
     font-weight: 500;
 }
 
+/* Estilos para la columna del código de operador logístico */
+.logistic-code-cell {
+    padding: 12px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.code-badge {
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+    border: 2px solid #044b35;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #044b35;
+    box-shadow: 0 2px 4px rgba(1, 68, 33, 0.1);
+    transition: all 0.3s ease;
+    max-width: 120px;
+    overflow: hidden;
+}
+
+.code-badge:hover {
+    background: linear-gradient(135deg, #044b35, #00664a);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(1, 68, 33, 0.2);
+}
+
+.code-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .logistic-stats-grid {

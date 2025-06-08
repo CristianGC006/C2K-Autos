@@ -195,13 +195,14 @@ import "./Login.css";
             return;
           }          // ✅ SI TODAS LAS VALIDACIONES PASAN, PROCEDER CON EL REGISTRO
           if (!findLogisticOp()) {
+            // Generar código único de operador logístico
             const generatedCode = generateAssessorCode();
             console.log("🔥 Código generado:", generatedCode);
             let newLogisticOp = {
               name: name,
               identificationType: documentType,
               identificationNumber: documentNumber,
-              adminCode: generatedCode,
+              logisticOperatorCode: generatedCode,
               email: email,
               phone: phone,
               password: password,
@@ -256,15 +257,14 @@ import "./Login.css";
               "error"
             );
           }
-        }
-        function findLogisticOpForLogin() {
-          let customer = logisticOp.find(
+        }        function findLogisticOpForLogin() {
+          let operator = logisticOp.find(
             (item) =>
               item.email == getEmail &&
               item.password == getPassword &&
-              item.adminCode == getAdminCode
+              item.logisticOperatorCode == getAdminCode
           );
-          return customer;
+          return operator;
         }
       
         function logIn() {
