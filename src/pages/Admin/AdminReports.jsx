@@ -1,3 +1,5 @@
+import './AdminReports.css';
+
 const AdminReports = () => {
     return (
         <div className="admin-reports">
