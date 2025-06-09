@@ -56,11 +56,13 @@ function Panel({ activeSection, setActiveSection, user }) {
   const reloadVehicles = async () => {
     try {
       console.log("Reloading vehicles after rental..."); 
+      setLoading(true); // Mostrar loading mientras se recargan los vehículos
       
       const response = await fetch('http://localhost:8080/vehicle');
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }      const data = await response.json();
+      }
+      const data = await response.json();
       console.log("Vehicles reloaded successfully:", data);
       
       // ✅ PROCESAR IMÁGENES CON SERVICIO DE MAPEO CON VALIDACIÓN EXTRA
@@ -94,7 +96,8 @@ function Panel({ activeSection, setActiveSection, user }) {
           price: vehicle?.price || 0
         };
       }));
-        // Filtrar vehículos disponibles - un vehículo está disponible si no tiene customer asignado
+
+      // Filtrar vehículos disponibles - un vehículo está disponible si no tiene customer asignado
       const available = dataWithCorrectFields.filter(vehicle => 
         !vehicle.customers || !vehicle.customers.id
       );
@@ -112,10 +115,23 @@ function Panel({ activeSection, setActiveSection, user }) {
         setRentedCars(rented);
         console.log("Rented vehicles for user", currentUserId, "after reload:", rented.length);
       }
+
+      setLoading(false); // Ocultar loading después de cargar
     } catch (error) {
       console.error('Error reloading vehicles:', error);
+      setError(`Error al recargar vehículos: ${error.message}`);
+      setLoading(false);
     }
-  };  // ✅ EFECTO SIMPLE PARA INICIALIZAR - SOLO UNA VEZ
+  };
+
+  // Efecto para recargar vehículos cuando cambia el usuario
+  useEffect(() => {
+    if (userInfo && (userInfo.idCustomer || userInfo.id)) {
+      reloadVehicles();
+    }
+  }, [userInfo]);
+
+  // ✅ EFECTO SIMPLE PARA INICIALIZAR - SOLO UNA VEZ
   useEffect(() => {
     // Evitar múltiples inicializaciones
     if (initializationStarted.current) {
@@ -291,6 +307,7 @@ function Panel({ activeSection, setActiveSection, user }) {
     }
 
     try {
+      setLoading(true); // Mostrar loading durante el proceso de alquiler
       const selectedVehicle = availableCars.find(car => car.vehicle_id === vehicleId);
       if (!selectedVehicle) {
         throw new Error('Vehículo no encontrado');
@@ -330,6 +347,7 @@ function Panel({ activeSection, setActiveSection, user }) {
       });
       
       if (!daysInput) {
+        setLoading(false);
         return; // Usuario canceló
       }
 
@@ -365,6 +383,7 @@ function Panel({ activeSection, setActiveSection, user }) {
       });
       
       if (!confirmResult.isConfirmed) {
+        setLoading(false);
         return;
       }
 
@@ -378,7 +397,9 @@ function Panel({ activeSection, setActiveSection, user }) {
         willOpen: () => {
           Swal.showLoading();
         }
-      });      // 1. Verificar qué entidades existen en la base de datos
+      });
+
+      // 1. Verificar qué entidades existen en la base de datos
       let validAdminId = 1;
       let validBranchId = 1;
       let validAssessorId = 1;
@@ -392,7 +413,7 @@ function Panel({ activeSection, setActiveSection, user }) {
           const admins = await adminResponse.json();
           console.log("Administradores disponibles:", admins);
           if (admins && admins.length > 0) {
-            validAdminId = admins[0].idAdmin || 1; // Usar idAdmin en lugar de id
+            validAdminId = admins[0].idAdmin || 1;
           }
         }
 
@@ -402,7 +423,7 @@ function Panel({ activeSection, setActiveSection, user }) {
           const branches = await branchResponse.json();
           console.log("Sucursales disponibles:", branches);
           if (branches && branches.length > 0) {
-            validBranchId = branches[0].idBranch || 1; // Usar idBranch únicamente
+            validBranchId = branches[0].idBranch || 1;
           }
         }
 
@@ -412,9 +433,11 @@ function Panel({ activeSection, setActiveSection, user }) {
           const assessors = await assessorResponse.json();
           console.log("Asesores disponibles:", assessors);
           if (assessors && assessors.length > 0) {
-            validAssessorId = assessors[0].idAssessor || 1; // Usar idAssessor en lugar de id
+            validAssessorId = assessors[0].idAssessor || 1;
           }
-        }        // ✅ CRÍTICO: Cargar el Customer completo de la base de datos
+        }
+
+        // ✅ CRÍTICO: Cargar el Customer completo de la base de datos
         console.log("Cargando customer completo con ID:", currentUserId);
         
         const customerResponse = await fetch(`http://localhost:8080/customer/${currentUserId}`);
@@ -433,18 +456,9 @@ function Panel({ activeSection, setActiveSection, user }) {
             );
             
             if (!customerEntity) {
-              console.error("CRÍTICO: Customer con ID", currentUserId, "no encontrado en la base de datos");
-              console.log("Customers disponibles:", customers.map(c => ({ 
-                id: c.id, 
-                idCustomer: c.idCustomer, 
-                name: c.name, 
-                email: c.email 
-              })));
-              
               throw new Error(`El usuario con ID ${currentUserId} no existe en la base de datos. Por favor, verifica tu sesión.`);
             }
             
-            // Usar el ID exacto que está en la base de datos
             validCustomerId = customerEntity.id || customerEntity.idCustomer || customerEntity.customer_id;
             console.log("Customer encontrado en BD:", customerEntity, "usando ID:", validCustomerId);
           } else {
@@ -457,34 +471,37 @@ function Panel({ activeSection, setActiveSection, user }) {
         }
       } catch (error) {
         console.error("Error al verificar entidades:", error);
-        throw error; // Re-lanzar el error para que se maneje en el catch principal
+        throw error;
       }
 
-      // 2. Crear el registro de alquiler con todos los campos requeridos
+      // 2. Crear el registro de alquiler
       const currentDate = new Date();
-      const startDate = currentDate.toISOString().split('T')[0]; // Fecha actual
-      const endDate = new Date(currentDate.getTime() + (rentalDays * 24 * 60 * 60 * 1000)).toISOString().split('T')[0]; // Fecha final
-        const rentalData = {
+      const startDate = currentDate.toISOString().split('T')[0];
+      const endDate = new Date(currentDate.getTime() + (rentalDays * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+      
+      const rentalData = {
         name: `${selectedVehicle.brand} ${selectedVehicle.model}`,
         description: `Alquiler del ${selectedVehicle.brand} ${selectedVehicle.model} (Placa: ${selectedVehicle.plate}) por ${rentalDays} día(s)`,
         price: totalAmount,
         startDate: startDate,
         endDate: endDate,
-        status: "ACTIVE",        // IDs de relaciones (usando los nombres que espera el backend)
+        status: "ACTIVE",
         vehicle: {
           vehicleId: selectedVehicle.vehicle_id
         },
-        customer: customerEntity, // Usar la entidad completa cargada desde BD
+        customer: customerEntity,
         assessor: {
-          idAssessor: validAssessorId // Usar idAssessor en lugar de id
+          idAssessor: validAssessorId
         },
         branch: {
           idBranch: validBranchId
         },
         admin: {
-          idAdmin: validAdminId // Usar idAdmin en lugar de id
+          idAdmin: validAdminId
         }
-      };console.log("Creando registro de alquiler:", rentalData);
+      };
+
+      console.log("Creando registro de alquiler:", rentalData);
 
       const rentalResponse = await fetch('http://localhost:8080/rental', {
         method: 'POST',
@@ -496,21 +513,22 @@ function Panel({ activeSection, setActiveSection, user }) {
 
       if (!rentalResponse.ok) {
         const errorText = await rentalResponse.text();
-        console.error("Error en respuesta del rental:", errorText);
         throw new Error(`Error al crear el registro de alquiler: ${errorText}`);
       }
 
       const rentalResult = await rentalResponse.json();
-      console.log("Alquiler creado exitosamente:", rentalResult);      // 3. Actualizar el estado del vehículo para asignarlo al usuario
+      console.log("Alquiler creado exitosamente:", rentalResult);
+
+      // 3. Actualizar el estado del vehículo
       const vehicleUpdateData = {
         customers: {
-          id: customerEntity.id || customerEntity.idCustomer // Usar el ID correcto de la entidad cargada
+          id: customerEntity.id || customerEntity.idCustomer
         },
         branches: {
           idBranch: validBranchId
         },
         admin: {
-          idAdmin: validAdminId // Usar idAdmin en lugar de id
+          idAdmin: validAdminId
         }
       };
 
@@ -527,9 +545,11 @@ function Panel({ activeSection, setActiveSection, user }) {
       if (!vehicleUpdateResponse.ok) {
         const errorText = await vehicleUpdateResponse.text();
         throw new Error(`Error al actualizar el estado del vehículo: ${errorText}`);
-      }      // 4. Generar factura mediante el endpoint de pago
+      }
+
+      // 4. Generar factura
       const paymentData = {
-        paymentMethod: "CREDIT_CARD", // Usar el enum correcto
+        paymentMethod: "CREDIT_CARD",
         amount: totalAmount,
         rental: {
           idRental: rentalResult.idRental || rentalResult.id_rental || rentalResult.id
@@ -544,7 +564,9 @@ function Panel({ activeSection, setActiveSection, user }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(paymentData),
-      });      let paymentResult = null;
+      });
+
+      let paymentResult = null;
       let invoiceId = 'N/A';
 
       if (!paymentResponse.ok) {
@@ -555,12 +577,12 @@ function Panel({ activeSection, setActiveSection, user }) {
         paymentResult = await paymentResponse.json();
         console.log("Factura generada:", paymentResult);
         invoiceId = paymentResult.idPayment || paymentResult.id_payment || paymentResult.id || 'Generado';
-      }// 5. Actualizar la lista de vehículos inmediatamente
-      console.log("Actualizando vehículos después del alquiler...");
-      vehiclesLoaded.current = false;
+      }
+
+      // 5. Actualizar la lista de vehículos
       await reloadVehicles();
 
-      // 6. Mostrar factura detallada con SweetAlert2
+      // 6. Mostrar factura detallada
       await Swal.fire({
         title: '🎉 ¡ALQUILER EXITOSO!',
         html: `
@@ -627,6 +649,8 @@ function Panel({ activeSection, setActiveSection, user }) {
         text: `Ocurrió un error: ${error.message}`,
         confirmButtonColor: '#014421'
       });
+    } finally {
+      setLoading(false);
     }
   };
   // Función para guardar la información actualizada del usuario

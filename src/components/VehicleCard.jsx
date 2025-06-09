@@ -1,140 +1,121 @@
-import { useState, useEffect } from 'react';
-import { imageService } from '../services/imageService'; // Asegúrate de que esta ruta sea correcta
+import React from 'react';
+import './components.css';
 
-const VehicleCard = ({ car, onRent, showRentButton = true, showRentalInfo = false }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const [currentImageUrl, setCurrentImageUrl] = useState(car.image_url);
+function VehicleCard({ car, onRent, showRentButton = true, showRentalInfo = false }) {
+  const {
+    brand,
+    model,
+    year,
+    plate,
+    price,
+    image_url,
+    color,
+    type,
+    customers,
+    startDate,
+    endDate
+  } = car;
 
-  useEffect(() => {
-    const loadImage = async () => {
-      if (!currentImageUrl) {
-        // Si no hay imagen, usar el servicio para obtener una
-        const fallbackImage = await imageService.getValidatedImage(car.brand, car.model);
-        setCurrentImageUrl(fallbackImage);
-      }
-    };
-
-    loadImage();
-  }, [car.brand, car.model, currentImageUrl]);
-
-  const handleImageLoad = () => {
-    setImageLoaded(true);
-    setImageError(false);
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
-  const handleImageError = async () => {
-    setImageError(true);
-    
-    // Intentar con imagen de fallback
-    const fallbackImage = await imageService.getValidatedImage(car.brand, car.model);
-    if (fallbackImage !== currentImageUrl) {
-      setCurrentImageUrl(fallbackImage);
-      setImageError(false);
-    }
+  const calculateRemainingDays = () => {
+    if (!endDate) return null;
+    const end = new Date(endDate);
+    const now = new Date();
+    const diffTime = end - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
   };
+
+  const remainingDays = calculateRemainingDays();
 
   return (
-    <div className="rented-car-card">
-      <div className="car-image-container" style={{ position: 'relative', minHeight: '200px' }}>
-        {!imageLoaded && !imageError && (
-          <div className="image-loading" style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            color: '#014421',
-            fontSize: '0.9rem'
-          }}>
-            Cargando imagen...
-          </div>
-        )}
-        
+    <div className="vehicle-card">
+      <div className="vehicle-image-container">
         <img 
-          src={currentImageUrl} 
-          alt={`${car.brand} ${car.model}`} 
-          className="car-image"
-          onLoad={handleImageLoad}
-          onError={handleImageError}
-          style={{
-            opacity: imageLoaded ? 1 : 0,
-            transition: 'opacity 0.3s ease-in-out'
-          }}
+          src={image_url || "https://es.valleychevy.com/wp-content/uploads/2021/11/2023-Chevrolet-Camaro-ZL1-Coupe-001.jpg"} 
+          alt={`${brand} ${model}`} 
+          className="vehicle-image"
         />
-        
-        {imageError && (
-          <div className="image-error" style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            color: '#666',
-            fontSize: '0.8rem',
-            textAlign: 'center'
-          }}>
-            Imagen no disponible
+        {showRentalInfo && remainingDays !== null && (
+          <div className="rental-badge">
+            {remainingDays > 0 ? (
+              <span className="days-remaining">Faltan {remainingDays} días</span>
+            ) : (
+              <span className="expired">Alquiler finalizado</span>
+            )}
           </div>
         )}
       </div>
-      
-      <div className="car-details">
-        <h3>{car.brand} {car.model}</h3>
+
+      <div className="vehicle-info">
+        <h3 className="vehicle-title">{brand} {model}</h3>
         
-        <div className="car-info-grid">
-          <div className="info-item">
-            <span className="info-label">Tipo:</span>
-            <span className="info-value">{car.type}</span>
+        <div className="vehicle-details">
+          <div className="detail-item">
+            <span className="detail-label">Año:</span>
+            <span className="detail-value">{year || 'N/A'}</span>
           </div>
-          <div className="info-item">
-            <span className="info-label">Año:</span>
-            <span className="info-value">{car.year}</span>
+          <div className="detail-item">
+            <span className="detail-label">Placa:</span>
+            <span className="detail-value">{plate || 'N/A'}</span>
           </div>
-          <div className="info-item">
-            <span className="info-label">Color:</span>
-            <span className="info-value">{car.color}</span>
+          <div className="detail-item">
+            <span className="detail-label">Color:</span>
+            <span className="detail-value">{color || 'N/A'}</span>
           </div>
-          <div className="info-item">
-            <span className="info-label">Placa:</span>
-            <span className="info-value">{car.plate}</span>
+          <div className="detail-item">
+            <span className="detail-label">Tipo:</span>
+            <span className="detail-value">{type || 'N/A'}</span>
+          </div>
+          <div className="detail-item">
+            <span className="detail-label">Precio por día:</span>
+            <span className="detail-value">${price || 750}</span>
           </div>
         </div>
 
         {showRentalInfo && (
-          <div className="rental-period">
-            <p><strong>Fecha de alquiler:</strong> {new Date().toLocaleDateString()}</p>
-            <p><strong>Fecha de devolución:</strong> {new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString()}</p>
-          </div>
-        )}
-
-        {showRentButton && (
           <div className="rental-info">
-            <p style={{ color: '#2d8659', fontWeight: 'bold', fontSize: '1.2rem', margin: '1rem 0' }}>
-              💰 ${car.price || 750}/día
-            </p>
-            <p style={{ color: '#014421', fontWeight: '500', margin: '0.5rem 0' }}>
-              ✅ Disponible ahora
-            </p>
-            <button 
-              className="extend-button"
-              onClick={() => onRent(car.vehicle_id)}
-              style={{ 
-                background: 'linear-gradient(135deg, #4caf50 0%, #2d8659 100%)',
-                opacity: imageLoaded || imageError ? 1 : 0.5,
-                cursor: imageLoaded || imageError ? 'pointer' : 'not-allowed'
-              }}
-              disabled={!imageLoaded && !imageError}
-            >
-              🚗 Alquilar Ahora
-            </button>
+            <div className="rental-dates">
+              <div className="date-item">
+                <span className="date-label">Inicio:</span>
+                <span className="date-value">{formatDate(startDate)}</span>
+              </div>
+              <div className="date-item">
+                <span className="date-label">Fin:</span>
+                <span className="date-value">{formatDate(endDate)}</span>
+              </div>
+            </div>
           </div>
         )}
 
-        {!showRentButton && (
-          <button className="extend-button">Extender alquiler</button>
+        {showRentButton && !customers && (
+          <button 
+            className="rent-button"
+            onClick={() => onRent(car.vehicle_id)}
+          >
+            Alquilar Ahora
+          </button>
+        )}
+
+        {showRentalInfo && remainingDays !== null && (
+          <div className="rental-status">
+            <div className={`status-indicator ${remainingDays > 0 ? 'active' : 'expired'}`}>
+              {remainingDays > 0 ? 'Alquiler Activo' : 'Alquiler Finalizado'}
+            </div>
+          </div>
         )}
       </div>
     </div>
   );
-};
+}
 
 export default VehicleCard;

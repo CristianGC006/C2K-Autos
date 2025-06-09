@@ -244,4 +244,211 @@
     text-shadow: 0 0 8px #ffffff, 0 0 12px #ffb800;
   }
 
+  /* Estilos para VehicleCard */
+.vehicle-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fcfa 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(1, 68, 33, 0.1);
+  border: 1px solid rgba(1, 68, 33, 0.05);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.vehicle-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(1, 68, 33, 0.15);
+}
+
+.vehicle-image-container {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+}
+
+.vehicle-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.vehicle-card:hover .vehicle-image {
+  transform: scale(1.05);
+}
+
+.rental-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(1, 68, 33, 0.9);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  z-index: 1;
+}
+
+.days-remaining {
+  color: #4caf50;
+}
+
+.expired {
+  color: #f44336;
+}
+
+.vehicle-info {
+  padding: 1.5rem;
+}
+
+.vehicle-title {
+  margin: 0 0 1rem 0;
+  color: #014421;
+  font-size: 1.4rem;
+  font-weight: 700;
+  border-bottom: 2px solid #e8f5f0;
+  padding-bottom: 0.75rem;
+}
+
+.vehicle-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  background: rgba(1, 68, 33, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(1, 68, 33, 0.05);
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #014421;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.detail-value {
+  font-weight: 500;
+  color: #2d8659;
+  font-size: 1rem;
+}
+
+.rental-info {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: rgba(1, 68, 33, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(1, 68, 33, 0.05);
+}
+
+.rental-dates {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.date-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.date-label {
+  font-weight: 600;
+  color: #014421;
+  font-size: 0.9rem;
+}
+
+.date-value {
+  color: #2d8659;
+  font-size: 0.9rem;
+}
+
+.rent-button {
+  background: linear-gradient(135deg, #014421 0%, #2d8659 100%);
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  width: 100%;
+  margin-top: 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(1, 68, 33, 0.3);
+}
+
+.rent-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(1, 68, 33, 0.4);
+}
+
+.rental-status {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.status-indicator {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.status-indicator.active {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.status-indicator.expired {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.2);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .vehicle-details {
+    grid-template-columns: 1fr;
+  }
+  
+  .vehicle-title {
+    font-size: 1.2rem;
+  }
+  
+  .vehicle-image-container {
+    height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .vehicle-info {
+    padding: 1rem;
+  }
+  
+  .vehicle-title {
+    font-size: 1.1rem;
+  }
+  
+  .detail-item {
+    padding: 0.5rem;
+  }
+  
+  .rent-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+}
  
