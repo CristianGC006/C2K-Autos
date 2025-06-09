@@ -228,7 +228,7 @@ function Panel({ activeSection, setActiveSection, user }) {
                     rentalId: rental.idRental || rental.id,
                     customers: { 
                       id: currentUserId,
-                      name: rental.customer?.name || userInfo?.name || 'Usuario'
+                      name: rental.customer?.name || 'Usuario'
                     }
                   };
                 }
@@ -247,9 +247,8 @@ function Panel({ activeSection, setActiveSection, user }) {
       setLoading(false);
     } catch (error) {      console.error('Error reloading vehicles:', error);
       setError(`Error al recargar vehículos: ${error.message}`);
-      setLoading(false);
-    }
-  }, [getUserId, userInfo?.name]);
+      setLoading(false);    }
+  }, [getUserId]); // Solo depende de getUserId para estabilidad
 // ✅ USEEFFECT PARA CARGAR FACTURAS CUANDO SE CAMBIA A LA SECCIÓN CORRESPONDIENTE
   useEffect(() => {
     let isMounted = true;
@@ -439,11 +438,10 @@ function Panel({ activeSection, setActiveSection, user }) {
                   endDate: rental.endDate,
                   rentalId: rental.idRental || rental.id,
                   rentalStatus: rental.status,
-                  rentalPrice: rental.price,
-                  // Simular la estructura customers que espera el frontend
+                  rentalPrice: rental.price,                  // Simular la estructura customers que espera el frontend
                   customers: { 
                     id: currentUserId,
-                    name: rental.customer?.name || userInfo?.name || 'Usuario'
+                    name: rental.customer?.name || 'Usuario'
                   },
                   // Información adicional del rental
                   rentalName: rental.name,
@@ -467,11 +465,10 @@ function Panel({ activeSection, setActiveSection, user }) {
                   endDate: rental.endDate,
                   rentalId: rental.idRental || rental.id,
                   rentalStatus: rental.status,
-                  rentalPrice: rental.price,
-                  // Simular la estructura customers que espera el frontend
+                  rentalPrice: rental.price,                  // Simular la estructura customers que espera el frontend
                   customers: { 
                     id: currentUserId,
-                    name: rental.customer?.name || userInfo?.name || 'Usuario'
+                    name: rental.customer?.name || 'Usuario'
                   },
                   // Información adicional del rental
                   rentalName: rental.name,
@@ -490,11 +487,12 @@ function Panel({ activeSection, setActiveSection, user }) {
         console.error('Error loading initial vehicles:', error);
         setError(`Error al cargar vehículos: ${error.message}`);
         setLoading(false);
-      }
-    };
+      }    };
     
     loadData();
-  }, [getUserId, userInfo?.name]); // Incluir userInfo?.name como dependencia  // ✅ FUNCIÓN PARA MOSTRAR DETALLES DE FACTURA
+  }, [getUserId]); // Solo depende de getUserId para estabilidad
+
+  // ✅ FUNCIÓN PARA MOSTRAR DETALLES DE FACTURA
   const showInvoiceDetails = async (rentalId) => {
     console.log("Loading invoice details for rental:", rentalId);
     
