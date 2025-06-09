@@ -372,7 +372,7 @@ export default function AssessorHome() {
                 <div className="header-content">
                     <img className="logo" alt="C2K-Logo" src={C2KLogoNoBackground} />
                     <h1>Panel de Asesor</h1>
-                    <Link to="/login" className="logout-btn">Cerrar Sesión</Link>
+                    <Link to="/" className="logout-btn">Cerrar Sesión</Link>
                 </div>
             </header>
 
