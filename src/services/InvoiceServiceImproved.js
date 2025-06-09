@@ -1,4 +1,4 @@
-// Servicio para manejar facturas y rentas del cliente
+// Servicio mejorado para manejar facturas y rentas del cliente con mejor extracción de datos
 const API_URL = 'http://localhost:8080/rental';
 const CUSTOMER_API_URL = 'http://localhost:8080/customer';
 const VEHICLE_API_URL = 'http://localhost:8080/vehicle';
@@ -10,6 +10,11 @@ const ASSESSOR_API_URL = 'http://localhost:8080/assessor';
 export const getCustomerRentals = async (customerId) => {
     try {
         console.log(`Obteniendo rentas para el cliente ${customerId}...`);
+        
+        if (!customerId) {
+            console.warn('Se intentó obtener rentas sin proporcionar ID de cliente');
+            return [];
+        }
         
         // Usar el endpoint específico que devuelve las rentas del cliente con detalles
         const response = await fetch(`${API_URL}/customer/${customerId}`);
@@ -35,9 +40,56 @@ export const getCustomerRentals = async (customerId) => {
             console.warn('La respuesta no es un array. Respuesta:', rentals);
             return []; // Devolver array vacío para evitar errores en la UI
         }
+          console.log(`✅ ${rentals.length} rentas obtenidas para el cliente ${customerId}`);
         
-        console.log(`✅ ${rentals.length} rentas obtenidas para el cliente ${customerId}`);
-        return rentals;
+        // Asegurar que cada rental tiene el customerID correcto incluso si falta en la respuesta
+        const rentalsWithCorrectIds = rentals.map(rental => {
+            // Si el rental no tiene customerID pero sabemos cuál es, añadirlo
+            if ((!rental.customerId && !rental.customer?.idCustomer) || 
+                (!rental.customerId && !rental.customer?.id)) {
+                return {
+                    ...rental,
+                    customerId: customerId,
+                    customer: rental.customer ? {
+                        ...rental.customer,
+                        idCustomer: rental.customer.idCustomer || customerId,
+                        id: rental.customer.id || customerId
+                    } : { idCustomer: customerId, id: customerId }
+                };
+            }
+            return rental;
+        });
+          // Asegurar que cada rental tiene el ID del cliente incluso si falta en la respuesta
+        const rentalsWithCustomerId = rentals.map(rental => {
+            // Si el rental no tiene ID de cliente pero sabemos cuál es, añadirlo
+            if ((!rental.customerId && !rental.customer?.idCustomer) || 
+                (!rental.customerId && !rental.customer?.id)) {
+                return {
+                    ...rental,
+                    customerId: customerId,
+                    customer: rental.customer ? {
+                        ...rental.customer,
+                        idCustomer: rental.customer.idCustomer || customerId,
+                        id: rental.customer.id || customerId
+                    } : { idCustomer: customerId, id: customerId }
+                };
+            }
+            return rental;
+        });
+        
+        // Enriquecer cada rental con datos completos del cliente y vehículo
+        const enrichedRentals = await Promise.all(
+            rentalsWithCustomerId.map(async (rental) => {
+                try {
+                    return await enrichRentalData(rental);
+                } catch (error) {
+                    console.warn('Error enriqueciendo rental:', rental.idRental, error);
+                    return rental; // Devolver el rental original si falla el enriquecimiento
+                }
+            })
+        );
+        
+        return enrichedRentals;
     } catch (error) {
         console.error('❌ Error en getCustomerRentals:', error);
         
@@ -54,8 +106,6 @@ export const getCustomerRentals = async (customerId) => {
 // Obtener información completa para generar factura
 export const getRentalForInvoice = async (rentalId) => {
     try {
-        // FORZAR el uso de getRentalWithCompleteData para asegurar datos completos
-        // El endpoint del backend no está devolviendo las entidades relacionadas correctamente
         console.log('Obteniendo datos completos para factura del rental:', rentalId);
         return await getRentalWithCompleteData(rentalId);
     } catch (error) {
@@ -104,13 +154,26 @@ export const getRentalWithCompleteData = async (rentalId) => {
 const enrichRentalData = async (rental) => {
     // 1. Obtener datos del cliente con múltiples estrategias
     let customer = null;
-    // Buscar el customer ID en todas las posibles ubicaciones con prioridades
-    const customerId = rental.customer?.idCustomer || 
-                      rental.customer?.customerId || 
-                      rental.customer?.id ||
-                      rental.customerId ||
-                      rental.customer_id ||
-                      rental.idCustomer;
+      // Buscar el customer ID en todas las posibles ubicaciones con prioridades
+    // 1. Buscamos primero en la estructura anidada de customer
+    let customerId = rental.customer?.idCustomer || 
+                     rental.customer?.customerId || 
+                     rental.customer?.id;
+    
+    // 2. Si no se encuentra, buscamos en las propiedades directas del rental
+    if (!customerId) {
+        customerId = rental.customerId ||
+                    rental.customer_id ||
+                    rental.idCustomer;
+    }
+    
+    // 3. Si aún no lo encontramos, verificamos si hay un id dentro de la estructura del rental
+    if (!customerId && typeof rental.id !== 'undefined') {
+        // Si estamos viendo un objeto cliente directamente (no un rental)
+        if (rental.firstName || rental.lastName || rental.email) {
+            customerId = rental.id;
+        }
+    }
     
     console.log('Customer ID encontrado:', customerId);
     console.log('Estructura del customer en rental:', rental.customer);
@@ -120,24 +183,25 @@ const enrichRentalData = async (rental) => {
             const customerResponse = await fetch(`${CUSTOMER_API_URL}/${customerId}`);
             if (customerResponse.ok) {
                 customer = await customerResponse.json();
-                console.log('Datos del cliente obtenidos desde API:', customer);
+                console.log('✅ Datos del cliente obtenidos desde API:', customer);
             } else {
-                console.warn('Error al obtener cliente desde API, status:', customerResponse.status);
+                console.warn('⚠️ Error al obtener cliente desde API, status:', customerResponse.status);
                 // Intentar extraer datos del cliente desde el objeto rental si la API falla
                 customer = extractCustomerFromRental(rental);
             }
         } catch (error) {
-            console.warn('No se pudo obtener información del cliente desde API:', error);
+            console.warn('⚠️ No se pudo obtener información del cliente desde API:', error);
             // Intentar extraer datos del cliente desde el objeto rental
             customer = extractCustomerFromRental(rental);
         }
     } else {
-        console.warn('No se encontró ID de cliente, intentando extraer desde rental');
+        console.warn('⚠️ No se encontró ID de cliente, intentando extraer desde rental');
         customer = extractCustomerFromRental(rental);
     }
 
     // 2. Obtener datos del vehículo con múltiples estrategias
     let vehicle = null;
+    
     const vehicleId = rental.vehicle?.vehicleId || 
                      rental.vehicle?.idVehicle || 
                      rental.vehicle?.id ||
@@ -153,19 +217,19 @@ const enrichRentalData = async (rental) => {
             const vehicleResponse = await fetch(`${VEHICLE_API_URL}/${vehicleId}`);
             if (vehicleResponse.ok) {
                 vehicle = await vehicleResponse.json();
-                console.log('Datos del vehículo obtenidos desde API:', vehicle);
+                console.log('✅ Datos del vehículo obtenidos desde API:', vehicle);
             } else {
-                console.warn('Error al obtener vehículo desde API, status:', vehicleResponse.status);
+                console.warn('⚠️ Error al obtener vehículo desde API, status:', vehicleResponse.status);
                 // Intentar extraer datos del vehículo desde el objeto rental si la API falla
                 vehicle = extractVehicleFromRental(rental);
             }
         } catch (error) {
-            console.warn('No se pudo obtener información del vehículo desde API:', error);
+            console.warn('⚠️ No se pudo obtener información del vehículo desde API:', error);
             // Intentar extraer datos del vehículo desde el objeto rental
             vehicle = extractVehicleFromRental(rental);
         }
     } else {
-        console.warn('No se encontró ID de vehículo, intentando extraer desde rental');
+        console.warn('⚠️ No se encontró ID de vehículo, intentando extraer desde rental');
         vehicle = extractVehicleFromRental(rental);
     }
 
@@ -179,12 +243,12 @@ const enrichRentalData = async (rental) => {
             const paymentResponse = await fetch(`${PAYMENT_API_URL}/${paymentId}`);
             if (paymentResponse.ok) {
                 payment = await paymentResponse.json();
-                console.log('Datos del pago obtenidos:', payment);
+                console.log('✅ Datos del pago obtenidos:', payment);
             } else {
-                console.warn('Error al obtener pago, status:', paymentResponse.status);
+                console.warn('⚠️ Error al obtener pago, status:', paymentResponse.status);
             }
         } catch (error) {
-            console.warn('No se pudo obtener información del pago:', error);
+            console.warn('⚠️ No se pudo obtener información del pago:', error);
         }
     }
     
@@ -198,12 +262,12 @@ const enrichRentalData = async (rental) => {
             const branchResponse = await fetch(`${BRANCH_API_URL}/${branchId}`);
             if (branchResponse.ok) {
                 branch = await branchResponse.json();
-                console.log('Datos de la sucursal obtenidos:', branch);
+                console.log('✅ Datos de la sucursal obtenidos:', branch);
             } else {
-                console.warn('Error al obtener sucursal, status:', branchResponse.status);
+                console.warn('⚠️ Error al obtener sucursal, status:', branchResponse.status);
             }
         } catch (error) {
-            console.warn('No se pudo obtener información de la sucursal:', error);
+            console.warn('⚠️ No se pudo obtener información de la sucursal:', error);
         }
     }
     
@@ -217,58 +281,144 @@ const enrichRentalData = async (rental) => {
             const assessorResponse = await fetch(`${ASSESSOR_API_URL}/${assessorId}`);
             if (assessorResponse.ok) {
                 assessor = await assessorResponse.json();
-                console.log('Datos del asesor obtenidos:', assessor);
+                console.log('✅ Datos del asesor obtenidos:', assessor);
             } else {
-                console.warn('Error al obtener asesor, status:', assessorResponse.status);
+                console.warn('⚠️ Error al obtener asesor, status:', assessorResponse.status);
             }
         } catch (error) {
-            console.warn('No se pudo obtener información del asesor:', error);
+            console.warn('⚠️ No se pudo obtener información del asesor:', error);
         }
+    }    // 6. Combinar toda la información enriquecida
+    // Primero asegurarnos de que tenemos un customer ID válido
+    const finalCustomerId = rental.customerId || rental.customer?.idCustomer || rental.customer?.id || customerId;
+    
+    // Creamos un objeto de cliente completo con todas las propiedades necesarias
+    const finalCustomer = customer || rental.customer || {
+        idCustomer: finalCustomerId,
+        id: finalCustomerId, // Duplicar ID para total compatibilidad
+        name: 'Cliente no identificado',
+        firstName: 'N/A', 
+        lastName: 'N/A',
+        email: 'N/A',
+        phone: 'N/A',
+        identificationNumber: 'N/A',
+        identificationType: 'N/A'
+    };
+    
+    // Asegurar que el objeto cliente tiene ambas propiedades de ID
+    if (!finalCustomer.idCustomer && finalCustomer.id) {
+        finalCustomer.idCustomer = finalCustomer.id;
     }
     
-    // 6. Combinar toda la información enriquecida
-    return {
+    if (!finalCustomer.id && finalCustomer.idCustomer) {
+        finalCustomer.id = finalCustomer.idCustomer;
+    }
+    
+    const enrichedRental = {
         ...rental,
-        customer: customer || rental.customer,
+        // Añadir customerId al rental si no lo tiene
+        customerId: finalCustomerId || rental.customerId,
+        customer_id: finalCustomerId || rental.customer_id,
+        // Usar el cliente completo
+        customer: finalCustomer,
         vehicle: vehicle || rental.vehicle,
         payment: payment || rental.payment,
         branch: branch || rental.branch,
         assessor: assessor || rental.assessor
     };
+    
+    console.log('✅ Rental enriquecido completado:', enrichedRental);
+    return enrichedRental;
 };
 
 // Función auxiliar para extraer datos del cliente desde el objeto rental
 const extractCustomerFromRental = (rental) => {
-    console.log('Extrayendo datos de cliente desde rental object:', rental);
+    console.log('🔍 Extrayendo datos de cliente desde rental object:', rental);
     
-    // Buscar información del cliente en diferentes ubicaciones dentro del rental
-    const customerData = rental.customer || {};
+    // Verificar si el objeto rental podría ser un objeto cliente
+    const isCustomerObject = rental && (
+        rental.firstName !== undefined || 
+        rental.lastName !== undefined || 
+        rental.identificationNumber !== undefined || 
+        rental.email !== undefined ||
+        rental.idCustomer !== undefined
+    );
+    
+    // Si parece ser un objeto cliente en sí mismo, usarlo directamente
+    let customerData = {};
+    
+    if (isCustomerObject) {
+        console.log('El objeto rental parece ser un objeto cliente en sí mismo');
+        customerData = rental;
+    } else {
+        // Buscar información del cliente en la propiedad customer del rental
+        customerData = rental.customer || {};
+    }
     
     // Intentar extraer el nombre completo desde diferentes ubicaciones
-    const fullName = customerData.name || 
-                    customerData.fullName || 
-                    customerData.customerName ||
-                    rental.customerName ||
-                    `${customerData.firstName || customerData.name || ''} ${customerData.lastName || customerData.surname || ''}`.trim();
+    let fullName = '';
+    
+    // Primero intentar con firstName y lastName
+    if (customerData.firstName || customerData.lastName) {
+        const first = customerData.firstName || '';
+        const last = customerData.lastName || '';
+        fullName = `${first} ${last}`.trim();
+    } else {
+        // Si no hay firstName o lastName, intentar con otros campos
+        fullName = customerData.name || 
+                  customerData.fullName || 
+                  customerData.customerName ||
+                  rental.customerName || '';
+    }
+    
+    // Intentar obtener el ID del cliente de todas las posibles ubicaciones
+    let customerId;
+    
+    // Si estamos trabajando directamente con un objeto cliente
+    if (isCustomerObject) {
+        customerId = rental.id || rental.idCustomer;
+    } else {
+        // Buscar el ID en todas las ubicaciones posibles con prioridad
+        customerId = customerData.idCustomer || customerData.id || rental.customerId || 
+                    customerData.customer_id || rental.customer_id || 
+                    rental.customer?.idCustomer || rental.customer?.id;
+    }
+
+    // Si seguimos sin ID, verificar si hay un ID en localStorage
+    if (!customerId) {
+        try {
+            const storedUser = localStorage.getItem("User");
+            if (storedUser) {
+                const parsedUser = JSON.parse(storedUser);
+                customerId = parsedUser?.idCustomer || parsedUser?.id;
+            }
+        } catch (e) {
+            console.warn("Error obteniendo ID de usuario desde localStorage", e);
+        }
+    }
     
     const extractedCustomer = {
-        idCustomer: customerData.idCustomer || customerData.id || rental.customerId,
+        idCustomer: customerId || 0,
+        id: customerId || 0, // Asegurar que también tengamos el "id" para total compatibilidad
         name: fullName || 'Cliente no identificado',
-        firstName: customerData.firstName || customerData.name || fullName.split(' ')[0] || 'N/A',
-        lastName: customerData.lastName || customerData.surname || fullName.split(' ').slice(1).join(' ') || 'N/A',
+        firstName: customerData.firstName || (fullName ? fullName.split(' ')[0] : 'N/A'),
+        lastName: customerData.lastName || (
+            fullName && fullName.includes(' ') ? 
+            fullName.split(' ').slice(1).join(' ') : 'N/A'
+        ),
         email: customerData.email || customerData.correo || rental.customerEmail || 'N/A',
         phone: customerData.phone || customerData.telefono || customerData.phoneNumber || rental.customerPhone || 'N/A',
         identificationNumber: customerData.identificationNumber || customerData.documento || customerData.identification || rental.customerIdentification || 'N/A',
         identificationType: customerData.identificationType || customerData.tipoDocumento || rental.customerIdentificationType || 'N/A'
     };
     
-    console.log('Datos de cliente extraídos:', extractedCustomer);
+    console.log('📋 Datos de cliente extraídos:', extractedCustomer);
     return extractedCustomer;
 };
 
 // Función auxiliar para extraer datos del vehículo desde el objeto rental
 const extractVehicleFromRental = (rental) => {
-    console.log('Extrayendo datos de vehículo desde rental object:', rental);
+    console.log('🔍 Extrayendo datos de vehículo desde rental object:', rental);
     
     // Buscar información del vehículo en diferentes ubicaciones dentro del rental
     const vehicleData = rental.vehicle || {};
@@ -283,7 +433,7 @@ const extractVehicleFromRental = (rental) => {
         type: vehicleData.type || vehicleData.tipo || vehicleData.category || rental.vehicleType || 'N/A'
     };
     
-    console.log('Datos de vehículo extraídos:', extractedVehicle);
+    console.log('🚗 Datos de vehículo extraídos:', extractedVehicle);
     return extractedVehicle;
 };
 
@@ -292,7 +442,11 @@ const extractBrandFromName = (rentalName) => {
     if (!rentalName) return null;
     
     // Lista de marcas comunes para reconocimiento
-    const commonBrands = ['Toyota', 'Honda', 'Ford', 'Chevrolet', 'Nissan', 'Hyundai', 'Kia', 'Mazda', 'Volkswagen', 'BMW', 'Mercedes', 'Audi'];
+    const commonBrands = [
+        'Toyota', 'Honda', 'Ford', 'Chevrolet', 'Nissan', 'Hyundai', 'Kia', 
+        'Mazda', 'Volkswagen', 'BMW', 'Mercedes', 'Audi', 'Subaru', 'Mitsubishi',
+        'Peugeot', 'Renault', 'Fiat', 'Jeep', 'Land Rover', 'Volvo'
+    ];
     
     for (const brand of commonBrands) {
         if (rentalName.toLowerCase().includes(brand.toLowerCase())) {
@@ -316,99 +470,13 @@ const extractModelFromName = (rentalName) => {
     
     return null;
 };
-        
-        // 4. Obtener datos del pago si existe payment ID
-        let payment = null;
-        const paymentId = rental.payment?.idPayment || rental.payment?.paymentId || rental.paymentId;
-        console.log('Payment ID encontrado:', paymentId);
-        
-        if (paymentId) {
-            try {
-                const paymentResponse = await fetch(`${PAYMENT_API_URL}/${paymentId}`);
-                if (paymentResponse.ok) {
-                    payment = await paymentResponse.json();
-                    console.log('Datos del pago obtenidos:', payment);
-                } else {
-                    console.warn('Error al obtener pago, status:', paymentResponse.status);
-                }
-            } catch (error) {
-                console.warn('No se pudo obtener información del pago:', error);
-            }
-        }
-        
-        // 5. Obtener datos de la sucursal si existe branch ID
-        let branch = null;
-        const branchId = rental.branch?.idBranch || rental.branch?.branchId || rental.branchId;
-        console.log('Branch ID encontrado:', branchId);
-        
-        if (branchId) {
-            try {
-                const branchResponse = await fetch(`${BRANCH_API_URL}/${branchId}`);
-                if (branchResponse.ok) {
-                    branch = await branchResponse.json();
-                    console.log('Datos de la sucursal obtenidos:', branch);
-                } else {
-                    console.warn('Error al obtener sucursal, status:', branchResponse.status);
-                }
-            } catch (error) {
-                console.warn('No se pudo obtener información de la sucursal:', error);
-            }
-        }
-        
-        // 6. Obtener datos del asesor si existe assessor ID
-        let assessor = null;
-        const assessorId = rental.assessor?.idAssessor || rental.assessor?.assessorId || rental.assessorId;
-        console.log('Assessor ID encontrado:', assessorId);
-        
-        if (assessorId) {
-            try {
-                const assessorResponse = await fetch(`${ASSESSOR_API_URL}/${assessorId}`);
-                if (assessorResponse.ok) {
-                    assessor = await assessorResponse.json();
-                    console.log('Datos del asesor obtenidos:', assessor);
-                } else {
-                    console.warn('Error al obtener asesor, status:', assessorResponse.status);
-                }
-            } catch (error) {
-                console.warn('No se pudo obtener información del asesor:', error);
-            }
-        }
-        
-        // 7. Combinar toda la información
-        return {
-            ...rental,
-            customer: customer,
-            vehicle: vehicle,
-            payment: payment,
-            branch: branch,
-            assessor: assessor
-        };
-        
-    } catch (error) {
-        console.error('Error en getRentalWithCompleteData:', error);
-        throw error;
-    }
-};
 
-// Obtener solo las rentas activas de un cliente
-export const getActiveCustomerRentals = async (customerId) => {
-    try {
-        const response = await fetch(`${API_URL}/customer/${customerId}/active`);
-        if (!response.ok) {
-            throw new Error('Error al obtener las rentas activas');
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error en getActiveCustomerRentals:', error);
-        throw error;
-    }
-};
-
-// Función auxiliar para formatear datos de factura desde el objeto Rental
+// Función auxiliar para formatear datos de factura desde el objeto Rental (mejorada)
 export const formatInvoiceData = (rental) => {
     if (!rental) return null;
     
-    console.log('Formateando datos de factura. Rental completo:', rental);
+    console.log('📄 Formateando datos de factura. Rental completo:', rental);
+    
     // Función auxiliar mejorada para extraer datos en cualquier formato conocido
     const extractNestedValue = (obj, paths, defaultValue = 'N/A') => {
         if (!obj) return defaultValue;
@@ -421,71 +489,17 @@ export const formatInvoiceData = (rental) => {
             }
         }
         
-        // Segundo intento: buscar en todas las propiedades del objeto con nombres similares
-        if (typeof obj === 'object') {
-            // Convertir todas las rutas a nombres de propiedades finales para buscar
-            const propertyNames = paths.map(path => {
-                const parts = path.split('.');
-                return parts[parts.length - 1].toLowerCase();
-            });
-            
-            // Buscar recursivamente por nombres de propiedades similares
-            const searchRecursively = (object, depth = 0) => {
-                if (!object || typeof object !== 'object' || depth > 3) return null; // Limitar profundidad
-                
-                for (const key in object) {
-                    // Comprobar si esta propiedad coincide con alguna que estamos buscando
-                    if (propertyNames.includes(key.toLowerCase()) && 
-                        object[key] !== undefined && 
-                        object[key] !== null && 
-                        object[key] !== '') {
-                        return object[key];
-                    }
-                    
-                    // Buscar recursivamente en propiedades que son objetos
-                    if (typeof object[key] === 'object') {
-                        const result = searchRecursively(object[key], depth + 1);
-                        if (result !== null) return result;
-                    }
-                }
-                return null;
-            };
-            
-            const result = searchRecursively(obj);
-            if (result !== null) return result;
-        }
-        
-        // Tercer intento: buscar directamente en el objeto rental completo
-        if (window.rental && typeof window.rental === 'object') {
-            for (const propName of paths) {
-                const simpleName = propName.split('.').pop(); // Obtener el nombre simple (sin puntos)
-                // Buscar propiedades con prefijos comunes
-                const possibleNames = [
-                    simpleName,
-                    `customer${simpleName.charAt(0).toUpperCase() + simpleName.slice(1)}`,
-                    `vehicle${simpleName.charAt(0).toUpperCase() + simpleName.slice(1)}`,
-                    `branch${simpleName.charAt(0).toUpperCase() + simpleName.slice(1)}`,
-                    `assessor${simpleName.charAt(0).toUpperCase() + simpleName.slice(1)}`,
-                    `payment${simpleName.charAt(0).toUpperCase() + simpleName.slice(1)}`
-                ];
-                
-                for (const name of possibleNames) {
-                    if (window.rental[name] !== undefined && window.rental[name] !== null && window.rental[name] !== '') {
-                        return window.rental[name];
-                    }
-                }
-            }
-        }
-        
         return defaultValue;
-    };// Extraer ID de renta
+    };
+
+    // Extraer ID de renta
     const rentalId = extractNestedValue(rental, ['idRental', 'id', 'rentalId'], 'N/A');
     
     // Extraer información del cliente con soporte para múltiples formatos
     const customer = rental.customer || {};
-    console.log('Datos de cliente encontrados:', customer);
+    console.log('👤 Datos de cliente encontrados:', customer);
     
-    // Extraer nombre del cliente (no almacenamos el ID porque no lo usamos más adelante)
+    // Extraer nombre del cliente
     const customerName = extractNestedValue(customer, ['name'], null) || 
                        extractNestedValue(rental, ['customerName'], null);
 
@@ -498,25 +512,27 @@ export const formatInvoiceData = (rental) => {
         firstName = nameParts[0];
         lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
     } else {
-        firstName = extractNestedValue(customer, ['name', 'firstName'], 'N/A');
+        firstName = extractNestedValue(customer, ['firstName', 'name'], 'N/A');
         lastName = extractNestedValue(customer, ['lastName', 'surname'], 'N/A');
     }
-      // Extraer información del vehículo con soporte para múltiples formatos
+
+    // Extraer información del vehículo con soporte para múltiples formatos
     const vehicle = rental.vehicle || {};
-    console.log('Datos de vehículo encontrados:', vehicle);
+    console.log('🚗 Datos de vehículo encontrados:', vehicle);
     
     // Extraer información del pago con soporte para múltiples formatos
     const payment = rental.payment || {};
-    console.log('Datos de pago encontrados:', payment);
+    console.log('💳 Datos de pago encontrados:', payment);
     
     // Extraer información de la sucursal con soporte para múltiples formatos
     const branch = rental.branch || {};
-    console.log('Datos de sucursal encontrados:', branch);
+    console.log('🏢 Datos de sucursal encontrados:', branch);
     
     // Extraer información del asesor con soporte para múltiples formatos
     const assessor = rental.assessor || {};
-    console.log('Datos de asesor encontrados:', assessor);
-      // Crear un objeto con todos los datos extraídos e información de fallback
+    console.log('👨‍💼 Datos de asesor encontrados:', assessor);
+
+    // Crear un objeto con todos los datos extraídos e información de fallback
     const rentalName = extractNestedValue(rental, ['name'], null) || 
                      (extractNestedValue(vehicle, ['brand'], '') && extractNestedValue(vehicle, ['model'], '') 
                       ? `${vehicle.brand} ${vehicle.model}` 
@@ -554,7 +570,8 @@ export const formatInvoiceData = (rental) => {
         console.warn("Error al formatear fechas:", error);
     }
     
-    return {        // Información de la renta
+    return {        
+        // Información de la renta
         rentalId: rentalId,
         rentalName: rentalName,
         description: extractNestedValue(rental, ['description', 'desc', 'comment', 'comentario'], 'Sin descripción disponible'),
@@ -562,7 +579,8 @@ export const formatInvoiceData = (rental) => {
         startDate: startDate,
         endDate: endDate,
         status: extractNestedValue(rental, ['status', 'state', 'rentalStatus', 'estado'], 'N/A'),
-          // Información del cliente con más opciones de búsqueda
+        
+        // Información del cliente con más opciones de búsqueda
         customer: {
             name: firstName,
             lastName: lastName,
@@ -582,16 +600,17 @@ export const formatInvoiceData = (rental) => {
                    extractNestedValue(rental, ['vehicleBrand', 'carBrand', 'brand', 'marca'], 'N/A')),
             model: extractNestedValue(vehicle, ['model', 'modelo', 'tipo'], 
                    extractNestedValue(rental, ['vehicleModel', 'carModel', 'model', 'modelo'], 'N/A')),
-            color: extractNestedValue(vehicle, ['color', 'carColor', 'colorVehiculo'], 
-                   extractNestedValue(rental, ['vehicleColor', 'carColor', 'color'], 'N/A')),
-            plate: extractNestedValue(vehicle, ['plate', 'plateNumber', 'registration', 'placa', 'matricula'], 
-                   extractNestedValue(rental, ['vehiclePlate', 'carPlate', 'plate', 'placa'], 'N/A')),
-            year: extractNestedValue(vehicle, ['year', 'modelo', 'año', 'fabricacion'], 
+            year: extractNestedValue(vehicle, ['year', 'año', 'anio', 'modelYear'], 
                   extractNestedValue(rental, ['vehicleYear', 'carYear', 'year', 'año'], 'N/A')),
-            imageUrl: extractNestedValue(vehicle, ['imageUrl', 'image', 'img', 'imagen', 'foto'], 
-                     extractNestedValue(rental, ['vehicleImageUrl', 'carImageUrl', 'imageUrl'], null))
+            color: extractNestedValue(vehicle, ['color', 'colour'], 
+                   extractNestedValue(rental, ['vehicleColor', 'carColor', 'color'], 'N/A')),
+            plate: extractNestedValue(vehicle, ['plate', 'placa', 'licensePlate', 'plateNumber'], 
+                   extractNestedValue(rental, ['vehiclePlate', 'carPlate', 'plate', 'placa'], 'N/A')),
+            type: extractNestedValue(vehicle, ['type', 'tipo', 'category', 'vehicleType'], 
+                  extractNestedValue(rental, ['vehicleType', 'carType', 'type', 'tipo'], 'N/A'))
         },
-          // Información del pago con más opciones de búsqueda
+        
+        // Información del pago con más opciones de búsqueda
         payment: {
             paymentId: extractNestedValue(payment, ['idPayment', 'id', 'paymentId', 'pagoId'], 
                       extractNestedValue(rental, ['paymentId', 'idPayment', 'pagoId'], 'Pendiente')),
@@ -671,6 +690,7 @@ export const generateInvoiceHTML = (invoiceData) => {
                     </div>
                     <div>
                         <strong>Color:</strong> ${invoiceData.vehicle.color}<br>
+                        <strong>Tipo:</strong> ${invoiceData.vehicle.type}<br>
                         <strong>Placa:</strong> ${invoiceData.vehicle.plate}
                     </div>
                 </div>
@@ -699,4 +719,43 @@ export const generateInvoiceHTML = (invoiceData) => {
             </div>
         </div>
     `;
+};
+
+// Obtener solo las rentas activas de un cliente
+export const getActiveCustomerRentals = async (customerId) => {
+    try {
+        const response = await fetch(`${API_URL}/customer/${customerId}/active`);
+        if (!response.ok) {
+            throw new Error('Error al obtener las rentas activas');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error en getActiveCustomerRentals:', error);
+        throw error;
+    }
+};
+
+// Obtener estadísticas de rentas de un cliente
+export const getCustomerRentalStats = async (customerId) => {
+    try {
+        const rentals = await getCustomerRentals(customerId);
+        
+        const stats = {
+            totalRentals: rentals.length,
+            activeVehicles: rentals.filter(r => r.status === 'ACTIVE').length,
+            completedRentals: rentals.filter(r => r.status === 'COMPLETED').length,
+            totalSpent: rentals.reduce((total, r) => total + (parseFloat(r.price) || 0), 0)
+        };
+        
+        console.log('📊 Estadísticas del cliente calculadas:', stats);
+        return stats;
+    } catch (error) {
+        console.error('Error calculando estadísticas del cliente:', error);
+        return {
+            totalRentals: 0,
+            activeVehicles: 0,
+            completedRentals: 0,
+            totalSpent: 0
+        };
+    }
 };

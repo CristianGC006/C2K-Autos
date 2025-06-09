@@ -278,6 +278,21 @@
   transform: scale(1.05);
 }
 
+/* Nuevo badge para destacar el año del vehículo */
+.vehicle-highlight-badge {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  background: rgba(255, 222, 89, 0.9);
+  color: #014421;
+  padding: 0.5rem 0.8rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
 .rental-badge {
   position: absolute;
   top: 1rem;
@@ -289,14 +304,15 @@
   font-size: 0.9rem;
   font-weight: 600;
   z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .days-remaining {
-  color: #4caf50;
+  color: #ffffff;
 }
 
 .expired {
-  color: #f44336;
+  color: #ffde59;
 }
 
 .vehicle-info {
@@ -304,12 +320,29 @@
 }
 
 .vehicle-title {
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.5rem 0;
   color: #014421;
   font-size: 1.4rem;
   font-weight: 700;
   border-bottom: 2px solid #e8f5f0;
   padding-bottom: 0.75rem;
+}
+
+/* Nuevo contenedor para la placa */
+.vehicle-identifier {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.plate-badge {
+  background: #014421;
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  display: inline-block;
 }
 
 .vehicle-details {
@@ -326,6 +359,12 @@
   background: rgba(1, 68, 33, 0.02);
   border-radius: 8px;
   border: 1px solid rgba(1, 68, 33, 0.05);
+}
+
+/* Destacar el precio */
+.price-item {
+  background: rgba(255, 222, 89, 0.15);
+  border: 1px solid rgba(255, 222, 89, 0.3);
 }
 
 .detail-label {
@@ -451,4 +490,3 @@
     font-size: 0.9rem;
   }
 }
- 

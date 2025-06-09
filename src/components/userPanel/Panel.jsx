@@ -4,8 +4,9 @@ import Swal from "sweetalert2";
 import VehicleCard from "../VehicleCard";
 import CarouselCars from "../CarouselCars";
 import { imageService } from "../../services/imageService";
-import { getCustomerRentals, formatInvoiceData, generateInvoiceHTML } from "../../services/InvoiceService";
+import { getCustomerRentals, formatInvoiceData, generateInvoiceHTML } from "../../services/InvoiceServiceImproved";
 import { getCustomerRentalStats } from "../../services/CustomerRentalStatsService";
+import { loadActiveVehiclesForCustomer } from "../../services/loadActiveVehiclesService";
 import "./panel.css";
 
 function Panel({ activeSection, setActiveSection, user }) {
@@ -1007,38 +1008,107 @@ function Panel({ activeSection, setActiveSection, user }) {
         confirmButtonColor: '#014421'
       });
     }
-  };
-
-  // ✅ FUNCIÓN PARA CARGAR VEHÍCULOS ACTIVOS DEL USUARIO
+  };  // ✅ FUNCIÓN MEJORADA PARA CARGAR VEHÍCULOS ACTIVOS DEL USUARIO
   const loadActiveVehicles = useCallback(async () => {
     const currentUserId = getUserId();
     if (!currentUserId) {
       console.warn("No user ID available for loading active vehicles");
+      // Mostrar mensaje de error amigable
+      setError("No se pudo identificar el usuario. Por favor, vuelva a iniciar sesión.");
+      setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
-      console.log("Loading active rentals for user:", currentUserId);
+      setError(null); // Limpiar errores anteriores
+      console.log("Loading active rentals for user ID:", currentUserId);
       
-      // Usar el nuevo endpoint específico para rentas activas
+      // Usar el servicio mejorado para cargar vehículos alquilados
+      console.log("Llamando al servicio loadActiveVehiclesForCustomer con ID:", currentUserId);
+      const activeVehicles = await loadActiveVehiclesForCustomer(currentUserId);
+      console.log("Active vehicles loaded from service:", activeVehicles);
+      
+      // Verificación adicional de los datos recibidos
+      if (Array.isArray(activeVehicles)) {
+        if (activeVehicles.length > 0) {
+          console.log("✅ Se obtuvieron vehículos del servicio mejorado:", activeVehicles.length);
+          
+          // Imprimir detalles de los vehículos cargados para depuración
+          activeVehicles.forEach((vehicle, index) => {
+            console.log(`Vehículo ${index + 1}:`, {
+              id: vehicle.vehicleId || vehicle.vehicle_id,
+              marca: vehicle.brand,
+              modelo: vehicle.model,
+              placa: vehicle.plate,
+              rentalId: vehicle.rentalId,
+              fin: vehicle.endDate
+            });
+          });
+          
+          setRentedCars(activeVehicles);
+          setLoading(false);
+          return;
+        } else {
+          console.warn("El servicio devolvió un array vacío de vehículos");
+        }
+      } else {
+        console.error("El servicio no devolvió un array:", activeVehicles);
+      }
+      
+      // Si el servicio no devolvió vehículos válidos, intentar el método directo como respaldo
+      console.warn("Intentando obtener datos directamente desde el endpoint de rentas activas...");
+      
       const response = await fetch(`http://localhost:8080/rental/customer/${currentUserId}/active`);
       
       if (!response.ok) {
         if (response.status === 404) {
           console.log("No active rentals found for user");
           setRentedCars([]);
+          setLoading(false);
           return;
         }
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
       
       const activeRentals = await response.json();
-      console.log("Active rentals loaded:", activeRentals);
+      console.log("Active rentals loaded with backup method:", activeRentals);
+      
+      // Validar que tenemos un array
+      if (!Array.isArray(activeRentals)) {
+        console.error("La respuesta no es un array:", activeRentals);
+        setRentedCars([]);
+        setLoading(false);
+        return;
+      }
+      
+      if (activeRentals.length === 0) {
+        console.log("No se encontraron rentals activos para este usuario");
+        setRentedCars([]);
+        setLoading(false);
+        return;
+      }
+      
+      console.log(`✅ Se encontraron ${activeRentals.length} rentals para procesar`);
       
       // Procesar los datos para mostrar los vehículos con información de rental
       const processedVehicles = await Promise.all(activeRentals.map(async (rental) => {
-        const vehicle = rental.vehicle;
+        // Intentar obtener el vehículo de diferentes lugares
+        let vehicle = rental.vehicle;
+        
+        // Si no hay vehículo anidado, pero tenemos un vehicleId, intentar cargarlo
+        if (!vehicle && rental.vehicleId) {
+          try {
+            const vehicleResponse = await fetch(`http://localhost:8080/vehicle/${rental.vehicleId}`);
+            if (vehicleResponse.ok) {
+              vehicle = await vehicleResponse.json();
+            }
+          } catch (error) {
+            console.error(`Error cargando vehículo por ID ${rental.vehicleId}:`, error);
+          }
+        }
+        
+        // Si seguimos sin vehículo, saltar este rental
         if (!vehicle) return null;
         
         // Obtener imagen del vehículo
@@ -1063,6 +1133,9 @@ function Panel({ activeSection, setActiveSection, user }) {
           }
         }
         
+        // Asegurar que tenemos el ID del cliente actual
+        const currentUserId = getUserId();
+        
         return {
           ...vehicle,
           vehicle_id: vehicle?.vehicleId || vehicle?.vehicle_id || vehicle?.id,
@@ -1073,7 +1146,21 @@ function Panel({ activeSection, setActiveSection, user }) {
           plate: vehicle?.plate || 'Sin placa',
           year: vehicle?.year || 'N/A',
           price: vehicle?.price || rental?.price || 750,
-          // Información del rental
+          // Añadir información del cliente para que se detecte como alquilado
+          customerId: rental.customerId || rental.customer?.id || currentUserId,
+          customers: {
+            id: currentUserId,
+            idCustomer: currentUserId,
+            name: rental.customer?.name || 'Cliente'
+          },
+          // Información detallada del rental
+          rentalId: rental.idRental || rental.id,
+          startDate: rental.startDate,
+          endDate: rental.endDate,
+          rentalStatus: rental.status,
+          rentalPrice: rental.price,
+          description: rental.description,
+          // Mantener estructura antigua para compatibilidad
           rental: {
             id: rental.idRental || rental.id,
             startDate: rental.startDate,
@@ -1449,26 +1536,106 @@ function Panel({ activeSection, setActiveSection, user }) {
                               e.target.src = imageService.defaultImage;
                             }}
                           />
-                          <div className={`rental-status ${daysRemaining > 3 ? 'active' : daysRemaining > 0 ? 'warning' : 'expired'}`}>
+                          <div className={`rental-status-badge ${daysRemaining > 3 ? 'active' : daysRemaining > 0 ? 'warning' : 'expired'}`}>
                             {daysRemaining > 0 ? `${daysRemaining} días restantes` : 'Alquiler vencido'}
+                          </div>
+                          <div className="vehicle-year-badge">
+                            {car.year || 'N/A'}
                           </div>
                         </div>
                         
                         <div className="vehicle-info">
-                          <h3 className="vehicle-title">{car.brand} {car.model}</h3>
-                          <div className="vehicle-details">
-                            <p><strong>🏷️ Placa:</strong> {car.plate}</p>
-                            <p><strong>📅 Año:</strong> {car.year}</p>
-                            <p><strong>💰 Precio:</strong> ${car.price}/día</p>
+                          <div className="vehicle-header">
+                            <h3 className="vehicle-title">{car.brand} {car.model}</h3>
+                            <div className="plate-container">
+                              <span className="plate-label">Placa</span>
+                              <span className="plate-number">{car.plate}</span>
+                            </div>
                           </div>
-                            {(car.startDate || car.endDate || car.rentalPrice) && (
-                            <div className="rental-details">
-                              <h4>📋 Detalles del Alquiler</h4>
+
+                          <div className="vehicle-details rental-vehicle-details">
+                            <div className="detail-column">
+                              <div className="detail-row">
+                                <span className="detail-icon">🚗</span>
+                                <div className="detail-data">
+                                  <span className="detail-label">Marca y Modelo:</span>
+                                  <span className="detail-value highlighted">{car.brand} {car.model}</span>
+                                </div>
+                              </div>
+                              <div className="detail-row">
+                                <span className="detail-icon">🏷️</span>
+                                <div className="detail-data">
+                                  <span className="detail-label">Placa:</span>
+                                  <span className="detail-value">{car.plate}</span>
+                                </div>
+                              </div>
+                              <div className="detail-row">
+                                <span className="detail-icon">📅</span>
+                                <div className="detail-data">
+                                  <span className="detail-label">Año:</span>
+                                  <span className="detail-value">{car.year}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="detail-column">
+                              <div className="detail-row">
+                                <span className="detail-icon">💰</span>
+                                <div className="detail-data">
+                                  <span className="detail-label">Precio:</span>
+                                  <span className="detail-value">${car.price}/día</span>
+                                </div>
+                              </div>
+                              <div className="detail-row">
+                                <span className="detail-icon">🎨</span>
+                                <div className="detail-data">
+                                  <span className="detail-label">Color:</span>
+                                  <span className="detail-value">{car.color || 'N/A'}</span>
+                                </div>
+                              </div>
+                              <div className="detail-row">
+                                <span className="detail-icon">🚙</span>
+                                <div className="detail-data">
+                                  <span className="detail-label">Tipo:</span>
+                                  <span className="detail-value">{car.type || 'N/A'}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {(car.startDate || car.endDate || car.rentalPrice) && (
+                            <div className="rental-details-container">
+                              <h4 className="rental-details-title">📋 Detalles del Alquiler</h4>
                               <div className="rental-info-grid">
-                                <p><strong>📅 Inicio:</strong> {car.startDate ? new Date(car.startDate).toLocaleDateString('es-ES') : 'N/A'}</p>
-                                <p><strong>📅 Fin:</strong> {car.endDate ? new Date(car.endDate).toLocaleDateString('es-ES') : 'N/A'}</p>
-                                <p><strong>💳 Total Pagado:</strong> ${car.rentalPrice || car.price || 0}</p>
-                                <p><strong>📊 Estado:</strong> <span className={`status ${car.rentalStatus?.toLowerCase() || 'active'}`}>{car.rentalStatus || 'ACTIVE'}</span></p>
+                                <div className="rental-info-item">
+                                  <span className="rental-info-icon">📅</span>
+                                  <div className="rental-info-data">
+                                    <span className="rental-info-label">Inicio:</span>
+                                    <span className="rental-info-value">{car.startDate ? new Date(car.startDate).toLocaleDateString('es-ES') : 'N/A'}</span>
+                                  </div>
+                                </div>
+                                <div className="rental-info-item">
+                                  <span className="rental-info-icon">📆</span>
+                                  <div className="rental-info-data">
+                                    <span className="rental-info-label">Fin:</span>
+                                    <span className="rental-info-value">{car.endDate ? new Date(car.endDate).toLocaleDateString('es-ES') : 'N/A'}</span>
+                                  </div>
+                                </div>
+                                <div className="rental-info-item">
+                                  <span className="rental-info-icon">💳</span>
+                                  <div className="rental-info-data">
+                                    <span className="rental-info-label">Total Pagado:</span>
+                                    <span className="rental-info-value price">${car.rentalPrice || car.price || 0}</span>
+                                  </div>
+                                </div>
+                                <div className="rental-info-item">
+                                  <span className="rental-info-icon">📊</span>
+                                  <div className="rental-info-data">
+                                    <span className="rental-info-label">Estado:</span>
+                                    <span className={`rental-info-value status ${car.rentalStatus?.toLowerCase() || 'active'}`}>
+                                      {car.rentalStatus || 'ACTIVE'}
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           )}
@@ -1480,7 +1647,8 @@ function Panel({ activeSection, setActiveSection, user }) {
                               disabled={daysRemaining <= 0}
                             >
                               ⏰ Extender
-                            </button>                            <button 
+                            </button>
+                            <button 
                               className="action-button invoice"
                               onClick={() => showInvoiceDetails(car.rentalId)}
                             >

@@ -54,10 +54,16 @@ function VehicleCard({ car, onRent, showRentButton = true, showRentalInfo = fals
             )}
           </div>
         )}
+        <div className="vehicle-highlight-badge">
+          {year || 'N/A'}
+        </div>
       </div>
 
       <div className="vehicle-info">
         <h3 className="vehicle-title">{brand} {model}</h3>
+        <div className="vehicle-identifier">
+          <span className="plate-badge">{plate || 'N/A'}</span>
+        </div>
         
         <div className="vehicle-details">
           <div className="detail-item">
@@ -76,7 +82,7 @@ function VehicleCard({ car, onRent, showRentButton = true, showRentalInfo = fals
             <span className="detail-label">Tipo:</span>
             <span className="detail-value">{type || 'N/A'}</span>
           </div>
-          <div className="detail-item">
+          <div className="detail-item price-item">
             <span className="detail-label">Precio por día:</span>
             <span className="detail-value">${price || 750}</span>
           </div>
