@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import Swal from 'sweetalert2';
-import CarouselCars from "../CarouselCars";
+import Swal from "sweetalert2";
 import VehicleCard from "../VehicleCard";
+import CarouselCars from "../CarouselCars";
 import { imageService } from "../../services/imageService";
-import { getCustomerRentals, getRentalForInvoice, formatInvoiceData, generateInvoiceHTML } from "../../services/InvoiceService";
+import { getCustomerRentals, formatInvoiceData, generateInvoiceHTML } from "../../services/InvoiceService";
+import { getCustomerRentalStats } from "../../services/CustomerRentalStatsService";
 import "./panel.css";
 
 function Panel({ activeSection, setActiveSection, user }) {
@@ -12,13 +13,16 @@ function Panel({ activeSection, setActiveSection, user }) {
   const [availableCars, setAvailableCars] = useState([]);
   const [nextReservation] = useState(null);
   const [userInfo, setUserInfo] = useState(user || {});
-  const [loading, setLoading] = useState(true);  const [error, setError] = useState(null);
-  const [customerRentals, setCustomerRentals] = useState([]);
-  const [rentalsLoading, setRentalsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);  const [error, setError] = useState(null);  const [customerRentals, setCustomerRentals] = useState([]);
+  const [rentalsLoading, setRentalsLoading] = useState(false);  const [customerStats, setCustomerStats] = useState({
+    activeVehicles: 0,
+    totalRentals: 0,
+    completedRentals: 0,
+    totalSpent: 0
+  });
   const navigate = useNavigate();
-
-  // ✅ FUNCIÓN PARA VALIDAR Y OBTENER EL ID DEL USUARIO (FUERA DEL USEEFFECT PARA REUTILIZAR)
-  const getUserId = () => {
+  // ✅ FUNCIÓN PARA VALIDAR Y OBTENER EL ID DEL USUARIO (OPTIMIZADA CON USECALLBACK)
+  const getUserId = useCallback(() => {
     // Buscar el ID usando la estructura real del API (idCustomer)
     let userId = userInfo?.idCustomer || userInfo?.id || userInfo?.customer_id || userInfo?.userId;
     
@@ -43,7 +47,7 @@ function Panel({ activeSection, setActiveSection, user }) {
     }
     
     return numericId;
-  };  // ✅ FUNCIÓN PARA CARGAR RENTAS DEL CLIENTE
+  }, [userInfo]);  // ✅ FUNCIÓN PARA CARGAR RENTAS DEL CLIENTE (FACTURAS)
   const loadCustomerRentals = useCallback(async () => {
     const currentUserId = getUserId();
     if (!currentUserId) {
@@ -63,6 +67,30 @@ function Panel({ activeSection, setActiveSection, user }) {
       // No mostramos alert aquí para no interrumpir la experiencia
     } finally {
       setRentalsLoading(false);
+    }
+  }, [getUserId]);
+
+  // ✅ FUNCIÓN PARA CARGAR ESTADÍSTICAS DEL CLIENTE
+  const loadCustomerStats = useCallback(async () => {
+    const currentUserId = getUserId();
+    if (!currentUserId) {
+      console.warn("No user ID available for loading stats");
+      return;
+    }    try {
+      console.log("Loading customer stats for user:", currentUserId);
+      
+      const stats = await getCustomerRentalStats(currentUserId);
+      setCustomerStats(stats);
+      console.log("Customer stats loaded:", stats);
+    } catch (error) {
+      console.error("Error loading customer stats:", error);
+      // Mantener valores por defecto en caso de error
+      setCustomerStats({
+        activeVehicles: 0,
+        totalRentals: 0,
+        completedRentals: 0,
+        totalSpent: 0
+      });
     }
   }, [getUserId]);
   // ✅ FUNCIÓN PARA RECARGAR VEHÍCULOS (PARA USAR DESPUÉS DE ALQUILAR)
@@ -140,6 +168,44 @@ function Panel({ activeSection, setActiveSection, user }) {
       setLoading(false);
     }
   }, [getUserId]);
+// ✅ USEEFFECT PARA CARGAR FACTURAS CUANDO SE CAMBIA A LA SECCIÓN CORRESPONDIENTE
+  useEffect(() => {
+    let isMounted = true;
+    let loadAttempted = false; // Rastrear si ya se intentó cargar
+    
+    if (activeSection === "facturas" && isMounted) {
+      console.log("Verificando si necesitamos cargar facturas para la sección 'facturas'");
+      
+      // Solo cargar si:
+      // 1. No hay rentals cargados
+      // 2. No está actualmente cargando
+      // 3. No se ha intentado cargar en esta ejecución del efecto
+      if (customerRentals.length === 0 && !rentalsLoading && !loadAttempted) {
+        console.log("Cargando facturas automáticamente al cambiar a sección 'facturas'");
+        loadAttempted = true; // Marcar que ya intentamos cargar
+        loadCustomerRentals();
+      } else {
+        console.log("No es necesario cargar facturas:", 
+          customerRentals.length > 0 ? "Ya hay facturas cargadas" : 
+          rentalsLoading ? "Ya se están cargando facturas" : 
+          loadAttempted ? "Ya se intentó cargar facturas" : "Razón desconocida");
+      }
+    }
+    
+    // Cleanup function para evitar actualizaciones en componentes desmontados
+    return () => {
+      isMounted = false;
+    };    // Incluimos customerRentals.length como dependencia para satisfacer React,
+    // pero la lógica interna evita el bucle infinito con loadAttempted
+  }, [activeSection, loadCustomerRentals, customerRentals.length, rentalsLoading]);
+  // ✅ USEEFFECT PARA CARGAR RENTAS Y ESTADÍSTICAS AL MONTAR EL COMPONENTE
+  useEffect(() => {
+    if (activeSection === "inicio") {
+      console.log("Cargando estadísticas para la sección 'inicio'");
+      loadCustomerStats();
+    }
+  }, [activeSection, loadCustomerStats]);
+
 // ✅ USEEFFECT PARA INICIALIZAR LA CARGA DE DATOS
   useEffect(() => {
     console.log("Panel component mounted, loading initial data...");
@@ -234,33 +300,83 @@ function Panel({ activeSection, setActiveSection, user }) {
     };
     
     loadData();
-  }, []); // Solo se ejecuta una vez al montar el componente
-
-  // ✅ FUNCIÓN PARA MOSTRAR DETALLES DE FACTURA
+  }, []); // Solo se ejecuta una vez al montar el componente  // ✅ FUNCIÓN PARA MOSTRAR DETALLES DE FACTURA
   const showInvoiceDetails = async (rentalId) => {
+    console.log("Loading invoice details for rental:", rentalId);
+    
+    // Crear referencia al diálogo de carga para poder cerrarlo en cualquier escenario
+    let loadingSwal;
+    
     try {
-      console.log("Loading invoice details for rental:", rentalId);
-      
-      Swal.fire({
+      // Mostrar pantalla de carga
+      loadingSwal = Swal.fire({
         title: 'Cargando factura...',
         allowOutsideClick: false,
         allowEscapeKey: false,
         showConfirmButton: false,
-        willOpen: () => {
+        didOpen: () => {
           Swal.showLoading();
         }
       });
 
-      const rental = await getRentalForInvoice(rentalId);
-      const invoiceData = formatInvoiceData(rental);
-      
-      if (!invoiceData) {
-        throw new Error('No se pudo procesar la información de la factura');
+      // Obtener datos de la factura
+      let rental;
+      try {
+        const response = await fetch(`http://localhost:8080/invoice/${rentalId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Error al obtener factura: ${response.status} ${response.statusText}`);
+        }
+        
+        rental = await response.json();
+        console.log("Datos completos de factura obtenidos:", rental);
+      } catch (fetchError) {
+        console.error("Error fetching invoice data:", fetchError);
+        // Asegurar que el diálogo de carga se cierre antes de mostrar error
+        if (loadingSwal) {
+          await loadingSwal.close();
+        }
+        throw new Error(`Error al obtener datos de la factura: ${fetchError.message}`);
       }
 
-      const invoiceHTML = generateInvoiceHTML(invoiceData);
+      // Formatear los datos para mostrarlos
+      let invoiceData;
+      try {
+        invoiceData = formatInvoiceData(rental);
+        if (!invoiceData) {
+          throw new Error('El formato de datos de factura está vacío');
+        }
+        console.log("Datos de factura formateados:", invoiceData);
+      } catch (formatError) {
+        console.error("Error al formatear datos:", formatError);
+        // Asegurar que el diálogo de carga se cierre antes de mostrar error
+        if (loadingSwal) {
+          await loadingSwal.close();
+        }
+        throw new Error(`No se pudo formatear la información de la factura: ${formatError.message}`);
+      }
       
-      await Swal.fire({
+      // Generar HTML
+      let invoiceHTML;
+      try {
+        invoiceHTML = generateInvoiceHTML(invoiceData);
+      } catch (htmlError) {
+        console.error("Error al generar HTML:", htmlError);
+        // Asegurar que el diálogo de carga se cierre antes de mostrar error
+        if (loadingSwal) {
+          await loadingSwal.close();
+        }
+        throw new Error(`No se pudo generar el HTML de la factura: ${htmlError.message}`);
+      }
+      
+      // Cerrar el diálogo de carga antes de mostrar los resultados
+      if (loadingSwal) {
+        await loadingSwal.close();
+        loadingSwal = null; // Evitar múltiples intentos de cierre
+      }
+      
+      // Mostrar la factura
+      const result = await Swal.fire({
         title: '📄 Factura Detallada',
         html: invoiceHTML,
         showCancelButton: true,
@@ -272,8 +388,29 @@ function Panel({ activeSection, setActiveSection, user }) {
         scrollbarPadding: false
       });
 
+      // Opcional: Implementar lógica para enviar email si el usuario lo solicita
+      if (result.isConfirmed) {
+        await Swal.fire({
+          icon: 'info',
+          title: 'Enviando factura',
+          text: 'Esta funcionalidad de envío por email está en desarrollo',
+          confirmButtonColor: '#014421'
+        });
+      }
+
     } catch (error) {
-      console.error("Error loading invoice:", error);
+      console.error("Error showing invoice details:", error);
+      
+      // Cerrar el diálogo de carga en caso de que aún esté abierto
+      if (loadingSwal) {
+        try {
+          await loadingSwal.close();
+        } catch (closeError) {
+          console.error("Error cerrando el diálogo de carga:", closeError);
+        }
+      }
+      
+      // Mostrar mensaje de error al usuario
       await Swal.fire({
         icon: 'error',
         title: 'Error al Cargar Factura',
@@ -498,13 +635,13 @@ function Panel({ activeSection, setActiveSection, user }) {
         admin: {
           idAdmin: validAdminId
         }
-      };
-
-      console.log("Creando registro de alquiler:", rentalData);      const headers = {};
+      };      console.log("Creando registro de alquiler:", rentalData);
       
       const rentalResponse = await fetch('http://localhost:8080/rental', {
         method: 'POST',
-        headers: headers,
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(rentalData),
       });
 
@@ -704,6 +841,312 @@ function Panel({ activeSection, setActiveSection, user }) {
     }
   };
 
+  // ✅ FUNCIÓN PARA CARGAR VEHÍCULOS ACTIVOS DEL USUARIO
+  const loadActiveVehicles = useCallback(async () => {
+    const currentUserId = getUserId();
+    if (!currentUserId) {
+      console.warn("No user ID available for loading active vehicles");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log("Loading active rentals for user:", currentUserId);
+      
+      // Usar el nuevo endpoint específico para rentas activas
+      const response = await fetch(`http://localhost:8080/rental/customer/${currentUserId}/active`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log("No active rentals found for user");
+          setRentedCars([]);
+          return;
+        }
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+      
+      const activeRentals = await response.json();
+      console.log("Active rentals loaded:", activeRentals);
+      
+      // Procesar los datos para mostrar los vehículos con información de rental
+      const processedVehicles = await Promise.all(activeRentals.map(async (rental) => {
+        const vehicle = rental.vehicle;
+        if (!vehicle) return null;
+        
+        // Obtener imagen del vehículo
+        let finalImageUrl;
+        const brand = vehicle?.brand || '';
+        const model = vehicle?.model || '';
+        const imageUrl = vehicle?.imageUrl || '';
+        
+        const hasValidBrandModel = brand && brand.trim() !== '' && model && model.trim() !== '';
+        
+        if (imageUrl && imageUrl.trim() !== '') {
+          if (hasValidBrandModel) {
+            finalImageUrl = await imageService.getValidatedImage(brand, model, imageUrl);
+          } else {
+            finalImageUrl = imageService.defaultImage;
+          }
+        } else {
+          if (hasValidBrandModel) {
+            finalImageUrl = await imageService.getValidatedImage(brand, model);
+          } else {
+            finalImageUrl = imageService.defaultImage;
+          }
+        }
+        
+        return {
+          ...vehicle,
+          vehicle_id: vehicle?.vehicleId || vehicle?.vehicle_id || vehicle?.id,
+          image_url: finalImageUrl,
+          imageLoaded: true,
+          brand: brand || 'Sin marca',
+          model: model || 'Sin modelo',
+          plate: vehicle?.plate || 'Sin placa',
+          year: vehicle?.year || 'N/A',
+          price: vehicle?.price || rental?.price || 750,
+          // Información del rental
+          rental: {
+            id: rental.idRental || rental.id,
+            startDate: rental.startDate,
+            endDate: rental.endDate,
+            status: rental.status,
+            price: rental.price,
+            description: rental.description
+          }
+        };
+      }));
+      
+      // Filtrar vehículos nulos
+      const validVehicles = processedVehicles.filter(v => v !== null);
+      setRentedCars(validVehicles);
+      console.log("Active vehicles processed:", validVehicles.length);
+      
+    } catch (error) {
+      console.error("Error loading active vehicles:", error);
+      setRentedCars([]);
+      // No mostrar alert para no interrumpir la experiencia
+    } finally {
+      setLoading(false);
+    }
+  }, [getUserId]);
+
+  // ✅ USEEFFECT PARA CARGAR VEHÍCULOS ACTIVOS CUANDO SE CAMBIA A LA SECCIÓN "RENTADOS"
+  useEffect(() => {
+    if (activeSection === "rentados") {
+      console.log("Cargando vehículos activos para la sección 'rentados'");
+      loadActiveVehicles();
+    }
+  }, [activeSection, loadActiveVehicles]);
+
+  // ✅ FUNCIÓN PARA EXTENDER UN ALQUILER
+  const extendRental = async (rental) => {
+    try {
+      const { value: daysInput } = await Swal.fire({
+        title: `Extender Alquiler`,
+        html: `
+          <div style="text-align: left; margin: 20px 0;">
+            <p><strong>🚗 Vehículo:</strong> ${rental.brand} ${rental.model}</p>
+            <p><strong>📅 Fecha actual de fin:</strong> ${new Date(rental.rental.endDate).toLocaleDateString('es-ES')}</p>
+            <p><strong>💰 Precio por día:</strong> $${rental.price}</p>
+          </div>
+          <label for="extension-days" style="display: block; margin-bottom: 10px; font-weight: bold;">¿Por cuántos días más?</label>
+        `,
+        input: 'number',
+        inputLabel: 'Días adicionales',
+        inputValue: 1,
+        inputAttributes: {
+          id: 'extension-days',
+          min: 1,
+          max: 30,
+          step: 1
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Extender',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#014421',
+        inputValidator: (value) => {
+          if (!value || isNaN(value) || parseInt(value) <= 0) {
+            return 'Debe ingresar un número válido de días mayor a 0';
+          }
+        }
+      });
+      
+      if (!daysInput) return;
+      
+      const extensionDays = parseInt(daysInput);
+      const currentEndDate = new Date(rental.rental.endDate);
+      const newEndDate = new Date(currentEndDate.getTime() + (extensionDays * 24 * 60 * 60 * 1000));
+      const additionalCost = rental.price * extensionDays;
+      
+      // Confirmar extensión
+      const confirmResult = await Swal.fire({
+        title: '📋 Confirmar Extensión',
+        html: `
+          <div style="text-align: left; background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
+            <h4 style="color: #014421; margin-bottom: 15px;">📄 Resumen de la Extensión</h4>
+            <div style="display: grid; gap: 8px;">
+              <p><strong>🚗 Vehículo:</strong> ${rental.brand} ${rental.model}</p>
+              <p><strong>📅 Fecha fin actual:</strong> ${currentEndDate.toLocaleDateString('es-ES')}</p>
+              <p><strong>📅 Nueva fecha fin:</strong> ${newEndDate.toLocaleDateString('es-ES')}</p>
+              <p><strong>📆 Días adicionales:</strong> ${extensionDays}</p>
+              <p><strong>💵 Costo adicional:</strong> $${additionalCost}</p>
+            </div>
+          </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '✅ Confirmar Extensión',
+        cancelButtonText: '❌ Cancelar',
+        confirmButtonColor: '#014421',
+        cancelButtonColor: '#d33'
+      });
+      
+      if (!confirmResult.isConfirmed) return;
+      
+      // Mostrar loading
+      Swal.fire({
+        title: 'Procesando extensión...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      
+      // Actualizar el rental en el backend
+      const updatedRental = {
+        ...rental.rental,
+        endDate: newEndDate.toISOString().split('T')[0],
+        price: rental.rental.price + additionalCost,
+        description: `${rental.rental.description} - Extendido ${extensionDays} día(s)`
+      };
+      
+      const response = await fetch(`http://localhost:8080/rental/${rental.rental.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedRental),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al extender el alquiler');
+      }
+      
+      // Crear pago adicional
+      const paymentData = {
+        paymentMethod: "CREDIT_CARD",
+        amount: additionalCost,
+        rental: {
+          idRental: rental.rental.id
+        }
+      };
+      
+      await fetch('http://localhost:8080/payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData),
+      });
+      
+      await Swal.fire({
+        icon: 'success',
+        title: '✅ Extensión Exitosa',
+        html: `
+          <div style="text-align: center;">
+            <p>El alquiler ha sido extendido exitosamente</p>
+            <p><strong>Nueva fecha de fin:</strong> ${newEndDate.toLocaleDateString('es-ES')}</p>
+            <p><strong>Costo adicional:</strong> $${additionalCost}</p>
+          </div>
+        `,
+        confirmButtonColor: '#014421'
+      });
+      
+      // Recargar vehículos activos
+      await loadActiveVehicles();
+      
+    } catch (error) {
+      console.error('Error extending rental:', error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error al Extender',
+        text: `Error: ${error.message}`,
+        confirmButtonColor: '#014421'
+      });
+    }
+  };
+
+  // ✅ FUNCIÓN PARA CANCELAR UN ALQUILER
+  const cancelRental = async (rental) => {
+    try {
+      const confirmResult = await Swal.fire({
+        title: '⚠️ Cancelar Alquiler',
+        html: `
+          <div style="text-align: left; background: #fff3cd; padding: 20px; border-radius: 10px; margin: 15px 0; border: 1px solid #ffeaa7;">
+            <h4 style="color: #d68910; margin-bottom: 15px;">⚠️ Confirmar Cancelación</h4>
+            <div style="display: grid; gap: 8px;">
+              <p><strong>🚗 Vehículo:</strong> ${rental.brand} ${rental.model}</p>
+              <p><strong>📅 Fecha de fin:</strong> ${new Date(rental.rental.endDate).toLocaleDateString('es-ES')}</p>
+              <p style="color: #d68910; font-weight: bold;">⚠️ Esta acción no se puede deshacer</p>
+            </div>
+          </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '🗑️ Sí, Cancelar',
+        cancelButtonText: '❌ No, Mantener',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#014421',
+        reverseButtons: true
+      });
+      
+      if (!confirmResult.isConfirmed) return;
+      
+      // Mostrar loading
+      Swal.fire({
+        title: 'Cancelando alquiler...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      
+      // Cancelar en el backend
+      const response = await fetch(`http://localhost:8080/rental/${rental.rental.id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al cancelar el alquiler');
+      }
+      
+      await Swal.fire({
+        icon: 'success',
+        title: '✅ Alquiler Cancelado',
+        text: 'El alquiler ha sido cancelado exitosamente',
+        confirmButtonColor: '#014421'
+      });
+      
+      // Recargar vehículos activos y disponibles
+      await loadActiveVehicles();
+      await reloadVehicles();
+      
+    } catch (error) {
+      console.error('Error canceling rental:', error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error al Cancelar',
+        text: `Error: ${error.message}`,
+        confirmButtonColor: '#014421'
+      });
+    }
+  };
+
   // Manejo de errores
   if (error) {
     return (
@@ -765,18 +1208,14 @@ function Panel({ activeSection, setActiveSection, user }) {
                 <button className="details-button">Ver detalles</button>
               </div>
             )}
-            
-            <div className="stats-container">
+              <div className="stats-container">
               <div className="stat-card">
                 <h3>Vehículos Alquilados</h3>
-                <p className="stat-number">{rentedCars.length}</p>
+                <p className="stat-number">{customerStats.activeVehicles}</p>
               </div>
               <div className="stat-card">
-                <h3>Nivel de Usuario</h3>
-                <p className="stat-text">
-                  {rentedCars.length === 0 ? 'Bronce' : 
-                   rentedCars.length <= 2 ? 'Plata' : 'Oro'}
-                </p>
+                <h3>Total Rentas</h3>
+                <p className="stat-number">{customerStats.totalRentals}</p>
               </div>
               <div className="stat-card">
                 <h3>Disponibles</h3>
@@ -785,32 +1224,134 @@ function Panel({ activeSection, setActiveSection, user }) {
             </div>
           </div>
         );
-        
-      case "rentados":
+          case "rentados":
         return (
           <div className="rented-cars-section">
-            <h2>Tus coches alquilados</h2>
-              {rentedCars.length > 0 ? (
-              <div className="rented-cars-grid">
-                {rentedCars.map(car => (
-                  <VehicleCard 
-                    key={car.vehicle_id}
-                    car={car}
-                    onRent={rentVehicle}
-                    showRentButton={false}
-                    showRentalInfo={true}
-                  />
-                ))}
+            <div className="section-header">
+              <h2>🚗 Mis Vehículos Alquilados</h2>
+              <button 
+                className="refresh-button"
+                onClick={loadActiveVehicles}
+                disabled={loading}
+              >
+                {loading ? '🔄 Actualizando...' : '🔄 Actualizar'}
+              </button>
+            </div>
+            
+            {loading ? (
+              <div className="loading-container">
+                <div className="loading-spinner"></div>
+                <p>Cargando tus vehículos...</p>
               </div>
+            ) : rentedCars.length > 0 ? (
+              <>
+                <div className="rental-summary">
+                  <div className="summary-card">
+                    <h3>📊 Resumen de Alquileres</h3>
+                    <div className="summary-stats">
+                      <div className="summary-item">
+                        <span className="stat-label">Vehículos Activos:</span>
+                        <span className="stat-value">{rentedCars.length}</span>
+                      </div>
+                      <div className="summary-item">
+                        <span className="stat-label">Total Invertido:</span>
+                        <span className="stat-value">
+                          ${rentedCars.reduce((total, car) => total + (car.rental?.price || 0), 0).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="rented-cars-grid">
+                  {rentedCars.map(car => {
+                    const daysRemaining = car.rental?.endDate ? 
+                      Math.ceil((new Date(car.rental.endDate) - new Date()) / (1000 * 60 * 60 * 24)) : 0;
+                    
+                    return (
+                      <div key={car.vehicle_id} className="rental-card">
+                        <div className="vehicle-image-container">
+                          <img 
+                            src={car.image_url || car.image} 
+                            alt={`${car.brand} ${car.model}`}
+                            className="vehicle-image"
+                            onError={(e) => {
+                              e.target.src = imageService.defaultImage;
+                            }}
+                          />
+                          <div className={`rental-status ${daysRemaining > 3 ? 'active' : daysRemaining > 0 ? 'warning' : 'expired'}`}>
+                            {daysRemaining > 0 ? `${daysRemaining} días restantes` : 'Alquiler vencido'}
+                          </div>
+                        </div>
+                        
+                        <div className="vehicle-info">
+                          <h3 className="vehicle-title">{car.brand} {car.model}</h3>
+                          <div className="vehicle-details">
+                            <p><strong>🏷️ Placa:</strong> {car.plate}</p>
+                            <p><strong>📅 Año:</strong> {car.year}</p>
+                            <p><strong>💰 Precio:</strong> ${car.price}/día</p>
+                          </div>
+                          
+                          {car.rental && (
+                            <div className="rental-details">
+                              <h4>📋 Detalles del Alquiler</h4>
+                              <div className="rental-info-grid">
+                                <p><strong>📅 Inicio:</strong> {new Date(car.rental.startDate).toLocaleDateString('es-ES')}</p>
+                                <p><strong>📅 Fin:</strong> {new Date(car.rental.endDate).toLocaleDateString('es-ES')}</p>
+                                <p><strong>💳 Total Pagado:</strong> ${car.rental.price}</p>
+                                <p><strong>📊 Estado:</strong> <span className={`status ${car.rental.status?.toLowerCase()}`}>{car.rental.status}</span></p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="rental-actions">
+                            <button 
+                              className="action-button extend"
+                              onClick={() => extendRental(car)}
+                              disabled={daysRemaining <= 0}
+                            >
+                              ⏰ Extender
+                            </button>
+                            <button 
+                              className="action-button invoice"
+                              onClick={() => showInvoiceDetails(car.rental?.id)}
+                            >
+                              📄 Factura
+                            </button>
+                            <button 
+                              className="action-button cancel"
+                              onClick={() => cancelRental(car)}
+                            >
+                              🗑️ Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             ) : (
               <div className="no-cars-message">
-                <p>No tienes coches alquilados actualmente.</p>
-                <button 
-                  className="rent-now-button"
-                  onClick={() => setActiveSection("rentar")}
-                >
-                  Alquilar ahora
-                </button>
+                <div className="empty-state">
+                  <div className="empty-icon">🚗</div>
+                  <h3>No tienes vehículos alquilados</h3>
+                  <p>¡Explora nuestro catálogo y alquila tu primer vehículo!</p>
+                  <div className="empty-actions">
+                    <button 
+                      className="rent-now-button primary"
+                      onClick={() => setActiveSection("rentar")}
+                    >
+                      🚀 Alquilar Ahora
+                    </button>
+                    <button 
+                      className="rent-now-button secondary"
+                      onClick={loadActiveVehicles}
+                    >
+                      🔄 Verificar Nuevamente
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -869,15 +1410,15 @@ function Panel({ activeSection, setActiveSection, user }) {
                 </p>
               </div>
             )}
-            
-            <button 
+              <button 
               className="view-all-button"
               onClick={() => navigate("/Rental")}
               style={{ marginTop: '2rem' }}
             >
               🌐 Ver catálogo completo
             </button>
-          </div>        );
+          </div>
+        );
         
       case "facturas":
         return (
@@ -1056,25 +1597,22 @@ function Panel({ activeSection, setActiveSection, user }) {
               </div>
               
               <div className="form-group">
-                <label htmlFor="license">Número de licencia</label>
-                <input 
-                  type="text" 
-                  id="license" 
-                  name="license" 
-                  value={userInfo.license || ""} 
-                  onChange={handleUserInfoChange} 
-                />
-              </div>
-              
-              <button 
-                type="button" 
-                className="save-button"
-                onClick={saveUserInfo}
-              >
-                Guardar cambios
-              </button>
-            </form>
-          </div>
+                <label htmlFor="license">Número de licencia</label>              <input 
+                type="text" 
+                id="license" 
+                name="license" 
+                value={userInfo.license || ""} 
+                onChange={handleUserInfoChange} 
+              />
+            </div>            <button 
+              type="button" 
+              className="save-button"
+              onClick={saveUserInfo}
+            >
+              Guardar cambios
+            </button>
+          </form>
+        </div>
         );
         
       default:
@@ -1088,6 +1626,6 @@ function Panel({ activeSection, setActiveSection, user }) {
     </section>
   );
 }
-
 export default Panel;
+
 

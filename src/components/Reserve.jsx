@@ -42,10 +42,10 @@ const Reserve = ({ vehicle, vehicleDates, hasValidDates, calculateDays }) => {
                 "error"
             );
             return;
-        }
-
-        try {            const headers = {
-                'Authorization': `Bearer ${localStorage.getItem("Token")}`
+        }        try {
+            const headers = {
+                'Authorization': `Bearer ${localStorage.getItem("Token")}`,
+                'Content-Type': 'application/json'
             };
             
             const response = await fetch('http://localhost:8080/rental', {

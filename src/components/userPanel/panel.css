@@ -695,38 +695,32 @@
   margin-bottom: 1rem;
 }
 
-/* ===== ESTILOS PARA LA SECCIÓN DE FACTURAS ===== */
+/* =================================================================
+   ESTILOS PARA LA SECCIÓN "MIS VEHÍCULOS ALQUILADOS" 
+   ================================================================= */
 
-.invoices-section {
+.rented-cars-section {
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .section-header {
-  background: linear-gradient(135deg, #ffffff 0%, #f0f9f5 100%);
-  padding: 2rem;
-  border-radius: 15px;
-  margin-bottom: 2rem;
-  box-shadow: 0 5px 20px rgba(1, 68, 33, 0.1);
-  border: 1px solid rgba(1, 68, 33, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9f5 100%);
+  padding: 1.5rem 2rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(1, 68, 33, 0.1);
+  border: 1px solid rgba(1, 68, 33, 0.1);
 }
 
 .section-header h2 {
-  color: #014421;
   margin: 0;
+  color: #014421;
   font-size: 1.8rem;
-  font-weight: 600;
-}
-
-.section-description {
-  color: #666;
-  margin: 0.5rem 0 0 0;
-  font-size: 1rem;
+  font-weight: bold;
 }
 
 .refresh-button {
@@ -734,328 +728,376 @@
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: 10px;
   cursor: pointer;
+  font-weight: 600;
   transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(1, 68, 33, 0.3);
 }
 
-.refresh-button:hover {
+.refresh-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(1, 68, 33, 0.3);
+  box-shadow: 0 6px 20px rgba(1, 68, 33, 0.4);
 }
 
 .refresh-button:disabled {
-  opacity: 0.6;
+  opacity: 0.7;
   cursor: not-allowed;
   transform: none;
 }
 
-/* Loading de rentas */
-.loading-rentals {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  background: white;
+.rental-summary {
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background: linear-gradient(135deg, #014421 0%, #2d8659 100%);
+  color: white;
+  padding: 2rem;
   border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(1, 68, 33, 0.2);
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #014421;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+.summary-card h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.4rem;
+  text-align: center;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Lista de rentas */
-.rentals-list {
-  display: flex;
-  flex-direction: column;
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
 }
 
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+}
+
+.stat-label {
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.stat-value {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #4caf50;
+}
+
+.rented-cars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 2rem;
+}
+
 .rental-card {
-  background: white;
-  border-radius: 15px;
-  padding: 1.5rem;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(1, 68, 33, 0.1);
+  border: 1px solid rgba(1, 68, 33, 0.1);
   transition: all 0.3s ease;
 }
 
 .rental-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 30px rgba(1, 68, 33, 0.15);
-  border-color: #014421;
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(1, 68, 33, 0.15);
 }
 
-.rental-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f0f0f0;
+.vehicle-image-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
 }
 
-.rental-info h3 {
-  color: #014421;
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 600;
+.vehicle-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-.rental-dates {
-  color: #666;
-  margin: 0.5rem 0 0 0;
-  font-size: 0.9rem;
+.rental-card:hover .vehicle-image {
+  transform: scale(1.05);
 }
 
 .rental-status {
-  text-align: right;
-}
-
-.status-badge {
-  display: inline-block;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
   padding: 0.5rem 1rem;
   border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: bold;
+  font-size: 0.8rem;
   text-transform: uppercase;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-.status-badge.active {
-  background: linear-gradient(135deg, #4caf50 0%, #2d8659 100%);
+.rental-status.active {
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
   color: white;
 }
 
-.status-badge.completed {
+.rental-status.warning {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+}
+
+.rental-status.expired {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: white;
+}
+
+.vehicle-info {
+  padding: 1.5rem;
+}
+
+.vehicle-title {
+  margin: 0 0 1rem 0;
+  color: #014421;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.vehicle-details {
+  margin-bottom: 1.5rem;
+}
+
+.vehicle-details p {
+  margin: 0.5rem 0;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.rental-details {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 10px;
+  margin: 1rem 0;
+  border-left: 4px solid #014421;
+}
+
+.rental-details h4 {
+  margin: 0 0 1rem 0;
+  color: #014421;
+  font-size: 1rem;
+}
+
+.rental-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
+}
+
+.rental-info-grid p {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+}
+
+.status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 15px;
+  font-weight: bold;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.status.active {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status.pending {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status.completed {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.rental-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.action-button {
+  flex: 1;
+  min-width: 100px;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.action-button.extend {
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+  color: white;
+}
+
+.action-button.extend:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+}
+
+.action-button.extend:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.action-button.invoice {
   background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
   color: white;
 }
 
-.status-badge.cancelled {
-  background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
-  color: white;
-}
-
-/* Detalles de la renta */
-.rental-details {
-  margin-bottom: 1.5rem;
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f8f8f8;
-}
-
-.detail-row:last-child {
-  border-bottom: none;
-}
-
-.detail-label {
-  font-weight: 600;
-  color: #666;
-  flex: 1;
-}
-
-.detail-value {
-  color: #333;
-  text-align: right;
-  flex: 1;
-}
-
-.detail-value.price {
-  color: #014421;
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-/* Acciones de la renta */
-.rental-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.invoice-button {
-  background: linear-gradient(135deg, #014421 0%, #2d8659 100%);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.invoice-button:hover {
+.action-button.invoice:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(1, 68, 33, 0.3);
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
 }
 
-.payment-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+.action-button.cancel {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: white;
 }
 
-.payment-id {
-  background: #f8f9fa;
-  color: #666;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  border: 1px solid #e0e0e0;
-}
-
-/* Estado vacío */
-.no-rentals-message {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
+.action-button.cancel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
 }
 
 .empty-state {
-  background: white;
-  padding: 3rem;
-  border-radius: 20px;
   text-align: center;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e0e0e0;
-  max-width: 500px;
-  width: 100%;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9f5 100%);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(1, 68, 33, 0.1);
+  border: 1px solid rgba(1, 68, 33, 0.1);
 }
 
 .empty-icon {
   font-size: 4rem;
   margin-bottom: 1rem;
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 .empty-state h3 {
-  color: #666;
-  margin-bottom: 1rem;
+  color: #014421;
+  margin: 0 0 1rem 0;
   font-size: 1.5rem;
 }
 
 .empty-state p {
-  color: #999;
-  margin-bottom: 2rem;
-  line-height: 1.6;
+  color: #666;
+  margin: 0 0 2rem 0;
+  font-size: 1.1rem;
+}
+
+.empty-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .rent-now-button {
-  background: linear-gradient(135deg, #014421 0%, #2d8659 100%);
-  color: white;
-  border: none;
   padding: 1rem 2rem;
-  border-radius: 25px;
-  font-weight: 600;
+  border: none;
+  border-radius: 15px;
+  font-weight: bold;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 1rem;
+  text-decoration: none;
+  display: inline-block;
 }
 
-.rent-now-button:hover {
+.rent-now-button.primary {
+  background: linear-gradient(135deg, #014421 0%, #2d8659 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(1, 68, 33, 0.3);
+}
+
+.rent-now-button.primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(1, 68, 33, 0.3);
+  box-shadow: 0 6px 20px rgba(1, 68, 33, 0.4);
 }
 
-/* Información adicional */
-.invoices-info {
-  margin-top: 3rem;
-}
-
-.info-card {
-  background: linear-gradient(135deg, #e8f5f0 0%, #f0f9f5 100%);
-  padding: 2rem;
-  border-radius: 15px;
-  border: 1px solid rgba(1, 68, 33, 0.1);
-}
-
-.info-card h4 {
+.rent-now-button.secondary {
+  background: transparent;
   color: #014421;
-  margin: 0 0 1rem 0;
-  font-size: 1.2rem;
-  font-weight: 600;
+  border: 2px solid #014421;
 }
 
-.info-card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.rent-now-button.secondary:hover {
+  background: #014421;
+  color: white;
+  transform: translateY(-2px);
 }
 
-.info-card li {
-  padding: 0.5rem 0;
-  color: #666;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.info-card li:last-child {
-  border-bottom: none;
-}
-
-/* Responsive para facturas */
+/* Responsive design */
 @media (max-width: 768px) {
   .section-header {
     flex-direction: column;
-    align-items: stretch;
+    gap: 1rem;
     text-align: center;
   }
   
-  .rental-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
+  .rented-cars-grid {
+    grid-template-columns: 1fr;
   }
   
-  .rental-status {
-    text-align: left;
-  }
-  
-  .detail-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.25rem;
-  }
-  
-  .detail-value {
-    text-align: left;
+  .summary-stats {
+    grid-template-columns: 1fr;
   }
   
   .rental-actions {
     flex-direction: column;
-    align-items: stretch;
   }
   
-  .payment-info {
-    align-items: stretch;
+  .action-button {
+    flex: none;
+  }
+  
+  .empty-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .rent-now-button {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .vehicle-info {
+    padding: 1rem;
+  }
+  
+  .rental-card {
+    margin: 0 0.5rem;
+  }
+  
+  .summary-card {
+    padding: 1.5rem;
+  }
+  
+  .empty-state {
+    padding: 2rem 1rem;
   }
 }
