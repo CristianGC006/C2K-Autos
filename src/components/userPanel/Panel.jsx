@@ -369,118 +369,94 @@ function Panel({ activeSection, setActiveSection, user }) {
             setRentedCars(rented);
             console.log("Rented vehicles for user", currentUserId, ":", rented.length);
           }        } else {
-          // 🔧 SOLUCIÓN USANDO ESTRUCTURA CUSTOMER -> RENTAL <- VEHICLE
-          console.log("⚠️ Usando estructura Customer->Rental<-Vehicle (campo customers no disponible en /vehicle)");
+          // 🔧 NUEVA SOLUCIÓN: Usar los datos de rentals anidados en /vehicle
+          console.log("⚠️ Usando estructura de rentals anidados en /vehicle");
           
-          // Cargar los datos de rentals del usuario actual para determinar vehículos rentados
-          let userRentedVehicles = [];
+          // 1. Cargar rentals activos del usuario para obtener datos adicionales
+          let activeRentalsData = [];
           if (currentUserId) {
             try {
               const rentalsResponse = await fetch(`http://localhost:8080/rental/customer/${currentUserId}/active`);
               if (rentalsResponse.ok) {
                 const rentalsData = await rentalsResponse.json();
-                console.log("User rentals data:", rentalsData);
-                userRentedVehicles = rentalsData || [];
+                console.log("User active rentals data:", rentalsData);
+                activeRentalsData = rentalsData || [];
               }
             } catch (error) {
-              console.error("Error loading user rentals:", error);
+              console.error("Error loading user active rentals:", error);
             }
           }
 
-          // Crear un conjunto de IDs de vehículos rentados para filtrar disponibles
-          const rentedVehicleIds = new Set();
-          if (userRentedVehicles.length > 0) {
-            userRentedVehicles.forEach(rental => {
-              // Obtener el ID del vehículo desde los datos del rental
-              const vehicleId = rental.vehicle?.vehicleId || rental.vehicleId;
-              if (vehicleId) {
-                rentedVehicleIds.add(vehicleId);
-              }
-            });
-          }
+          // 2. Identificar vehículos alquilados y disponibles usando los rentals anidados
+          const rentedVehiclesFromEndpoint = [];
+          const availableVehicles = [];
 
-          // Filtrar vehículos disponibles (que no estén en la lista de rentados)
-          const available = dataWithCorrectFields.filter(vehicle => {
-            const vehicleId = vehicle.vehicleId || vehicle.vehicle_id;
-            return !rentedVehicleIds.has(vehicleId);
-          });
-          setAvailableCars(available);
-          console.log("Available vehicles:", available.length, "Excluded rented IDs:", Array.from(rentedVehicleIds));
-          
-          // Crear vehículos rentados combinando datos de rental con datos de vehículo
-          if (currentUserId && userRentedVehicles.length > 0) {
-            const rentedVehiclesWithRentalInfo = userRentedVehicles.map(rental => {
-              // Buscar el vehículo correspondiente en los datos cargados usando múltiples métodos de matching
-              let vehicleData = null;
-              const rentalVehicleId = rental.vehicle?.vehicleId || rental.vehicleId;
-              
-              if (rentalVehicleId) {
-                vehicleData = dataWithCorrectFields.find(v => 
-                  (v.vehicleId && v.vehicleId === rentalVehicleId) || 
-                  (v.vehicle_id && v.vehicle_id === rentalVehicleId)
-                );
-              }
-              
-              // Si no encontramos por ID, intentar por nombre (como fallback)
-              if (!vehicleData && rental.name) {
-                vehicleData = dataWithCorrectFields.find(v => {
-                  const vehicleName = `${v.brand || ''} ${v.model || ''}`.trim();
-                  return vehicleName === rental.name.trim();
-                });
-              }
-              
-              if (vehicleData) {
-                // Combinar datos del vehículo con información del rental
-                return {
-                  ...vehicleData,
-                  // Información del rental
-                  startDate: rental.startDate,
-                  endDate: rental.endDate,
-                  rentalId: rental.idRental || rental.id,
-                  rentalStatus: rental.status,
-                  rentalPrice: rental.price,                  // Simular la estructura customers que espera el frontend
-                  customers: { 
-                    id: currentUserId,
-                    name: rental.customer?.name || 'Usuario'
-                  },
-                  // Información adicional del rental
-                  rentalName: rental.name,
-                  rentalDescription: rental.description
-                };
-              } else {
-                // Si no encontramos el vehículo en /vehicle, crear uno con los datos del rental
-                console.warn("No se encontró vehículo en /vehicle para rental:", rental);
-                return {
-                  vehicleId: rentalVehicleId || 0,
-                  vehicle_id: rentalVehicleId || 0,
-                  brand: rental.name?.split(' ')[0] || 'Sin marca',
-                  model: rental.name?.split(' ').slice(1).join(' ') || 'Sin modelo',
-                  plate: 'No disponible',
-                  year: 'N/A',
-                  price: rental.price || 0,
-                  image_url: imageService.defaultImage,
-                  imageLoaded: true,
-                  // Información del rental
-                  startDate: rental.startDate,
-                  endDate: rental.endDate,
-                  rentalId: rental.idRental || rental.id,
-                  rentalStatus: rental.status,
-                  rentalPrice: rental.price,                  // Simular la estructura customers que espera el frontend
-                  customers: { 
-                    id: currentUserId,
-                    name: rental.customer?.name || 'Usuario'
-                  },
-                  // Información adicional del rental
-                  rentalName: rental.name,
-                  rentalDescription: rental.description
-                };
-              }
-            }).filter(Boolean);
+          dataWithCorrectFields.forEach(vehicle => {
+            const hasActiveRentals = vehicle.rentals && vehicle.rentals.length > 0 && 
+              vehicle.rentals.some(rental => rental.status === 'ACTIVE');
             
-            console.log("Rented vehicles with rental info:", rentedVehiclesWithRentalInfo);
-            setRentedCars(rentedVehiclesWithRentalInfo);
-            console.log("Rented vehicles for user", currentUserId, ":", rentedVehiclesWithRentalInfo.length);
-          }}
+            if (hasActiveRentals) {
+              // Buscar si algún rental activo pertenece al usuario actual
+              const userActiveRental = vehicle.rentals.find(rental => {
+                if (rental.status !== 'ACTIVE') return false;
+                
+                // Buscar este rental en los datos del usuario
+                return activeRentalsData.some(userRental => 
+                  userRental.idRental === rental.idRental
+                );
+              });
+
+              if (userActiveRental) {
+                // Este vehículo está alquilado por el usuario actual
+                const matchingUserRental = activeRentalsData.find(r => 
+                  r.idRental === userActiveRental.idRental
+                );
+
+                // Combinar datos del vehículo, rental anidado y rental del usuario
+                const combinedVehicle = {
+                  ...vehicle,
+                  // Datos del rental activo
+                  rentalId: userActiveRental.idRental,
+                  startDate: userActiveRental.startDate || matchingUserRental?.startDate,
+                  endDate: userActiveRental.endDate || matchingUserRental?.endDate,
+                  rentalStatus: userActiveRental.status || matchingUserRental?.status,
+                  rentalPrice: userActiveRental.price || matchingUserRental?.price,
+                  description: userActiveRental.description || matchingUserRental?.description,
+                  // Extraer datos del nombre del rental si vehicle.brand/model están vacíos
+                  brand: vehicle.brand || userActiveRental.name?.split(' ')[0] || 'Sin marca',
+                  model: vehicle.model || userActiveRental.name?.split(' ').slice(1).join(' ') || 'Sin modelo',
+                  // Extraer placa de la descripción del rental
+                  plate: vehicle.plate || (() => {
+                    const description = userActiveRental.description || matchingUserRental?.description || '';
+                    const plateMatch = description.match(/Placa:\s*([^)]+)/);
+                    return plateMatch ? plateMatch[1].trim() : 'Sin placa';
+                  })(),
+                  // Simular estructura customers para compatibilidad
+                  customers: { 
+                    id: currentUserId,
+                    name: matchingUserRental?.customer?.name || 'Usuario'
+                  }
+                };
+
+                rentedVehiclesFromEndpoint.push(combinedVehicle);
+                console.log("Found rented vehicle for user:", combinedVehicle);
+              } else {
+                // Vehículo está alquilado pero no por el usuario actual - disponible para otros
+                availableVehicles.push(vehicle);
+              }
+            } else {
+              // Vehículo sin rentals activos - disponible
+              availableVehicles.push(vehicle);
+            }
+          });
+
+          setAvailableCars(availableVehicles);
+          setRentedCars(rentedVehiclesFromEndpoint);
+          
+          console.log("Available vehicles:", availableVehicles.length);
+          console.log("Rented vehicles for user", currentUserId, ":", rentedVehiclesFromEndpoint.length);
+          console.log("Rented vehicles details:", rentedVehiclesFromEndpoint);
+        }
 
         setLoading(false);
       } catch (error) {
@@ -1130,17 +1106,16 @@ function Panel({ activeSection, setActiveSection, user }) {
       loadActiveVehicles();
     }
   }, [activeSection, loadActiveVehicles]);
-
   // ✅ FUNCIÓN PARA EXTENDER UN ALQUILER
-  const extendRental = async (rental) => {
+  const extendRental = async (car) => {
     try {
       const { value: daysInput } = await Swal.fire({
         title: `Extender Alquiler`,
         html: `
           <div style="text-align: left; margin: 20px 0;">
-            <p><strong>🚗 Vehículo:</strong> ${rental.brand} ${rental.model}</p>
-            <p><strong>📅 Fecha actual de fin:</strong> ${new Date(rental.rental.endDate).toLocaleDateString('es-ES')}</p>
-            <p><strong>💰 Precio por día:</strong> $${rental.price}</p>
+            <p><strong>🚗 Vehículo:</strong> ${car.brand} ${car.model}</p>
+            <p><strong>📅 Fecha actual de fin:</strong> ${new Date(car.endDate).toLocaleDateString('es-ES')}</p>
+            <p><strong>💰 Precio por día:</strong> $${car.price}</p>
           </div>
           <label for="extension-days" style="display: block; margin-bottom: 10px; font-weight: bold;">¿Por cuántos días más?</label>
         `,
@@ -1167,9 +1142,9 @@ function Panel({ activeSection, setActiveSection, user }) {
       if (!daysInput) return;
       
       const extensionDays = parseInt(daysInput);
-      const currentEndDate = new Date(rental.rental.endDate);
+      const currentEndDate = new Date(car.endDate);
       const newEndDate = new Date(currentEndDate.getTime() + (extensionDays * 24 * 60 * 60 * 1000));
-      const additionalCost = rental.price * extensionDays;
+      const additionalCost = car.price * extensionDays;
       
       // Confirmar extensión
       const confirmResult = await Swal.fire({
@@ -1178,7 +1153,7 @@ function Panel({ activeSection, setActiveSection, user }) {
           <div style="text-align: left; background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
             <h4 style="color: #014421; margin-bottom: 15px;">📄 Resumen de la Extensión</h4>
             <div style="display: grid; gap: 8px;">
-              <p><strong>🚗 Vehículo:</strong> ${rental.brand} ${rental.model}</p>
+              <p><strong>🚗 Vehículo:</strong> ${car.brand} ${car.model}</p>
               <p><strong>📅 Fecha fin actual:</strong> ${currentEndDate.toLocaleDateString('es-ES')}</p>
               <p><strong>📅 Nueva fecha fin:</strong> ${newEndDate.toLocaleDateString('es-ES')}</p>
               <p><strong>📆 Días adicionales:</strong> ${extensionDays}</p>
@@ -1209,13 +1184,16 @@ function Panel({ activeSection, setActiveSection, user }) {
       
       // Actualizar el rental en el backend
       const updatedRental = {
-        ...rental.rental,
+        idRental: car.rentalId,
+        name: `${car.brand} ${car.model}`,
+        description: `${car.description} - Extendido ${extensionDays} día(s)`,
+        price: car.rentalPrice + additionalCost,
+        startDate: car.startDate,
         endDate: newEndDate.toISOString().split('T')[0],
-        price: rental.rental.price + additionalCost,
-        description: `${rental.rental.description} - Extendido ${extensionDays} día(s)`
+        status: car.rentalStatus || 'ACTIVE'
       };
       
-      const response = await fetch(`http://localhost:8080/rental/${rental.rental.id}`, {
+      const response = await fetch(`http://localhost:8080/rental/${car.rentalId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1232,7 +1210,7 @@ function Panel({ activeSection, setActiveSection, user }) {
         paymentMethod: "CREDIT_CARD",
         amount: additionalCost,
         rental: {
-          idRental: rental.rental.id
+          idRental: car.rentalId
         }
       };
       
@@ -1270,9 +1248,8 @@ function Panel({ activeSection, setActiveSection, user }) {
       });
     }
   };
-
   // ✅ FUNCIÓN PARA CANCELAR UN ALQUILER
-  const cancelRental = async (rental) => {
+  const cancelRental = async (car) => {
     try {
       const confirmResult = await Swal.fire({
         title: '⚠️ Cancelar Alquiler',
@@ -1280,8 +1257,8 @@ function Panel({ activeSection, setActiveSection, user }) {
           <div style="text-align: left; background: #fff3cd; padding: 20px; border-radius: 10px; margin: 15px 0; border: 1px solid #ffeaa7;">
             <h4 style="color: #d68910; margin-bottom: 15px;">⚠️ Confirmar Cancelación</h4>
             <div style="display: grid; gap: 8px;">
-              <p><strong>🚗 Vehículo:</strong> ${rental.brand} ${rental.model}</p>
-              <p><strong>📅 Fecha de fin:</strong> ${new Date(rental.rental.endDate).toLocaleDateString('es-ES')}</p>
+              <p><strong>🚗 Vehículo:</strong> ${car.brand} ${car.model}</p>
+              <p><strong>📅 Fecha de fin:</strong> ${new Date(car.endDate).toLocaleDateString('es-ES')}</p>
               <p style="color: #d68910; font-weight: bold;">⚠️ Esta acción no se puede deshacer</p>
             </div>
           </div>
@@ -1309,7 +1286,7 @@ function Panel({ activeSection, setActiveSection, user }) {
       });
       
       // Cancelar en el backend
-      const response = await fetch(`http://localhost:8080/rental/${rental.rental.id}`, {
+      const response = await fetch(`http://localhost:8080/rental/${car.rentalId}`, {
         method: 'DELETE'
       });
       
@@ -1446,22 +1423,23 @@ function Panel({ activeSection, setActiveSection, user }) {
                         <span className="stat-value">{rentedCars.length}</span>
                       </div>
                       <div className="summary-item">
-                        <span className="stat-label">Total Invertido:</span>
-                        <span className="stat-value">
-                          ${rentedCars.reduce((total, car) => total + (car.rental?.price || 0), 0).toLocaleString()}
+                        <span className="stat-label">Total Invertido:</span>                        <span className="stat-value">
+                          ${rentedCars.reduce((total, car) => total + (car.rentalPrice || car.price || 0), 0).toLocaleString()}
                         </span>
                       </div>
                     </div>
                   </div>
                 </div>
-                
-                <div className="rented-cars-grid">
-                  {rentedCars.map(car => {
-                    const daysRemaining = car.rental?.endDate ? 
-                      Math.ceil((new Date(car.rental.endDate) - new Date()) / (1000 * 60 * 60 * 24)) : 0;
+                  <div className="rented-cars-grid">
+                  {rentedCars.map((car, index) => {
+                    const daysRemaining = car.endDate ? 
+                      Math.ceil((new Date(car.endDate) - new Date()) / (1000 * 60 * 60 * 24)) : 0;
+                    
+                    // Crear una key única combinando rentalId, vehicleId e index
+                    const uniqueKey = car.rentalId || `${car.vehicleId || car.vehicle_id}-${index}`;
                     
                     return (
-                      <div key={car.vehicle_id} className="rental-card">
+                      <div key={uniqueKey} className="rental-card">
                         <div className="vehicle-image-container">
                           <img 
                             src={car.image_url || car.image} 
@@ -1483,15 +1461,14 @@ function Panel({ activeSection, setActiveSection, user }) {
                             <p><strong>📅 Año:</strong> {car.year}</p>
                             <p><strong>💰 Precio:</strong> ${car.price}/día</p>
                           </div>
-                          
-                          {car.rental && (
+                            {(car.startDate || car.endDate || car.rentalPrice) && (
                             <div className="rental-details">
                               <h4>📋 Detalles del Alquiler</h4>
                               <div className="rental-info-grid">
-                                <p><strong>📅 Inicio:</strong> {new Date(car.rental.startDate).toLocaleDateString('es-ES')}</p>
-                                <p><strong>📅 Fin:</strong> {new Date(car.rental.endDate).toLocaleDateString('es-ES')}</p>
-                                <p><strong>💳 Total Pagado:</strong> ${car.rental.price}</p>
-                                <p><strong>📊 Estado:</strong> <span className={`status ${car.rental.status?.toLowerCase()}`}>{car.rental.status}</span></p>
+                                <p><strong>📅 Inicio:</strong> {car.startDate ? new Date(car.startDate).toLocaleDateString('es-ES') : 'N/A'}</p>
+                                <p><strong>📅 Fin:</strong> {car.endDate ? new Date(car.endDate).toLocaleDateString('es-ES') : 'N/A'}</p>
+                                <p><strong>💳 Total Pagado:</strong> ${car.rentalPrice || car.price || 0}</p>
+                                <p><strong>📊 Estado:</strong> <span className={`status ${car.rentalStatus?.toLowerCase() || 'active'}`}>{car.rentalStatus || 'ACTIVE'}</span></p>
                               </div>
                             </div>
                           )}
@@ -1503,10 +1480,9 @@ function Panel({ activeSection, setActiveSection, user }) {
                               disabled={daysRemaining <= 0}
                             >
                               ⏰ Extender
-                            </button>
-                            <button 
+                            </button>                            <button 
                               className="action-button invoice"
-                              onClick={() => showInvoiceDetails(car.rental?.id)}
+                              onClick={() => showInvoiceDetails(car.rentalId)}
                             >
                               📄 Factura
                             </button>
