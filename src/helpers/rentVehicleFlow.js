@@ -99,20 +99,15 @@ export const rentVehicleFlow = async ({
       assessor: { idAssessor: user.assessorId || user.idAssessor || 1 },
       branch: { idBranch: user.branchId || user.idBranch || 1 },
       admin: { idAdmin: 1 }
-    };
-
-    const rentalResponse = await fetch('http://localhost:8080/rental', {
+    };    const rentalResponse = await fetch('http://localhost:8080/rental', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(rentalData)
     });
 
     if (!rentalResponse.ok) throw new Error('Error al crear el alquiler');
-    const rentalResult = await rentalResponse.json();
-
-    // 5. Actualizar vehículo (opcional, según tu backend)
-    await fetch(`http://localhost:8080/vehicle/${vehicle.vehicleId || vehicle.id}`, {
-      method: 'PUT',
+    const rentalResult = await rentalResponse.json();    // 5. Actualizar vehículo (opcional, según tu backend)
+    await fetch(`http://localhost:8080/vehicle/${vehicle.vehicleId || vehicle.id}`, {      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         customers: { id: user.idCustomer || user.id }
@@ -124,9 +119,7 @@ export const rentVehicleFlow = async ({
       paymentMethod: "CREDIT_CARD",
       amount: totalAmount,
       rental: { idRental: rentalResult.idRental || rentalResult.id }
-    };
-
-    await fetch('http://localhost:8080/payment', {
+    };    await fetch('http://localhost:8080/payment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(paymentData)

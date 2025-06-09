@@ -695,65 +695,367 @@
   margin-bottom: 1rem;
 }
 
-/* Estilos responsivos */
+/* ===== ESTILOS PARA LA SECCIÓN DE FACTURAS ===== */
+
+.invoices-section {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9f5 100%);
+  padding: 2rem;
+  border-radius: 15px;
+  margin-bottom: 2rem;
+  box-shadow: 0 5px 20px rgba(1, 68, 33, 0.1);
+  border: 1px solid rgba(1, 68, 33, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.section-header h2 {
+  color: #014421;
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.section-description {
+  color: #666;
+  margin: 0.5rem 0 0 0;
+  font-size: 1rem;
+}
+
+.refresh-button {
+  background: linear-gradient(135deg, #014421 0%, #2d8659 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.refresh-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(1, 68, 33, 0.3);
+}
+
+.refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Loading de rentas */
+.loading-rentals {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #014421;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Lista de rentas */
+.rentals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.rental-card {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.rental-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(1, 68, 33, 0.15);
+  border-color: #014421;
+}
+
+.rental-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.rental-info h3 {
+  color: #014421;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.rental-dates {
+  color: #666;
+  margin: 0.5rem 0 0 0;
+  font-size: 0.9rem;
+}
+
+.rental-status {
+  text-align: right;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.active {
+  background: linear-gradient(135deg, #4caf50 0%, #2d8659 100%);
+  color: white;
+}
+
+.status-badge.completed {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  color: white;
+}
+
+.status-badge.cancelled {
+  background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+  color: white;
+}
+
+/* Detalles de la renta */
+.rental-details {
+  margin-bottom: 1.5rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f8f8f8;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #666;
+  flex: 1;
+}
+
+.detail-value {
+  color: #333;
+  text-align: right;
+  flex: 1;
+}
+
+.detail-value.price {
+  color: #014421;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* Acciones de la renta */
+.rental-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.invoice-button {
+  background: linear-gradient(135deg, #014421 0%, #2d8659 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.invoice-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(1, 68, 33, 0.3);
+}
+
+.payment-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.payment-id {
+  background: #f8f9fa;
+  color: #666;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  border: 1px solid #e0e0e0;
+}
+
+/* Estado vacío */
+.no-rentals-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.empty-state {
+  background: white;
+  padding: 3rem;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  max-width: 500px;
+  width: 100%;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  color: #666;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.empty-state p {
+  color: #999;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.rent-now-button {
+  background: linear-gradient(135deg, #014421 0%, #2d8659 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.rent-now-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(1, 68, 33, 0.3);
+}
+
+/* Información adicional */
+.invoices-info {
+  margin-top: 3rem;
+}
+
+.info-card {
+  background: linear-gradient(135deg, #e8f5f0 0%, #f0f9f5 100%);
+  padding: 2rem;
+  border-radius: 15px;
+  border: 1px solid rgba(1, 68, 33, 0.1);
+}
+
+.info-card h4 {
+  color: #014421;
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.info-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-card li {
+  padding: 0.5rem 0;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-card li:last-child {
+  border-bottom: none;
+}
+
+/* Responsive para facturas */
 @media (max-width: 768px) {
-  .user-panel-content {
-    padding: 1rem;
-  }
-  
-  .stats-container {
-    grid-template-columns: 1fr;
-  }
-  
-  .rented-cars-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .car-info-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .greeting-card h2 {
-    font-size: 1.8rem;
-  }
-  
-  .stat-number {
-    font-size: 2.5rem;
-  }
-  
-  .reservation-car {
+  .section-header {
     flex-direction: column;
+    align-items: stretch;
     text-align: center;
   }
   
-  .reservation-car img {
-    margin-right: 0;
-    margin-bottom: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .user-panel-content {
-    padding: 0.75rem;
+  .rental-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
   }
   
-  .greeting-card {
-    padding: 1.5rem;
+  .rental-status {
+    text-align: left;
   }
   
-  .greeting-card h2 {
-    font-size: 1.5rem;
+  .detail-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
   }
   
-  .stat-card {
-    padding: 1.5rem;
+  .detail-value {
+    text-align: left;
   }
   
-  .car-details {
-    padding: 1.5rem;
+  .rental-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
   
-  .profile-form {
-    padding: 1.5rem;
+  .payment-info {
+    align-items: stretch;
   }
 }

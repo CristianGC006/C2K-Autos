@@ -6,10 +6,15 @@ const VEHICLE_API_URL = 'http://localhost:8080/vehicle';
 // Función para obtener el token de autenticación
 const getAuthHeaders = () => {
     const token = localStorage.getItem('Token');
-    return {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-    };
+    const headers = {};
+    
+    // Solo agregar Authorization si existe token
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    // NO establecer Content-Type aquí - se agregará automáticamente por fetch cuando se envía JSON
+    return headers;
 };
 
 
@@ -195,9 +200,14 @@ export const createRental = async (rental) => {
     try {
         console.log('RentalService - createRental llamado con:', rental);
         
+        const headers = {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json'
+        };
+        
         const res = await fetch(API_URL, {
             method: 'POST',
-            headers: getAuthHeaders(),
+            headers: headers,
             body: JSON.stringify(rental)
         });
         
@@ -223,9 +233,14 @@ export const updateRental = async (id, rental) => {
     try {
         console.log('RentalService - updateRental llamado con:', { id, rental });
         
+        const headers = {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json'
+        };
+        
         const res = await fetch(`${API_URL}/${id}`, {
             method: 'PUT',
-            headers: getAuthHeaders(),
+            headers: headers,
             body: JSON.stringify(rental)
         });
         

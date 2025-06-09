@@ -43,13 +43,19 @@ const Aside = ({ activeSection, setActiveSection }) => {
         >
           <span className="nav-icon">🚗</span>
           <span className="nav-text">Mis Vehículos</span>
-        </button>
-        <button 
+        </button>        <button 
           className={`nav-item ${activeSection === "rentar" ? "active" : ""}`}
           onClick={() => setActiveSection("rentar")}
         >
           <span className="nav-icon">🛒</span>
           <span className="nav-text">Alquilar</span>
+        </button>
+        <button 
+          className={`nav-item ${activeSection === "facturas" ? "active" : ""}`}
+          onClick={() => setActiveSection("facturas")}
+        >
+          <span className="nav-icon">📄</span>
+          <span className="nav-text">Facturas</span>
         </button>
         <button 
           className={`nav-item ${activeSection === "editar" ? "active" : ""}`}

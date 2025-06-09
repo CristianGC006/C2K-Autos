@@ -44,13 +44,13 @@ const Reserve = ({ vehicle, vehicleDates, hasValidDates, calculateDays }) => {
             return;
         }
 
-        try {
+        try {            const headers = {
+                'Authorization': `Bearer ${localStorage.getItem("Token")}`
+            };
+            
             const response = await fetch('http://localhost:8080/rental', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem("Token")}`
-                },
+                headers: headers,
                 body: JSON.stringify({
                     vehicleId: currentVehicle.id,
                     customerId: JSON.parse(localStorage.getItem("User"))?.idCustomer,

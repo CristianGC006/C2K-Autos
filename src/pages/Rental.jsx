@@ -326,9 +326,7 @@ const Rental = () => {
                     const reservationPromises = cart.map(async (item) => {
                         const days = calculateDays(item.startDate, item.endDate);
                         const itemTotalCost = item.price * days;
-                        const reservationData = createReservationData(item, item.startDate, item.endDate, itemTotalCost, user);
-
-                        const response = await fetch('http://localhost:8080/rental', {
+                        const reservationData = createReservationData(item, item.startDate, item.endDate, itemTotalCost, user);                        const response = await fetch('http://localhost:8080/rental', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -414,23 +412,20 @@ const Rental = () => {
             "question"
         ).then(async (result) => {
             if (result.isConfirmed) {
-                try {
-                    // Mostrar indicador de carga
+                try {                    // Mostrar indicador de carga
                     genericAlert(
                         "Procesando reserva...",
                         "Estamos creando tu reserva, por favor espera",
                         "info"
-                    );                    // Preparar datos para el backend usando función auxiliar
-                    const reservationData = createReservationData(vehicle, startDate, endDate, totalCost, user);
+                    );
 
-                    console.log('Enviando datos de reserva:', reservationData);
-
-                    // Llamada real al backend para crear la reserva
+                    // Preparar datos para el backend usando función auxiliar
+                    const reservationData = createReservationData(vehicle, startDate, endDate, totalCost, user);                    console.log('Enviando datos de reserva:', reservationData);                    // Llamada real al backend para crear la reserva
                     const response = await fetch('http://localhost:8080/rental', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem("Token")}` // Si usas tokens de autenticación
+                            'Authorization': `Bearer ${localStorage.getItem("Token")}`
                         },
                         body: JSON.stringify(reservationData)
                     });

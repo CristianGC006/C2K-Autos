@@ -27,13 +27,18 @@ export function redirectionAlert(fn, tittle, messaje, icon, url){
         timerProgressBar: true,
         didOpen: () => {
             Swal.showLoading();
+            // Verificar si existe el elemento antes de intentar modificarlo
             const timer = Swal.getPopup().querySelector("b");
-            timerInterval = setInterval(() => {
-                timer.textContent = `${Swal.getTimerLeft()}`;
-            }, 100);
+            if (timer) {
+                timerInterval = setInterval(() => {
+                    timer.textContent = `${Swal.getTimerLeft()}`;
+                }, 100);
+            }
         },
         willClose: () => {
-            clearInterval(timerInterval);
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
             fn(url)
         }
     })
@@ -48,6 +53,14 @@ export function genericAlert(tittle, messaje, icon){
 }
 
 export function moveToLogin(){
-    document.getElementById(".form_link").style.display = "none";
-    document.getElementById(".form_login").style.display = "grid";
+    // Verificar si los elementos existen antes de modificarlos
+    const formLink = document.querySelector(".form_link");
+    const formLogin = document.querySelector(".form_login");
+    
+    if (formLink) {
+        formLink.style.display = "none";
+    }
+    if (formLogin) {
+        formLogin.style.display = "grid";
+    }
 }

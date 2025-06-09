@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from 'sweetalert2';
 import CarouselCars from "../CarouselCars";
 import VehicleCard from "../VehicleCard";
 import { imageService } from "../../services/imageService";
+import { getCustomerRentals, getRentalForInvoice, formatInvoiceData, generateInvoiceHTML } from "../../services/InvoiceService";
 import "./panel.css";
 
 function Panel({ activeSection, setActiveSection, user }) {
@@ -11,10 +12,9 @@ function Panel({ activeSection, setActiveSection, user }) {
   const [availableCars, setAvailableCars] = useState([]);
   const [nextReservation] = useState(null);
   const [userInfo, setUserInfo] = useState(user || {});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const vehiclesLoaded = useRef(false); // Ref para evitar múltiples cargas
-  const initializationStarted = useRef(false); // Ref para evitar múltiples inicializaciones
+  const [loading, setLoading] = useState(true);  const [error, setError] = useState(null);
+  const [customerRentals, setCustomerRentals] = useState([]);
+  const [rentalsLoading, setRentalsLoading] = useState(false);
   const navigate = useNavigate();
 
   // ✅ FUNCIÓN PARA VALIDAR Y OBTENER EL ID DEL USUARIO (FUERA DEL USEEFFECT PARA REUTILIZAR)
@@ -43,44 +43,64 @@ function Panel({ activeSection, setActiveSection, user }) {
     }
     
     return numericId;
-  };// ✅ FUNCIÓN PARA MANEJAR CAMBIOS EN LA INFORMACIÓN DEL USUARIO
-  const handleUserInfoChange = (e) => {
-    const { name, value } = e.target;
-    setUserInfo(prevUserInfo => ({
-      ...prevUserInfo,
-      [name]: value
-    }));
-  };
+  };  // ✅ FUNCIÓN PARA CARGAR RENTAS DEL CLIENTE
+  const loadCustomerRentals = useCallback(async () => {
+    const currentUserId = getUserId();
+    if (!currentUserId) {
+      console.warn("No user ID available for loading rentals");
+      return;
+    }
 
+    try {
+      setRentalsLoading(true);
+      console.log("Loading customer rentals for user:", currentUserId);
+      
+      const rentals = await getCustomerRentals(currentUserId);
+      setCustomerRentals(rentals);
+      console.log("Customer rentals loaded:", rentals);
+    } catch (error) {
+      console.error("Error loading customer rentals:", error);
+      // No mostramos alert aquí para no interrumpir la experiencia
+    } finally {
+      setRentalsLoading(false);
+    }
+  }, [getUserId]);
   // ✅ FUNCIÓN PARA RECARGAR VEHÍCULOS (PARA USAR DESPUÉS DE ALQUILAR)
-  const reloadVehicles = async () => {
+  const reloadVehicles = useCallback(async () => {
     try {
       console.log("Reloading vehicles after rental..."); 
-      setLoading(true); // Mostrar loading mientras se recargan los vehículos
+      setLoading(true);
       
       const response = await fetch('http://localhost:8080/vehicle');
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-      const data = await response.json();
+      }      const data = await response.json();
       console.log("Vehicles reloaded successfully:", data);
       
-      // ✅ PROCESAR IMÁGENES CON SERVICIO DE MAPEO CON VALIDACIÓN EXTRA
       const dataWithCorrectFields = await Promise.all(data.map(async (vehicle) => {
         let finalImageUrl;
         
-        // Verificar que vehicle tenga las propiedades necesarias
         const brand = vehicle?.brand || '';
         const model = vehicle?.model || '';
         const imageUrl = vehicle?.imageUrl || '';
         
-        // Log para debug
-        console.log('Reloading vehicle:', { brand, model, imageUrl, vehicleId: vehicle?.vehicleId });
+        // Validar que brand y model tengan valores válidos antes de usar imageService
+        const hasValidBrandModel = brand && brand.trim() !== '' && model && model.trim() !== '';
         
         if (imageUrl && imageUrl.trim() !== '') {
-          finalImageUrl = await imageService.getValidatedImage(brand, model, imageUrl);
+          if (hasValidBrandModel) {
+            finalImageUrl = await imageService.getValidatedImage(brand, model, imageUrl);
+          } else {
+            // Si no hay brand/model válidos, usar la imagen por defecto
+            finalImageUrl = imageService.defaultImage;
+          }
         } else {
-          finalImageUrl = await imageService.getValidatedImage(brand, model);
+          if (hasValidBrandModel) {
+            finalImageUrl = await imageService.getValidatedImage(brand, model);
+          } else {
+            // Si no hay brand/model válidos, usar la imagen por defecto
+            finalImageUrl = imageService.defaultImage;
+          }
         }
         
         return {
@@ -88,7 +108,6 @@ function Panel({ activeSection, setActiveSection, user }) {
           vehicle_id: vehicle?.vehicleId || vehicle?.vehicle_id || 0,
           image_url: finalImageUrl,
           imageLoaded: true,
-          // Asegurar que las propiedades críticas no sean null
           brand: brand || 'Sin marca',
           model: model || 'Sin modelo',
           plate: vehicle?.plate || 'Sin placa',
@@ -97,14 +116,12 @@ function Panel({ activeSection, setActiveSection, user }) {
         };
       }));
 
-      // Filtrar vehículos disponibles - un vehículo está disponible si no tiene customer asignado
       const available = dataWithCorrectFields.filter(vehicle => 
         !vehicle.customers || !vehicle.customers.id
       );
       setAvailableCars(available);
       console.log("Available vehicles after reload:", available.length);
       
-      // Obtener vehículos alquilados por el usuario actual
       const currentUserId = getUserId();
       if (currentUserId) {
         const rented = dataWithCorrectFields.filter(vehicle => 
@@ -116,91 +133,54 @@ function Panel({ activeSection, setActiveSection, user }) {
         console.log("Rented vehicles for user", currentUserId, "after reload:", rented.length);
       }
 
-      setLoading(false); // Ocultar loading después de cargar
+      setLoading(false);
     } catch (error) {
       console.error('Error reloading vehicles:', error);
       setError(`Error al recargar vehículos: ${error.message}`);
       setLoading(false);
     }
-  };
-
-  // Efecto para recargar vehículos cuando cambia el usuario
+  }, [getUserId]);
+// ✅ USEEFFECT PARA INICIALIZAR LA CARGA DE DATOS
   useEffect(() => {
-    if (userInfo && (userInfo.idCustomer || userInfo.id)) {
-      reloadVehicles();
-    }
-  }, [userInfo]);
-
-  // ✅ EFECTO SIMPLE PARA INICIALIZAR - SOLO UNA VEZ
-  useEffect(() => {
-    // Evitar múltiples inicializaciones
-    if (initializationStarted.current) {
-      return;
-    }
+    console.log("Panel component mounted, loading initial data...");
     
-    initializationStarted.current = true;
-    console.log("Initializing component once...");
-      // ✅ FUNCIÓN PARA VALIDAR Y OBTENER EL ID DEL USUARIO (DENTRO DEL USEEFFECT)
-    const getUserIdLocal = () => {
-      // Buscar el ID usando la estructura real del API (idCustomer)
-      let userId = null;
-      
-      // Primero intentar con el user prop
-      if (user && (user.idCustomer || user.id || user.customer_id || user.userId)) {
-        userId = user.idCustomer || user.id || user.customer_id || user.userId;
-      }
-      
-      // Si no está en la prop, obtenerlo directamente del localStorage
-      if (!userId) {
-        const storedUser = localStorage.getItem("User");
-        if (storedUser) {
-          try {
-            const parsedUser = JSON.parse(storedUser);
-            userId = parsedUser?.idCustomer || parsedUser?.id || parsedUser?.customer_id || parsedUser?.userId;
-          } catch (e) {
-            console.error("Error parsing stored user:", e);
-          }
-        }
-      }
-
-      const numericId = userId ? parseInt(userId, 10) : null;
-      
-      if (!numericId || isNaN(numericId)) {
-        console.error("ID de usuario inválido:", userId);
-        return null;
-      }
-      
-      return numericId;
-    };
-    
-    // ✅ FUNCIÓN PARA OBTENER LOS VEHÍCULOS (MOVIDA DENTRO DEL USEEFFECT)
-    const fetchVehicles = async () => {
+    const loadData = async () => {
       try {
-        console.log("Fetching vehicles..."); 
-        setLoading(true); // Mostrar loading mientras carga vehículos
+        console.log("Loading initial vehicles...");
+        setLoading(true);
+        setError(null);
         
         const response = await fetch('http://localhost:8080/vehicle');
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }        const data = await response.json();
-        console.log("Vehicles fetched successfully:", data);
+        }
+        const data = await response.json();
+        console.log("Initial vehicles loaded:", data);
         
-        // ✅ PROCESAR IMÁGENES CON SERVICIO DE MAPEO CON VALIDACIÓN EXTRA
         const dataWithCorrectFields = await Promise.all(data.map(async (vehicle) => {
           let finalImageUrl;
           
-          // Verificar que vehicle tenga las propiedades necesarias
           const brand = vehicle?.brand || '';
           const model = vehicle?.model || '';
           const imageUrl = vehicle?.imageUrl || '';
           
-          // Log para debug
-          console.log('Processing vehicle:', { brand, model, imageUrl, vehicleId: vehicle?.vehicleId });
+          // Validar que brand y model tengan contenido válido
+          const hasValidBrandModel = brand.trim() !== '' && model.trim() !== '';
           
           if (imageUrl && imageUrl.trim() !== '') {
-            finalImageUrl = await imageService.getValidatedImage(brand, model, imageUrl);
+            if (hasValidBrandModel) {
+              finalImageUrl = await imageService.getValidatedImage(brand, model, imageUrl);
+            } else {
+              // Si no hay brand/model válidos, usar la imagen por defecto
+              finalImageUrl = imageService.defaultImage;
+            }
           } else {
-            finalImageUrl = await imageService.getValidatedImage(brand, model);
+            if (hasValidBrandModel) {
+              finalImageUrl = await imageService.getValidatedImage(brand, model);
+            } else {
+              // Si no hay brand/model válidos, usar la imagen por defecto
+              finalImageUrl = imageService.defaultImage;
+            }
           }
           
           return {
@@ -208,23 +188,34 @@ function Panel({ activeSection, setActiveSection, user }) {
             vehicle_id: vehicle?.vehicleId || vehicle?.vehicle_id || 0,
             image_url: finalImageUrl,
             imageLoaded: true,
-            // Asegurar que las propiedades críticas no sean null
             brand: brand || 'Sin marca',
             model: model || 'Sin modelo',
             plate: vehicle?.plate || 'Sin placa',
             year: vehicle?.year || 'N/A',
-            price: vehicle?.price || 0
+            price: vehicle?.price || 750
           };
         }));
-          // Filtrar vehículos disponibles - un vehículo está disponible si no tiene customer asignado
+
         const available = dataWithCorrectFields.filter(vehicle => 
           !vehicle.customers || !vehicle.customers.id
         );
-        setAvailableCars(available);        console.log("Available vehicles:", available.length);
+        setAvailableCars(available);
+        console.log("Available vehicles:", available.length);
         
-        // Obtener vehículos alquilados por el usuario actual
-        const currentUserId = getUserIdLocal();
-        if (currentUserId) {
+        // Solo filtrar vehículos rentados si tenemos un ID de usuario válido
+        const storedUser = localStorage.getItem("User");
+        let currentUserId = null;
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            currentUserId = parsedUser?.idCustomer || parsedUser?.id || parsedUser?.customer_id || parsedUser?.userId;
+            currentUserId = currentUserId ? parseInt(currentUserId, 10) : null;
+          } catch (e) {
+            console.error("Error parsing stored user:", e);
+          }
+        }
+        
+        if (currentUserId && !isNaN(currentUserId)) {
           const rented = dataWithCorrectFields.filter(vehicle => 
             vehicle.customers && 
             vehicle.customers.id && 
@@ -233,67 +224,75 @@ function Panel({ activeSection, setActiveSection, user }) {
           setRentedCars(rented);
           console.log("Rented vehicles for user", currentUserId, ":", rented.length);
         }
-        
+
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching vehicles:', error);
-        setRentedCars([]);
-        setAvailableCars([]);
+        console.error('Error loading initial vehicles:', error);
         setError(`Error al cargar vehículos: ${error.message}`);
         setLoading(false);
       }
     };
     
-    const initializeComponent = async () => {
-      try {
-        let finalUserInfo = null;        // 1. Primero intentar usar la prop user
-        if (user && (user.idCustomer || user.id)) {
-          console.log("Using user from props:", user);
-          finalUserInfo = user;
-        } else {
-          // 2. Si no hay prop, intentar localStorage
-          const storedUser = localStorage.getItem("User");
-          if (storedUser) {
-            try {
-              const parsedUser = JSON.parse(storedUser);
-              console.log("Parsed user from localStorage:", parsedUser);
-              // Verificar que el usuario tenga un ID válido usando la estructura real del API
-              if (parsedUser && (parsedUser.idCustomer || parsedUser.id || parsedUser.customer_id || parsedUser.userId)) {
-                console.log("Using user from localStorage:", parsedUser);
-                finalUserInfo = parsedUser;
-              }
-            } catch (e) {
-              console.error("Error parsing stored user:", e);
-            }
-          }
-          
-          // 3. Si no hay usuario válido, mostrar error en lugar de modo demo
-          if (!finalUserInfo) {
-            console.warn("No valid user found, redirecting to login");
-            setError("Sesión expirada. Por favor, inicia sesión nuevamente.");
-            setLoading(false);
-            return;
-          }
+    loadData();
+  }, []); // Solo se ejecuta una vez al montar el componente
+
+  // ✅ FUNCIÓN PARA MOSTRAR DETALLES DE FACTURA
+  const showInvoiceDetails = async (rentalId) => {
+    try {
+      console.log("Loading invoice details for rental:", rentalId);
+      
+      Swal.fire({
+        title: 'Cargando factura...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
         }
-          // Actualizar estado
-        setUserInfo(finalUserInfo);
-        
-        // Cargar vehículos después de un pequeño delay
-        setTimeout(() => {
-          if (!vehiclesLoaded.current) {
-            vehiclesLoaded.current = true;
-            fetchVehicles();
-          }
-        }, 100);
-        
-      } catch (error) {
-        console.error("Error during initialization:", error);
-        setUserInfo({ name: 'Usuario', id: 'demo' });
-        setLoading(false);
+      });
+
+      const rental = await getRentalForInvoice(rentalId);
+      const invoiceData = formatInvoiceData(rental);
+      
+      if (!invoiceData) {
+        throw new Error('No se pudo procesar la información de la factura');
       }
-    };
-      initializeComponent();
-  }, [user]); // Solo user como dependencia, userInfo se actualiza internamente// Función para alquilar un vehículo con generación de factura
+
+      const invoiceHTML = generateInvoiceHTML(invoiceData);
+      
+      await Swal.fire({
+        title: '📄 Factura Detallada',
+        html: invoiceHTML,
+        showCancelButton: true,
+        confirmButtonText: '📧 Enviar por Email',
+        cancelButtonText: '❌ Cerrar',
+        confirmButtonColor: '#014421',
+        cancelButtonColor: '#6c757d',
+        width: '800px',
+        scrollbarPadding: false
+      });
+
+    } catch (error) {
+      console.error("Error loading invoice:", error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error al Cargar Factura',
+        text: `Error: ${error.message}`,
+        confirmButtonColor: '#014421'
+      });
+    }
+  };
+
+  // ✅ FUNCIÓN PARA MANEJAR CAMBIOS EN LA INFORMACIÓN DEL USUARIO
+  const handleUserInfoChange = (e) => {
+    const { name, value } = e.target;
+    setUserInfo(prevUserInfo => ({
+      ...prevUserInfo,
+      [name]: value
+    }));
+  };
+
+  // Función para alquilar un vehículo con generación de factura
   const rentVehicle = async (vehicleId) => {
     const currentUserId = getUserId();
     if (!currentUserId) {
@@ -501,13 +500,11 @@ function Panel({ activeSection, setActiveSection, user }) {
         }
       };
 
-      console.log("Creando registro de alquiler:", rentalData);
-
+      console.log("Creando registro de alquiler:", rentalData);      const headers = {};
+      
       const rentalResponse = await fetch('http://localhost:8080/rental', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: JSON.stringify(rentalData),
       });
 
@@ -532,12 +529,10 @@ function Panel({ activeSection, setActiveSection, user }) {
         }
       };
 
-      console.log("Actualizando vehículo con datos:", vehicleUpdateData);
-
-      const vehicleUpdateResponse = await fetch(`http://localhost:8080/vehicle/${selectedVehicle.vehicle_id}`, {
+      console.log("Actualizando vehículo con datos:", vehicleUpdateData);      const vehicleUpdateResponse = await fetch(`http://localhost:8080/vehicle/${selectedVehicle.vehicle_id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
         },
         body: JSON.stringify(vehicleUpdateData),
       });
@@ -556,12 +551,10 @@ function Panel({ activeSection, setActiveSection, user }) {
         }
       };
 
-      console.log("Generando factura:", paymentData);
-
-      const paymentResponse = await fetch('http://localhost:8080/payment', {
+      console.log("Generando factura:", paymentData);      const paymentResponse = await fetch('http://localhost:8080/payment', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
         },
         body: JSON.stringify(paymentData),
       });
@@ -679,12 +672,10 @@ function Panel({ activeSection, setActiveSection, user }) {
         willOpen: () => {
           Swal.showLoading();
         }
-      });
-
-      const response = await fetch(`http://localhost:8080/customer/${currentUserId}`, {
+      });      const response = await fetch(`http://localhost:8080/customer/${currentUserId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
         },
         body: JSON.stringify(userInfo),
       });
@@ -886,6 +877,120 @@ function Panel({ activeSection, setActiveSection, user }) {
             >
               🌐 Ver catálogo completo
             </button>
+          </div>        );
+        
+      case "facturas":
+        return (
+          <div className="invoices-section">
+            <div className="section-header">
+              <h2>📄 Historial de Facturas</h2>
+              <p className="section-description">
+                Revisa todas tus rentas y descargas las facturas correspondientes
+              </p>
+              <button 
+                className="refresh-button"
+                onClick={loadCustomerRentals}
+                disabled={rentalsLoading}
+              >
+                {rentalsLoading ? '🔄 Cargando...' : '🔄 Actualizar'}
+              </button>
+            </div>
+
+            {rentalsLoading ? (
+              <div className="loading-rentals">
+                <div className="spinner"></div>
+                <p>Cargando historial de rentas...</p>
+              </div>
+            ) : customerRentals.length > 0 ? (
+              <div className="rentals-list">
+                {customerRentals.map((rental, index) => (
+                  <div key={rental.idRental || index} className="rental-card">
+                    <div className="rental-header">
+                      <div className="rental-info">
+                        <h3 className="rental-title">
+                          🚗 {rental.name || `${rental.vehicle?.brand} ${rental.vehicle?.model}`}
+                        </h3>
+                        <p className="rental-dates">
+                          📅 {new Date(rental.startDate).toLocaleDateString('es-ES')} - {new Date(rental.endDate).toLocaleDateString('es-ES')}
+                        </p>
+                      </div>
+                      <div className="rental-status">
+                        <span className={`status-badge ${rental.status?.toLowerCase()}`}>
+                          {rental.status === 'ACTIVE' ? '✅ Activo' : 
+                           rental.status === 'COMPLETED' ? '✅ Completado' : 
+                           rental.status === 'CANCELLED' ? '❌ Cancelado' : rental.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="rental-details">
+                      <div className="detail-row">
+                        <span className="detail-label">🏷️ Vehículo:</span>
+                        <span className="detail-value">
+                          {rental.vehicle?.brand} {rental.vehicle?.model} - {rental.vehicle?.plate}
+                        </span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-label">💰 Precio Total:</span>
+                        <span className="detail-value price">${rental.price}</span>
+                      </div>
+                      {rental.payment && (
+                        <div className="detail-row">
+                          <span className="detail-label">💳 Método de Pago:</span>
+                          <span className="detail-value">
+                            {rental.payment.paymentMethod === 'CREDIT_CARD' ? 'Tarjeta de Crédito' : 
+                             rental.payment.paymentMethod === 'DEBIT_CARD' ? 'Tarjeta de Débito' : 
+                             rental.payment.paymentMethod || 'No especificado'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="rental-actions">
+                      <button 
+                        className="invoice-button"
+                        onClick={() => showInvoiceDetails(rental.idRental)}
+                      >
+                        📄 Ver Factura
+                      </button>
+                      {rental.payment && (
+                        <div className="payment-info">
+                          <span className="payment-id">
+                            🧾 ID Pago: {rental.payment.idPayment}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-rentals-message">
+                <div className="empty-state">
+                  <div className="empty-icon">📄</div>
+                  <h3>No tienes rentas registradas</h3>
+                  <p>Cuando realices tu primera renta, aparecerá aquí tu historial de facturas.</p>
+                  <button 
+                    className="rent-now-button"
+                    onClick={() => setActiveSection("rentar")}
+                  >
+                    🚗 Alquilar ahora
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="invoices-info">
+              <div className="info-card">
+                <h4>💡 Información Importante</h4>
+                <ul>
+                  <li>✅ Las facturas se generan automáticamente al confirmar una renta</li>
+                  <li>📧 Puedes enviar las facturas por email desde la vista detallada</li>
+                  <li>💾 Todas las facturas quedan guardadas en tu historial</li>
+                  <li>🔄 Usa el botón "Actualizar" para refrescar el listado</li>
+                </ul>
+              </div>
+            </div>
           </div>
         );
         
@@ -985,6 +1090,4 @@ function Panel({ activeSection, setActiveSection, user }) {
 }
 
 export default Panel;
-
-// Agregar un event listener para actualizar los vehículos cuando se realiza una renta
 
