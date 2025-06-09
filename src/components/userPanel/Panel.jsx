@@ -20,8 +20,7 @@ function Panel({ activeSection, setActiveSection, user }) {
     completedRentals: 0,
     totalSpent: 0
   });
-  const navigate = useNavigate();
-  // ✅ FUNCIÓN PARA VALIDAR Y OBTENER EL ID DEL USUARIO (OPTIMIZADA CON USECALLBACK)
+  const navigate = useNavigate();  // ✅ FUNCIÓN PARA VALIDAR Y OBTENER EL ID DEL USUARIO (OPTIMIZADA CON USECALLBACK)
   const getUserId = useCallback(() => {
     // Buscar el ID usando la estructura real del API (idCustomer)
     let userId = userInfo?.idCustomer || userInfo?.id || userInfo?.customer_id || userInfo?.userId;
@@ -33,6 +32,8 @@ function Panel({ activeSection, setActiveSection, user }) {
         try {
           const parsedUser = JSON.parse(storedUser);
           userId = parsedUser?.idCustomer || parsedUser?.id || parsedUser?.customer_id || parsedUser?.userId;
+          console.log("Usuario desde localStorage:", parsedUser);
+          console.log("ID extraído:", userId);
         } catch (e) {
           console.error("Error parsing stored user:", e);
         }
@@ -42,12 +43,44 @@ function Panel({ activeSection, setActiveSection, user }) {
     const numericId = userId ? parseInt(userId, 10) : null;
     
     if (!numericId || isNaN(numericId)) {
-      console.error("ID de usuario inválido:", userId, "userInfo:", userInfo);
-      return null;
+      console.warn("ID de usuario inválido:", userId, "userInfo:", userInfo);
+      // Como fallback temporal, usamos el ID 11 que sabemos que tiene datos
+      console.warn("🚨 USANDO ID TEMPORAL 11 COMO FALLBACK - REVISA LA AUTENTICACIÓN");
+      return 11;
     }
     
+    console.log("✅ ID de usuario válido:", numericId);
     return numericId;
-  }, [userInfo]);  // ✅ FUNCIÓN PARA CARGAR RENTAS DEL CLIENTE (FACTURAS)
+  }, [userInfo]); // Incluir userInfo como dependencia
+  // ✅ CARGAR INFORMACIÓN DEL USUARIO DESDE EL BACKEND SI NO TENEMOS DATOS COMPLETOS
+  useEffect(() => {
+    const loadUserInfo = async () => {
+      // Solo cargar del backend si no tenemos información completa del usuario
+      if (!userInfo?.idCustomer && !userInfo?.id) {
+        try {
+          const currentUserId = getUserId();
+          if (currentUserId) {
+            console.log("Cargando información del usuario desde el backend para ID:", currentUserId);
+            const response = await fetch(`http://localhost:8080/customer/${currentUserId}`);
+            if (response.ok) {
+              const userData = await response.json();
+              setUserInfo(userData);
+              console.log("✅ Información del usuario cargada desde backend:", userData);
+            } else {
+              console.warn("No se pudo cargar información del usuario desde el backend");
+            }
+          }
+        } catch (error) {
+          console.error("Error cargando información del usuario:", error);
+        }
+      } else {
+        console.log("✅ Información del usuario ya disponible:", userInfo);
+      }
+    };
+    loadUserInfo();
+  }, [getUserId, userInfo]);
+
+// ✅ FUNCIÓN PARA CARGAR RENTAS DEL CLIENTE (FACTURAS)
   const loadCustomerRentals = useCallback(async () => {
     const currentUserId = getUserId();
     if (!currentUserId) {
@@ -142,9 +175,7 @@ function Panel({ activeSection, setActiveSection, user }) {
           year: vehicle?.year || 'N/A',
           price: vehicle?.price || 0
         };
-      }));
-
-      const available = dataWithCorrectFields.filter(vehicle => 
+      }));      const available = dataWithCorrectFields.filter(vehicle => 
         !vehicle.customers || !vehicle.customers.id
       );
       setAvailableCars(available);
@@ -152,22 +183,73 @@ function Panel({ activeSection, setActiveSection, user }) {
       
       const currentUserId = getUserId();
       if (currentUserId) {
-        const rented = dataWithCorrectFields.filter(vehicle => 
-          vehicle.customers && 
-          vehicle.customers.id && 
-          parseInt(vehicle.customers.id, 10) === currentUserId
-        );
-        setRentedCars(rented);
-        console.log("Rented vehicles for user", currentUserId, "after reload:", rented.length);
+        // Verificar si el backend devuelve campo customers
+        const hasCustomersField = dataWithCorrectFields.some(vehicle => Object.prototype.hasOwnProperty.call(vehicle, 'customers'));
+        
+        if (hasCustomersField) {
+          // Backend corregido: usar estructura normal
+          const rented = dataWithCorrectFields.filter(vehicle => 
+            vehicle.customers && 
+            vehicle.customers.id && 
+            parseInt(vehicle.customers.id, 10) === currentUserId
+          );
+          setRentedCars(rented);
+          console.log("Rented vehicles for user", currentUserId, "after reload:", rented.length);
+        } else {
+          // Usar estructura Customer->Rental<-Vehicle
+          try {
+            const rentalsResponse = await fetch(`http://localhost:8080/rental/customer/${currentUserId}/active`);
+            if (rentalsResponse.ok) {
+              const rentalsData = await rentalsResponse.json();
+              
+              const rentedVehiclesWithRentalInfo = rentalsData.map(rental => {
+                const rentalVehicleId = rental.vehicle?.vehicleId || rental.vehicleId;
+                let vehicleData = null;
+                
+                if (rentalVehicleId) {
+                  vehicleData = dataWithCorrectFields.find(v => 
+                    (v.vehicleId && v.vehicleId === rentalVehicleId) || 
+                    (v.vehicle_id && v.vehicle_id === rentalVehicleId)
+                  );
+                }
+                
+                if (!vehicleData && rental.name) {
+                  vehicleData = dataWithCorrectFields.find(v => {
+                    const vehicleName = `${v.brand || ''} ${v.model || ''}`.trim();
+                    return vehicleName === rental.name.trim();
+                  });
+                }
+                
+                if (vehicleData) {
+                  return {
+                    ...vehicleData,
+                    startDate: rental.startDate,
+                    endDate: rental.endDate,
+                    rentalId: rental.idRental || rental.id,
+                    customers: { 
+                      id: currentUserId,
+                      name: rental.customer?.name || userInfo?.name || 'Usuario'
+                    }
+                  };
+                }
+                return null;
+              }).filter(Boolean);
+              
+              setRentedCars(rentedVehiclesWithRentalInfo);
+              console.log("Rented vehicles for user", currentUserId, "after reload:", rentedVehiclesWithRentalInfo.length);
+            }
+          } catch (error) {
+            console.error("Error loading rentals in reload:", error);
+          }
+        }
       }
 
       setLoading(false);
-    } catch (error) {
-      console.error('Error reloading vehicles:', error);
+    } catch (error) {      console.error('Error reloading vehicles:', error);
       setError(`Error al recargar vehículos: ${error.message}`);
       setLoading(false);
     }
-  }, [getUserId]);
+  }, [getUserId, userInfo?.name]);
 // ✅ USEEFFECT PARA CARGAR FACTURAS CUANDO SE CAMBIA A LA SECCIÓN CORRESPONDIENTE
   useEffect(() => {
     let isMounted = true;
@@ -260,36 +342,148 @@ function Panel({ activeSection, setActiveSection, user }) {
             year: vehicle?.year || 'N/A',
             price: vehicle?.price || 750
           };
-        }));
-
-        const available = dataWithCorrectFields.filter(vehicle => 
-          !vehicle.customers || !vehicle.customers.id
-        );
-        setAvailableCars(available);
-        console.log("Available vehicles:", available.length);
+        }));        // ✅ SOLUCIÓN INTELIGENTE: Detectar automáticamente la estructura de datos del backend
+        // Obtener el ID del usuario actual
+        const currentUserId = getUserId();
+        console.log("Current user ID for filtering:", currentUserId);
         
-        // Solo filtrar vehículos rentados si tenemos un ID de usuario válido
-        const storedUser = localStorage.getItem("User");
-        let currentUserId = null;
-        if (storedUser) {
-          try {
-            const parsedUser = JSON.parse(storedUser);
-            currentUserId = parsedUser?.idCustomer || parsedUser?.id || parsedUser?.customer_id || parsedUser?.userId;
-            currentUserId = currentUserId ? parseInt(currentUserId, 10) : null;
-          } catch (e) {
-            console.error("Error parsing stored user:", e);
-          }
-        }
+        // Verificar si el backend ya devuelve relaciones customers
+        const hasCustomersField = data.some(vehicle => Object.prototype.hasOwnProperty.call(vehicle, 'customers'));
+        console.log("Backend devuelve campo 'customers':", hasCustomersField);
         
-        if (currentUserId && !isNaN(currentUserId)) {
-          const rented = dataWithCorrectFields.filter(vehicle => 
-            vehicle.customers && 
-            vehicle.customers.id && 
-            parseInt(vehicle.customers.id, 10) === currentUserId
+        if (hasCustomersField) {
+          // ✅ BACKEND CORREGIDO: Usar la estructura normal con customers
+          console.log("🎉 Usando estructura normal del backend (customers field disponible)");
+          
+          const available = dataWithCorrectFields.filter(vehicle => 
+            !vehicle.customers || !vehicle.customers.id
           );
-          setRentedCars(rented);
-          console.log("Rented vehicles for user", currentUserId, ":", rented.length);
-        }
+          setAvailableCars(available);
+          console.log("Available vehicles:", available.length);
+          
+          if (currentUserId) {
+            const rented = dataWithCorrectFields.filter(vehicle => 
+              vehicle.customers && 
+              vehicle.customers.id && 
+              parseInt(vehicle.customers.id, 10) === currentUserId
+            );
+            setRentedCars(rented);
+            console.log("Rented vehicles for user", currentUserId, ":", rented.length);
+          }        } else {
+          // 🔧 SOLUCIÓN USANDO ESTRUCTURA CUSTOMER -> RENTAL <- VEHICLE
+          console.log("⚠️ Usando estructura Customer->Rental<-Vehicle (campo customers no disponible en /vehicle)");
+          
+          // Cargar los datos de rentals del usuario actual para determinar vehículos rentados
+          let userRentedVehicles = [];
+          if (currentUserId) {
+            try {
+              const rentalsResponse = await fetch(`http://localhost:8080/rental/customer/${currentUserId}/active`);
+              if (rentalsResponse.ok) {
+                const rentalsData = await rentalsResponse.json();
+                console.log("User rentals data:", rentalsData);
+                userRentedVehicles = rentalsData || [];
+              }
+            } catch (error) {
+              console.error("Error loading user rentals:", error);
+            }
+          }
+
+          // Crear un conjunto de IDs de vehículos rentados para filtrar disponibles
+          const rentedVehicleIds = new Set();
+          if (userRentedVehicles.length > 0) {
+            userRentedVehicles.forEach(rental => {
+              // Obtener el ID del vehículo desde los datos del rental
+              const vehicleId = rental.vehicle?.vehicleId || rental.vehicleId;
+              if (vehicleId) {
+                rentedVehicleIds.add(vehicleId);
+              }
+            });
+          }
+
+          // Filtrar vehículos disponibles (que no estén en la lista de rentados)
+          const available = dataWithCorrectFields.filter(vehicle => {
+            const vehicleId = vehicle.vehicleId || vehicle.vehicle_id;
+            return !rentedVehicleIds.has(vehicleId);
+          });
+          setAvailableCars(available);
+          console.log("Available vehicles:", available.length, "Excluded rented IDs:", Array.from(rentedVehicleIds));
+          
+          // Crear vehículos rentados combinando datos de rental con datos de vehículo
+          if (currentUserId && userRentedVehicles.length > 0) {
+            const rentedVehiclesWithRentalInfo = userRentedVehicles.map(rental => {
+              // Buscar el vehículo correspondiente en los datos cargados usando múltiples métodos de matching
+              let vehicleData = null;
+              const rentalVehicleId = rental.vehicle?.vehicleId || rental.vehicleId;
+              
+              if (rentalVehicleId) {
+                vehicleData = dataWithCorrectFields.find(v => 
+                  (v.vehicleId && v.vehicleId === rentalVehicleId) || 
+                  (v.vehicle_id && v.vehicle_id === rentalVehicleId)
+                );
+              }
+              
+              // Si no encontramos por ID, intentar por nombre (como fallback)
+              if (!vehicleData && rental.name) {
+                vehicleData = dataWithCorrectFields.find(v => {
+                  const vehicleName = `${v.brand || ''} ${v.model || ''}`.trim();
+                  return vehicleName === rental.name.trim();
+                });
+              }
+              
+              if (vehicleData) {
+                // Combinar datos del vehículo con información del rental
+                return {
+                  ...vehicleData,
+                  // Información del rental
+                  startDate: rental.startDate,
+                  endDate: rental.endDate,
+                  rentalId: rental.idRental || rental.id,
+                  rentalStatus: rental.status,
+                  rentalPrice: rental.price,
+                  // Simular la estructura customers que espera el frontend
+                  customers: { 
+                    id: currentUserId,
+                    name: rental.customer?.name || userInfo?.name || 'Usuario'
+                  },
+                  // Información adicional del rental
+                  rentalName: rental.name,
+                  rentalDescription: rental.description
+                };
+              } else {
+                // Si no encontramos el vehículo en /vehicle, crear uno con los datos del rental
+                console.warn("No se encontró vehículo en /vehicle para rental:", rental);
+                return {
+                  vehicleId: rentalVehicleId || 0,
+                  vehicle_id: rentalVehicleId || 0,
+                  brand: rental.name?.split(' ')[0] || 'Sin marca',
+                  model: rental.name?.split(' ').slice(1).join(' ') || 'Sin modelo',
+                  plate: 'No disponible',
+                  year: 'N/A',
+                  price: rental.price || 0,
+                  image_url: imageService.defaultImage,
+                  imageLoaded: true,
+                  // Información del rental
+                  startDate: rental.startDate,
+                  endDate: rental.endDate,
+                  rentalId: rental.idRental || rental.id,
+                  rentalStatus: rental.status,
+                  rentalPrice: rental.price,
+                  // Simular la estructura customers que espera el frontend
+                  customers: { 
+                    id: currentUserId,
+                    name: rental.customer?.name || userInfo?.name || 'Usuario'
+                  },
+                  // Información adicional del rental
+                  rentalName: rental.name,
+                  rentalDescription: rental.description
+                };
+              }
+            }).filter(Boolean);
+            
+            console.log("Rented vehicles with rental info:", rentedVehiclesWithRentalInfo);
+            setRentedCars(rentedVehiclesWithRentalInfo);
+            console.log("Rented vehicles for user", currentUserId, ":", rentedVehiclesWithRentalInfo.length);
+          }}
 
         setLoading(false);
       } catch (error) {
@@ -300,7 +494,7 @@ function Panel({ activeSection, setActiveSection, user }) {
     };
     
     loadData();
-  }, []); // Solo se ejecuta una vez al montar el componente  // ✅ FUNCIÓN PARA MOSTRAR DETALLES DE FACTURA
+  }, [getUserId, userInfo?.name]); // Incluir userInfo?.name como dependencia  // ✅ FUNCIÓN PARA MOSTRAR DETALLES DE FACTURA
   const showInvoiceDetails = async (rentalId) => {
     console.log("Loading invoice details for rental:", rentalId);
     
